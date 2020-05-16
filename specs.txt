@@ -1,0 +1,32 @@
+Data Types
+
+    Int8 , Int16, Int32, Int64, UInt8
+    UInt16, UInt32, UInt64
+    Float, Float64
+    Bool, Array, Pointer, Any
+    String (UInt8*) [Null terminated]
+
+Code snippets
+
+    func array_replace(_ array: *String[..], elementAt index: Int, with value: String) -> string {
+        oldValue : String = array[index]
+        array[index] = value
+        return oldValue
+    }
+
+    danny_boy : String : "Danny";
+
+    arguments : String[3] = ["Claire", "Bob"];
+    array_replace(*arguments, elementAt: 0, with: "Alice")
+    arguments[2] = danny_boy;
+
+    if arguments[0] == "Alice" {
+        print("Success")
+    }
+    else if arguments[0] == "Claire" {
+        print("Failure")
+    }
+    else {
+        print("Panic! What the hell is even going on???")
+    }
+
