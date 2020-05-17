@@ -8,10 +8,10 @@ define i32 @main () {
 	%global_func_main_variable_b = alloca i32
 	store i32 1, i32* %global_func_main_variable_b
 	
-	; binary operator: add
+	; binary operator: sub
 	%1 = load i32, i32* %global_func_main_variable_a
 	%2 = load i32, i32* %global_func_main_variable_b
-	%3 = add i32 %1, %2
+	%3 = sub i32 %1, %2
 	store i32 %3, i32* %global_func_main_variable_b
 	
 
