@@ -18,7 +18,7 @@ define i32 @main () {
 	; argument Int32
 	%5 = load i32, i32* %global_func_main_variable_b
 
-	; procedure global_func_prinf
+	; procedure printf
 	%6 = call i32 (i8*, i32, ...) @printf (i8* %4, i32 %5)
 	ret i32 0
 }

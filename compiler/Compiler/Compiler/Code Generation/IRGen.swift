@@ -10,6 +10,9 @@ import Foundation
 
 struct IR {
     
+    // @Todo: this worked, but it sounds like a really bad idea
+    // I need to investigate how this is supposed to be actually done
+    
     fileprivate static var stringLiterals: [String: StringLiteral] = [:]
     fileprivate static var procedures: [String: ProcedureDeclaration] = [:]
     
@@ -192,7 +195,7 @@ struct IR {
             let value = "%\(resultCount)"
             
             code += "\n"
-            code += "\(identation); procedure \(call.name)\n"
+            code += "\(identation); procedure \(procedure.name)\n"
             code += "\(identation)\(value) = call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
             
             return (code, value)
