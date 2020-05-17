@@ -69,6 +69,5 @@ let ast = Scope(code: [
 
 let ir = IR.generateIR(globalScope: ast)
 
-print("Program output:\n")
 print(ir)
 print("\n")
