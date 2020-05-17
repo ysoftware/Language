@@ -13,6 +13,7 @@ let ast = Scope(code: [
     // "%d\n"
     
     StringLiteral(id: "global_string_literal_1", value: "%d\n\0"),
+    StringLiteral(id: "global_string_literal_2", value: "we hit 4\n\0"),
     
     // func printf(_ format: String, _ arguments: Int32...) -> Int32 #foreign
     
@@ -54,6 +55,25 @@ let ast = Scope(code: [
                         Argument(name: "global_func_main_variable_b", type: .int32)
                     ))
             ),
+            
+            Condition(
+                condition: BinaryOperator(
+                    name: "icmp eq", type: .int32,
+                    arguments: (
+                        Argument(name: "global_func_main_variable_b", type: .int32),
+                        IntLiteral(id: nil, value: 4)
+                )
+            ), block: Scope(code: [
+                
+                // @Todo: can't pass literal as argument
+                
+                ProcedureCall(
+                    name: "global_func_prinf", type: .int8, arguments: [
+                        Argument(name: "global_string_literal_2", type: .string),
+                        Argument(name: "global_func_main_variable_b", type: .int32),
+                ]),
+                
+            ]), elseBlock: .empty),
             
             // printf("%d\n", b)
             

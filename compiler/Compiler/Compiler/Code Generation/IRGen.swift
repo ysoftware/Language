@@ -16,7 +16,7 @@ struct IR {
     fileprivate static var stringLiterals: [String: StringLiteral] = [:]
     fileprivate static var procedures: [String: ProcedureDeclaration] = [:]
     
-    fileprivate static var globalCounter = 1
+    fileprivate static var globalCounter = 0
     fileprivate static var globalScope = ""
     
     fileprivate static func count() -> Int {
@@ -68,6 +68,7 @@ struct IR {
                 }
                 else {
                     emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
+                    _ = count() // implicit entry block takes the next name
                     let body = generate(inLocalScope: procedure.code, ident: ident + 1)
                     emitLocal(body)
                     emitLocal("}")
@@ -83,6 +84,44 @@ struct IR {
                 emitLocal(eCode)
             }
             
+            // CONDITION
+            else if let condition = expression as? Condition {
+                
+                guard ident > 0 else {
+                    report("Conditional statements are not allowed at global scope")
+                }
+                
+                emitLocal("\n")
+                emitLocal("; condition evaluation")
+                
+                let (eCode, eValue) = getExpressionResult(condition.condition, ident: ident)
+                emitLocal(eCode)
+                
+                emitLocal("\n")
+                emitLocal("; condition")
+                
+                let ifCount = count()
+                let ifBody = generate(inLocalScope: condition.block, ident: ident + 1)
+                
+                let elseCount = count()
+                emitLocal("br i1 \(eValue), label %\(ifCount), label %\(elseCount)")
+                
+                emitLocal("\n")
+                emitLocal("; %\(ifCount)  if")
+                emitLocal(ifBody)
+                                
+                // @Incomplete else
+                
+                emitLocal("br label %\(elseCount)")
+                emitLocal("; %\(elseCount)")
+                
+//                if !condition.elseBlock.isEmpty {
+//                    let body = generate(inLocalScope: condition.block, ident: ident + 1)
+//                }
+                
+                
+            }
+                
             // STRING LITERAL
             else if let literal = expression as? StringLiteral {
                 
@@ -124,6 +163,11 @@ struct IR {
                 
                 emitLocal(eCode)
                 emitLocal("ret \(matchType(ret.value.type.name)) \(eValue)")
+            }
+            
+            else {
+                
+                report("Undefined expression:\n\(expression)")
             }
         }
         
@@ -211,21 +255,42 @@ struct IR {
             let (leCode, leValue) = getExpressionResult(l, ident: ident)
             let (reCode, reValue) = getExpressionResult(r, ident: ident)
             
-            let lCount = count()
-            let rCount = count()
-            let resultCount = count()
+            // @Incomplete: this only takes pointers, doesn't work with int literals
             
-            let loadL = "%\(lCount) = load \(matchType(l.type.name)), \(matchType(l.type.name))* \(leValue)"
-            let loadR = "%\(rCount) = load \(matchType(r.type.name)), \(matchType(r.type.name))* \(reValue)"
-            let result = "%\(resultCount) = \(op.name) \(type) %\(lCount), %\(rCount)"
+            // these are identifiers or values (if literals)
+            // passed to the operator
+            var lCount = "", rCount = ""
+            var loadL: String?, loadR: String?
+            
+            if l is IntLiteral {
+                lCount = leValue
+            }
+            else {
+                lCount = "%\(count())"
+                loadL = "\(lCount) = load \(matchType(l.type.name)), \(matchType(l.type.name))* \(leValue)"
+            }
+            
+            if r is IntLiteral {
+                rCount = reValue
+            }
+            else {
+                rCount = "%\(count())"
+                loadR = "\(rCount) = load \(matchType(r.type.name)), \(matchType(r.type.name))* \(reValue)"
+            }
+            
+            let resultCount = count()
+            let result = "%\(resultCount) = \(op.name) \(type) \(lCount), \(rCount)"
             let value = "%\(resultCount)"
             
             var code = "\n"
             code += "\(identation); binary operator: \(op.name)\n"
+            
             leCode.map { code += "\(identation)\($0)\n" }
+            loadL.map { code += "\(identation)\($0)\n" }
+            
             reCode.map { code += "\(identation)\($0)\n" }
-            code += "\(identation)\(loadL)\n"
-            code += "\(identation)\(loadR)\n"
+            loadR.map { code += "\(identation)\($0)\n" }
+            
             code += "\(identation)\(result)"
             
             return (code, value)
