@@ -10,8 +10,8 @@ CODE
 
     func main() -> Int32 {
 
-        a : Int : 3                     // let a: Int = 3
-        b : Int = 1                     // var b: Int = 1
+        a : Int32 : 3                   // let a: Int = 3
+        b : Int32 = 1                   // var b: Int = 1
         b = a + b                       // b = a + b
 
         printf("%d\n", b)               // print("\(b)\n")
@@ -32,7 +32,6 @@ global scope:
         name: "printf"
         returns: "Int32"
         arguments: [
-
             argument:
                 label: "_"
                 name: "format"
@@ -53,27 +52,40 @@ global scope:
         returns: "Int32"
         code: [
 
-            new_int_64:
+            VariableDeclaration:
                 id: "global_func_main_variable_a"
+                type: "Int32"
                 constant: true
-                value: 3
+                expression:
+                    int_literal:
+                        id: null
+                        value: 3
 
-            new_int_64:
+            VariableDeclaration:
                 id: "global_func_main_variable_b"
+                type: "Int32"
                 constant: false
-                value: 1
+                expression:
+                    int_literal:
+                        value: 1
 
-            set_expression_int_64:
-                variable: "global_func_main_variable_b"
-                expression: 
-
-                    procedure_call:
-                        name: "add_int64"
-                        arguments: ["global_func_main_variable_a", "global_func_main_variable_b"]
+            assignment:
+                receiver: "global_func_main_variable_b"
+                expression:
+                    binary_operator:
+                        name: "add"
+                        type: "Int32"
+                        arguments: [
+                            "global_func_main_variable_a"
+                            "global_func_main_variable_b"
+                        ]
             
-            procedure_call:
+            call:
                 name: "global_func_prinf"
-                arguments: ["global_string_literal_1", "global_func_main_variable_b"]
+                arguments: [
+                    "global_string_literal_1"
+                    "global_func_main_variable_b"
+                ]
 
             return_int64:
                 value: 0

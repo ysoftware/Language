@@ -10,13 +10,9 @@ compilation steps:
 
 development steps:
 
-    1. use LLVM to parse manually-written IR 
+    ✔️. use LLVM to parse manually-written IR 
     2. generate IR from some manually written and type-set-up AST
     3. parse code into AST
     4. type check AST and connect it to IR generation
-
-
-useful info:
-    goldbolt.org
 
 */
