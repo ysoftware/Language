@@ -8,32 +8,32 @@
 
 import Foundation
 
-struct IR {
+final class IR {
     
     // @Todo: this worked, but it sounds like a really bad idea
     // I need to investigate how this is supposed to be actually done
     
-    fileprivate static var stringLiterals: [String: StringLiteral] = [:]
-    fileprivate static var procedures: [String: ProcedureDeclaration] = [:]
+    fileprivate var stringLiterals: [String: StringLiteral] = [:]
+    fileprivate var procedures: [String: ProcedureDeclaration] = [:]
     
-    fileprivate static var globalCounter = 0
-    fileprivate static var globalScope = ""
+    fileprivate var globalCounter = 0
+    fileprivate var globalScope = ""
     
-    fileprivate static func count() -> Int {
+    fileprivate func count() -> Int {
         globalCounter += 1
         return globalCounter - 1
     }
     
-    fileprivate static func emitGlobal(_ string: String) {
+    fileprivate func emitGlobal(_ string: String) {
         globalScope += string + "\n"
     }
     
-    static func generateIR(globalScope ast: Scope) -> String {
+    func generateIR(globalScope ast: Scope) -> String {
         let code = generate(inLocalScope: ast, ident: 0)
         return globalScope + "\n" + code
     }
     
-    fileprivate static func getProcedureArgumentString(from procedure: ProcedureDeclaration) -> String {
+    fileprivate func getProcedureArgumentString(from procedure: ProcedureDeclaration) -> String {
         var argumentNames = procedure.arguments.map(\.name).map(matchType)
         if procedure.flags.contains(.isVarargs) {
             argumentNames.append("...")
@@ -42,7 +42,7 @@ struct IR {
         return arguments
     }
     
-    fileprivate static func generate(inLocalScope ast: Scope, ident: Int) -> String {
+    fileprivate func generate(inLocalScope ast: Scope, ident: Int) -> String {
         
         var scope = ""
         func emitLocal(_ string: String? = "") {
@@ -60,7 +60,10 @@ struct IR {
                 let returnType = matchType(procedure.returnType.name)
                 
                 if procedure.flags.contains(.isForeign) {
+                    
                     // @Todo: assert if not in global scope?
+                    // do it at ast building
+                    
                     guard procedure.code.isEmpty else {
                         report("Foreign procedures must not have a body")
                     }
@@ -134,6 +137,7 @@ struct IR {
             // VARIABLE DECLARATION
             else if let variable = expression as? VariableDeclaration {
                 // @Todo: support constant variables
+                // do it at ast building?
                 
                 let (eCode, eValue) = getExpressionResult(variable.expression, ident: ident)
                 emitLocal(eCode)
@@ -169,7 +173,7 @@ struct IR {
         return scope.trimmingCharacters(in: .newlines)
     }
     
-    fileprivate static func getExpressionResult(
+    fileprivate func getExpressionResult(
         _ expression: Expression, ident: Int) -> (code: String?, value: String) {
         let identation = String(repeating: "\t", count: ident)
         
@@ -193,6 +197,10 @@ struct IR {
             
             // @Todo: dereference all arguments passed by value
             // for now, doing that manually
+            
+            // is there even such a thing? passing something by value?
+            // in IR values are a completely different thing (SSA)
+            
             for arg in call.arguments {
                 
                 code += "\(identation); argument \(arg.type.name)\n"
@@ -290,7 +298,6 @@ struct IR {
             return (code, value)
         }
         
-        // @Todo: needs work
         report("Unsupported expression\n\(expression)")
     }
 }

@@ -98,7 +98,7 @@ let ast = Scope(code: [
     ]))
 ])
 
-let ir = IR.generateIR(globalScope: ast)
+let ir = IR().generateIR(globalScope: ast)
 
 print(ir)
 print("\n")
