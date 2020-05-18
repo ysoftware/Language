@@ -13,7 +13,8 @@ let ast = Scope(code: [
     // "%d\n"
     
     StringLiteral(id: "global_string_literal_1", value: "%d\n\0"),
-    StringLiteral(id: "global_string_literal_2", value: "we hit 4\n\0"),
+    StringLiteral(id: "global_string_literal_2", value: "we hit if! %d %d\n\0"),
+    StringLiteral(id: "global_string_literal_3", value: "we hit else %d %d\n\0"),
     
     // func printf(_ format: String, _ arguments: Int32...) -> Int32 #foreign
     
@@ -50,7 +51,7 @@ let ast = Scope(code: [
             VariableAssignment(
                 receiverId: "global_func_main_variable_b", expression:
                 BinaryOperator(
-                    name: "add", type: .int32, arguments: (
+                    name: "sub", type: .int32, arguments: (
                         Argument(name: "global_func_main_variable_a", type: .int32),
                         Argument(name: "global_func_main_variable_b", type: .int32)
                     ))
@@ -64,16 +65,26 @@ let ast = Scope(code: [
                         IntLiteral(id: nil, value: 4)
                 )
             ), block: Scope(code: [
-                
+            
                 // @Todo: can't pass literal as argument
                 
                 ProcedureCall(
                     name: "global_func_prinf", type: .int8, arguments: [
                         Argument(name: "global_string_literal_2", type: .string),
+                        Argument(name: "global_func_main_variable_a", type: .int32),
                         Argument(name: "global_func_main_variable_b", type: .int32),
                 ]),
                 
-            ]), elseBlock: .empty),
+            ]), elseBlock: Scope(code: [
+                
+                // just print a
+                ProcedureCall(
+                    name: "global_func_prinf", type: .int8, arguments: [
+                        Argument(name: "global_string_literal_3", type: .string),
+                        Argument(name: "global_func_main_variable_a", type: .int32),
+                        Argument(name: "global_func_main_variable_b", type: .int32),
+                ]),
+            ])),
             
             // printf("%d\n", b)
             

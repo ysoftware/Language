@@ -45,7 +45,7 @@ struct IR {
     fileprivate static func generate(inLocalScope ast: Scope, ident: Int) -> String {
         
         var scope = ""
-        func emitLocal(_ string: String?) {
+        func emitLocal(_ string: String? = "") {
             guard let string = string else { return }
             let identation = String(repeating: "\t", count: ident)
             scope += "\(identation)\(string)\n"
@@ -86,53 +86,48 @@ struct IR {
             
             // CONDITION
             else if let condition = expression as? Condition {
-                
                 guard ident > 0 else {
                     report("Conditional statements are not allowed at global scope")
                 }
                 
-                emitLocal("\n")
-                emitLocal("; condition evaluation")
+                let hasElse = !condition.elseBlock.isEmpty
                 
+                emitLocal("; condition evaluation")
                 let (eCode, eValue) = getExpressionResult(condition.condition, ident: ident)
                 emitLocal(eCode)
                 
-                emitLocal("\n")
-                emitLocal("; condition")
-                
                 let ifCount = count()
+                let continueLabel = "continue_\(ifCount)"
+                let elseLabel = hasElse ? "else_\(ifCount)" : continueLabel
+                
+                emitLocal("br i1 \(eValue), label %\(ifCount), label %\(elseLabel)")
+                
                 let ifBody = generate(inLocalScope: condition.block, ident: ident + 1)
                 
-                let elseCount = count()
-                emitLocal("br i1 \(eValue), label %\(ifCount), label %\(elseCount)")
-                
-                emitLocal("\n")
-                emitLocal("; %\(ifCount)  if")
+                emitLocal()
+                emitLocal("; %\(ifCount) if block")
                 emitLocal(ifBody)
-                                
-                // @Incomplete else
+                emitLocal("br label %\(continueLabel)")
+
+                if hasElse {
+                    let elseBody = generate(inLocalScope: condition.elseBlock, ident: ident + 1)
+                    emitLocal()
+                    emitLocal("\(elseLabel):")
+                    emitLocal(elseBody)
+                    emitLocal("br label %\(continueLabel)")
+                }
                 
-                emitLocal("br label %\(elseCount)")
-                emitLocal("; %\(elseCount)")
-                
-//                if !condition.elseBlock.isEmpty {
-//                    let body = generate(inLocalScope: condition.block, ident: ident + 1)
-//                }
-                
-                
+                emitLocal()
+                emitLocal("\(continueLabel):")
             }
                 
             // STRING LITERAL
             else if let literal = expression as? StringLiteral {
-                
                 // @Todo: make sure we have to assert here
-                guard let cString = literal.value.cString(using: .ascii) else {
-                    report("Unsupported character in string literal")
+                guard let value = getCString(from: literal.value) else {
+                    report("Unsupported character in string literal. Only supporting ascii for now.")
                 }
-
-                let value = cString.map { String(format: "\\%02X", $0) }.joined()
                 emitGlobal("@\(literal.id) = constant [\(literal.value.count) x i8] c\"\(value)\"")
-                
                 stringLiterals[literal.id] = literal
             }
                 
@@ -238,7 +233,6 @@ struct IR {
             let resultCount = count()
             let value = "%\(resultCount)"
             
-            code += "\n"
             code += "\(identation); procedure \(procedure.name)\n"
             code += "\(identation)\(value) = call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
             

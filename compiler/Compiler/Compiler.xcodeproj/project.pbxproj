@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1F09BF6924714CB500171D0A /* TypeMatching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F09BF6824714CB500171D0A /* TypeMatching.swift */; };
 		1F09BF6B2471B8DF00171D0A /* ControlFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F09BF6A2471B8DF00171D0A /* ControlFlow.swift */; };
+		1FAA3E922472C5F30015C8BD /* CInterop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E912472C5F30015C8BD /* CInterop.swift */; };
 		1FFF349424711E3100389B0C /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF349324711E3100389B0C /* main.swift */; };
 		1FFF34A12471210700389B0C /* Literals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF34A02471210700389B0C /* Literals.swift */; };
 		1FFF34A52471216000389B0C /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF34A42471216000389B0C /* Expression.swift */; };
@@ -34,6 +35,7 @@
 /* Begin PBXFileReference section */
 		1F09BF6824714CB500171D0A /* TypeMatching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeMatching.swift; sourceTree = "<group>"; };
 		1F09BF6A2471B8DF00171D0A /* ControlFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlFlow.swift; sourceTree = "<group>"; };
+		1FAA3E912472C5F30015C8BD /* CInterop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CInterop.swift; sourceTree = "<group>"; };
 		1FFF349024711E3100389B0C /* Compiler */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Compiler; sourceTree = BUILT_PRODUCTS_DIR; };
 		1FFF349324711E3100389B0C /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		1FFF34A02471210700389B0C /* Literals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Literals.swift; sourceTree = "<group>"; };
@@ -109,6 +111,7 @@
 			children = (
 				1FFF34AC24713C1F00389B0C /* IRGen.swift */,
 				1F09BF6824714CB500171D0A /* TypeMatching.swift */,
+				1FAA3E912472C5F30015C8BD /* CInterop.swift */,
 			);
 			path = "Code Generation";
 			sourceTree = "<group>";
@@ -178,6 +181,7 @@
 				1FFF34B324714AB900389B0C /* BaseAST.swift in Sources */,
 				1FFF34AB2471260400389B0C /* Types.swift in Sources */,
 				1FFF34A52471216000389B0C /* Expression.swift in Sources */,
+				1FAA3E922472C5F30015C8BD /* CInterop.swift in Sources */,
 				1F09BF6924714CB500171D0A /* TypeMatching.swift in Sources */,
 				1FFF34AF24714A1200389B0C /* Error.swift in Sources */,
 				1FFF34AD24713C1F00389B0C /* IRGen.swift in Sources */,
