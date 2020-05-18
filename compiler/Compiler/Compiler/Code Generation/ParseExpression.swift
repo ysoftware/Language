@@ -15,17 +15,14 @@ internal extension IR {
         _ expression: Expression, ident: Int) -> (code: String?, value: String) {
         let identation = String(repeating: "\t", count: ident)
         
-        
-        if let literal = expression as? IntLiteral {
+        switch expression {
+        case let literal as IntLiteral:
             return (nil, "\(literal.value)")
-        }
             
-        else if let variable = expression as? Argument {
+        case let variable as Argument:
             return (nil, "%\(variable.name)")
-        }
             
-        else if let call = expression as? ProcedureCall {
-            
+        case let call as ProcedureCall:
             guard let procedure = procedures[call.name] else {
                 report("Undefined procedure call: \(call.name)")
             }
@@ -81,14 +78,13 @@ internal extension IR {
             
             code += "\(identation); procedure \(procedure.name)\n"
             code += "\(identation)\(value) = call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
-            
             return (code, value)
-        }
             
-        else if let op = expression as? BinaryOperator {
             
-            // на примере add
-            let type = matchType(op.type.name)
+        case let op as BinaryOperator:
+            let workingType = matchType(op.workingType.name)
+            let returnType = matchType(op.type.name)
+            
             let l = op.arguments.0
             let r = op.arguments.1
             
@@ -120,24 +116,21 @@ internal extension IR {
             
             let resultCount = count()
             let instruction: String = op.name.int
-            let result = "%\(resultCount) = \(instruction) \(type) \(lCount), \(rCount)"
+            let result = "%\(resultCount) = \(instruction) \(workingType) \(lCount), \(rCount)"
             let value = "%\(resultCount)"
             
             var code = "\n"
             code += "\(identation); binary operator: \(op.name)\n"
-            
             leCode.map { code += "\(identation)\($0)\n" }
             loadL.map { code += "\(identation)\($0)\n" }
-            
             reCode.map { code += "\(identation)\($0)\n" }
             loadR.map { code += "\(identation)\($0)\n" }
-            
             code += "\(identation)\(result)"
-            
             return (code, value)
+            
+        default:
+            report("Unsupported expression\n\(expression)")
         }
-        
-        report("Unsupported expression\n\(expression)")
     }
     
     func getProcedureArgumentString(from procedure: ProcedureDeclaration) -> String {

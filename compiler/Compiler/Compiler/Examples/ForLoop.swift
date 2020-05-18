@@ -32,10 +32,9 @@ let ForLoop = Scope(code: [
                                 flags: [], expression: IntLiteral(value: 10)),
             
             // while a != 0 {
-            ConditionalLoop(
+            WhileLoop(
                 condition: BinaryOperator(
-                    name: .notEqual,
-                    type: .bool,
+                    name: .notEqual, workingType: .int, type: .bool,
                     arguments: (
                         Argument(name: "global_func_main_variable_a", type: .int),
                         IntLiteral(value: 0)
@@ -49,10 +48,12 @@ let ForLoop = Scope(code: [
                             Argument(name: "global_func_main_variable_a", type: .int)
                     ]),
                     
-                    BinaryOperator(name: .sub, type: .int32, arguments: (
-                        Argument(name: "global_func_main_variable_a", type: .int),
-                        IntLiteral(value: 1)
-                    ))
+                    VariableAssignment(receiverId: "global_func_main_variable_a", expression:
+                        BinaryOperator(name: .sub, workingType: .int, type: .int, arguments: (
+                            Argument(name: "global_func_main_variable_a", type: .int),
+                            IntLiteral(value: 1)
+                        ))
+                    )
                 ])
             ),
             

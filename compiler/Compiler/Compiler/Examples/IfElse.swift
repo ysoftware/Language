@@ -18,7 +18,7 @@ let IfElse = Scope(code: [
     
     ProcedureDeclaration(
         id: "global_func_prinf", name: "printf",
-        arguments: [.string, .int32], returnType: .int32,
+        arguments: [.string, .int], returnType: .int,
         flags: [.isForeign, .isVarargs], scope: .empty),
     
     // func main() -> Int32 {
@@ -27,19 +27,19 @@ let IfElse = Scope(code: [
         id: "global_func_main",
         name: "main",
         arguments: [],
-        returnType: .int32,
+        returnType: .int,
         flags: [],
         scope: Scope(code: [
             
             // a : Int32 : 3
             VariableDeclaration(id: "global_func_main_variable_a",
-                                type: .int32,
+                                type: .int,
                                 flags: .isConstant,
                                 expression: IntLiteral(value: 3)),
             
             // b : Int32 = 1
             VariableDeclaration(id: "global_func_main_variable_b",
-                                type: .int32,
+                                type: .int,
                                 flags: [],
                                 expression: IntLiteral(value: 1)),
             
@@ -47,17 +47,17 @@ let IfElse = Scope(code: [
             VariableAssignment(
                 receiverId: "global_func_main_variable_b", expression:
                 BinaryOperator(
-                    name: .sub, type: .int32, arguments: (
-                        Argument(name: "global_func_main_variable_a", type: .int32),
-                        Argument(name: "global_func_main_variable_b", type: .int32)
+                    name: .sub, workingType: .int, type: .int, arguments: (
+                        Argument(name: "global_func_main_variable_a", type: .int),
+                        Argument(name: "global_func_main_variable_b", type: .int)
                     ))
             ),
             
             Condition(
                 condition: BinaryOperator(
-                    name: .equal, type: .int32,
+                    name: .equal, workingType: .int, type: .int,
                     arguments: (
-                        Argument(name: "global_func_main_variable_b", type: .int32),
+                        Argument(name: "global_func_main_variable_b", type: .int),
                         IntLiteral(value: 4)
                 )
             ), block: Scope(code: [
@@ -67,8 +67,8 @@ let IfElse = Scope(code: [
                 ProcedureCall(
                     name: "global_func_prinf", type: .int8, arguments: [
                         Argument(name: "global_string_literal_2", type: .string),
-                        Argument(name: "global_func_main_variable_a", type: .int32),
-                        Argument(name: "global_func_main_variable_b", type: .int32),
+                        Argument(name: "global_func_main_variable_a", type: .int),
+                        Argument(name: "global_func_main_variable_b", type: .int),
                 ]),
                 
             ]), elseBlock: Scope(code: [
@@ -76,8 +76,8 @@ let IfElse = Scope(code: [
                 ProcedureCall(
                     name: "global_func_prinf", type: .int8, arguments: [
                         Argument(name: "global_string_literal_3", type: .string),
-                        Argument(name: "global_func_main_variable_a", type: .int32),
-                        Argument(name: "global_func_main_variable_b", type: .int32),
+                        Argument(name: "global_func_main_variable_a", type: .int),
+                        Argument(name: "global_func_main_variable_b", type: .int),
                 ]),
             ])),
             
@@ -86,7 +86,7 @@ let IfElse = Scope(code: [
             ProcedureCall(
                 name: "global_func_prinf", type: .int8, arguments: [
                     Argument(name: "global_string_literal_1", type: .string),
-                    Argument(name: "global_func_main_variable_b", type: .int32),
+                    Argument(name: "global_func_main_variable_b", type: .int),
             ]),
             
             Return(value: IntLiteral(value: 0))

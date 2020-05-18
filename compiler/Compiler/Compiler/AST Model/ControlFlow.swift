@@ -15,7 +15,7 @@ struct Condition: Statement {
     let elseBlock: Scope
 }
 
-struct ConditionalLoop: Statement {
+struct WhileLoop: Statement {
 
     let condition: Expression
     let block: Scope

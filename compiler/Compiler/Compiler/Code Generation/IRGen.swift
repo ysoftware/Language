@@ -35,8 +35,8 @@ final class IR {
     }
     
     private func processStatements(_ statements: [Statement], ident: Int) -> String {
-        
         var scope = ""
+        
         func emitLocal(_ string: String? = "") {
             guard let string = string else { return }
             let identation = String(repeating: "\t", count: ident)
@@ -44,30 +44,49 @@ final class IR {
         }
         
         // All statements go here
+        
         for expression in statements {
-            
+
             switch expression {
                 
-            case let loop as ConditionalLoop:
-                break
+            case let loop as WhileLoop:
+                let counter = count()
+                let bodyLabel = "loop.\(counter).body"
+                let continueLabel = "loop.\(counter).continue"
+                
+                let (expCode, expVal) = getExpressionResult(loop.condition, ident: ident)
+                emitLocal("br label %\(counter) ; terminating previous block")
+                emitLocal()
+                emitLocal("; %\(counter) loop condition")
+                emitLocal(expCode)
+                emitLocal("br i1 \(expVal), label %\(bodyLabel), label %\(continueLabel)")
+                
+                let loopBody = processStatements(loop.block.code, ident: ident + 1)
+                emitLocal()
+                emitLocal("\(bodyLabel):")
+                emitLocal(loopBody)
+                emitLocal("br label %\(counter)")
+                
+                // continue
+                emitLocal()
+                emitLocal("\(continueLabel):")
                 
             case let condition as Condition:
                 let hasElse = !condition.elseBlock.isEmpty
+                let counter = count()
+                let bodyLabel = "; if.\(counter) body"
+                let continueLabel = "if.\(counter).continue"
+                let elseLabel = hasElse ? "if.\(counter).else" : continueLabel
                 
-                emitLocal("; condition evaluation")
-                let (eCode, eValue) = getExpressionResult(condition.condition, ident: ident)
-                emitLocal(eCode)
-                
-                let ifCount = count()
-                let continueLabel = "continue_\(ifCount)"
-                let elseLabel = hasElse ? "else_\(ifCount)" : continueLabel
-                
-                emitLocal("br i1 \(eValue), label %\(ifCount), label %\(elseLabel)")
+                let (expCode, expVal) = getExpressionResult(condition.condition, ident: ident)
+                emitLocal()
+                emitLocal("; if condition")
+                emitLocal(expCode)
+                emitLocal("br i1 \(expVal), label %\(counter), label %\(elseLabel)")
                 
                 let ifBody = processStatements(condition.block.code, ident: ident + 1)
-                
                 emitLocal()
-                emitLocal("; %\(ifCount) if block")
+                emitLocal("\(bodyLabel):")
                 emitLocal(ifBody)
                 emitLocal("br label %\(continueLabel)")
                 
@@ -84,6 +103,7 @@ final class IR {
                 
             case let procedure as ProcedureDeclaration:
                 
+                procedures[procedure.id] = procedure
                 let arguments = getProcedureArgumentString(from: procedure)
                 let returnType = matchType(procedure.returnType.name)
                 
@@ -97,12 +117,10 @@ final class IR {
                     emitLocal(body)
                     emitLocal("}")
                 }
-                procedures[procedure.id] = procedure
                 
             case let call as ProcedureCall:
-                // just calling the procedure, ignoring result value
-                let (eCode, _) = getExpressionResult(call, ident: ident)
-                emitLocal(eCode)
+                let (expCode, _) = getExpressionResult(call, ident: ident)
+                emitLocal(expCode)
                 
             case let literal as StringLiteral:
                 // @Todo: make sure we have to assert here
@@ -115,22 +133,22 @@ final class IR {
             case let variable as VariableDeclaration:
                 // @Todo: support constant variables
                 // do it at ast building?
-                let (eCode, eValue) = getExpressionResult(variable.expression, ident: ident)
-                emitLocal(eCode)
+                let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
+                emitLocal(expCode)
                 let type = matchType(variable.type.name)
                 emitLocal("%\(variable.id) = alloca \(type)")
-                emitLocal("store \(type) \(eValue), \(type)* %\(variable.id)")
+                emitLocal("store \(type) \(expVal), \(type)* %\(variable.id)")
                 
             case let variable as VariableAssignment:
-                let (eCode, eValue) = getExpressionResult(variable.expression, ident: ident)
-                emitLocal(eCode)
+                let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
+                emitLocal(expCode)
                 let type = matchType(variable.expression.type.name)
-                emitLocal("store \(type) \(eValue), \(type)* %\(variable.receiverId)")
+                emitLocal("store \(type) \(expVal), \(type)* %\(variable.receiverId)")
                 
             case let ret as Return:
-                let (eCode, eValue) = getExpressionResult(ret.value, ident: ident)
-                emitLocal(eCode)
-                emitLocal("ret \(matchType(ret.value.type.name)) \(eValue)")
+                let (expCode, expVal) = getExpressionResult(ret.value, ident: ident)
+                emitLocal(expCode)
+                emitLocal("ret \(matchType(ret.value.type.name)) \(expVal)")
                 
             default:
                 report("Undefined expression:\n\(expression)")
