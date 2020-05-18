@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct VariableDeclaration: Expression, Declaration {
+struct VariableDeclaration: Expression, Statement {
     
     struct Flags: OptionSet {
         let rawValue: Int
@@ -22,9 +22,8 @@ struct VariableDeclaration: Expression, Declaration {
     let expression: Expression
 }
 
-struct VariableAssignment: Expression {
+struct VariableAssignment: Statement {
     
-    let type: Type = .void
     let receiverId: String
     let expression: Expression
 }
@@ -36,8 +35,7 @@ struct BinaryOperator: Expression {
     let arguments: (Expression, Expression)
 }
 
-struct Return: Expression {
+struct Return: Statement {
     
-    let type: Type = .void
     let value: Expression
 }

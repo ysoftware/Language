@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct ProcedureDeclaration: Declaration, Expression {
+struct ProcedureDeclaration: Statement {
     
     struct Flags: OptionSet {
         let rawValue: Int
@@ -26,11 +26,9 @@ struct ProcedureDeclaration: Declaration, Expression {
     let returnType: Type
     let flags: Flags
     let code: Scope
-    
-    let type: Type = .void
 }
 
-struct ProcedureCall: Expression {
+struct ProcedureCall: Expression, Statement {
     
     let name: String
     let type: Type

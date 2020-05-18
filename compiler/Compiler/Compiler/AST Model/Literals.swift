@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct StringLiteral: Expression {
+struct StringLiteral: Statement {
 
     let type = Type(name: "String")
     

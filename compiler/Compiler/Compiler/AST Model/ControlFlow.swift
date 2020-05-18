@@ -8,13 +8,14 @@
 
 import Foundation
 
-struct Condition: Expression {
+struct Condition: Statement {
     
     let condition: Expression
     let block: Scope
     let elseBlock: Scope
+}
+
+struct ConditionalLoop: Statement {
     
-    // @Todo: I should refactor this and return
-    // into Statement? so they don't have a type
-    var type: Type = .void
+    
 }

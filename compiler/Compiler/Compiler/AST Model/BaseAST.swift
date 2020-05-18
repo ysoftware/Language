@@ -10,7 +10,7 @@ import Foundation
 
 struct Scope {
     
-    let code: [Expression]
+    let code: [Statement]
     
     static let empty = Scope(code: [])
     var isEmpty: Bool { code.isEmpty }
@@ -22,7 +22,7 @@ struct Argument: Expression {
     let type: Type
 }
 
-protocol Declaration {
+protocol Statement {
     
 }
 
