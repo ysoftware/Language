@@ -13,18 +13,18 @@ final class IR {
     // @Todo: this worked, but it sounds like a really bad idea
     // I need to investigate how this is supposed to be actually done
     
-    fileprivate var stringLiterals: [String: StringLiteral] = [:]
-    fileprivate var procedures: [String: ProcedureDeclaration] = [:]
+    private var stringLiterals: [String: StringLiteral] = [:]
+    private var procedures: [String: ProcedureDeclaration] = [:]
     
-    fileprivate var globalCounter = 0
-    fileprivate var globalScope = ""
+    private var globalCounter = 0
+    private var globalScope = ""
     
-    fileprivate func count() -> Int {
+    private func count() -> Int {
         globalCounter += 1
         return globalCounter - 1
     }
     
-    fileprivate func emitGlobal(_ string: String) {
+    private func emitGlobal(_ string: String) {
         globalScope += string + "\n"
     }
     
@@ -33,7 +33,7 @@ final class IR {
         return globalScope + "\n" + code
     }
     
-    fileprivate func getProcedureArgumentString(from procedure: ProcedureDeclaration) -> String {
+    private func getProcedureArgumentString(from procedure: ProcedureDeclaration) -> String {
         var argumentNames = procedure.arguments.map(\.name).map(matchType)
         if procedure.flags.contains(.isVarargs) {
             argumentNames.append("...")
@@ -42,7 +42,7 @@ final class IR {
         return arguments
     }
     
-    fileprivate func generate(inLocalScope ast: Scope, ident: Int) -> String {
+    private func generate(inLocalScope ast: Scope, ident: Int) -> String {
         
         var scope = ""
         func emitLocal(_ string: String? = "") {
@@ -173,7 +173,7 @@ final class IR {
         return scope.trimmingCharacters(in: .newlines)
     }
     
-    fileprivate func getExpressionResult(
+    private func getExpressionResult(
         _ expression: Expression, ident: Int) -> (code: String?, value: String) {
         let identation = String(repeating: "\t", count: ident)
         
