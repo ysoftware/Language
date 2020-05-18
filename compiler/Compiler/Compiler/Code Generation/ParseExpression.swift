@@ -82,19 +82,17 @@ internal extension IR {
             
             
         case let op as BinaryOperator:
-            let workingType = matchType(op.workingType.name)
-            let returnType = matchType(op.type.name)
+            let workingType = matchType(op.operatorType.name)
             
             let l = op.arguments.0
             let r = op.arguments.1
-            
             let (leCode, leValue) = getExpressionResult(l, ident: ident)
             let (reCode, reValue) = getExpressionResult(r, ident: ident)
             
             // @Incomplete: this only takes pointers, doesn't work with int literals
-            
             // these are identifiers or values (if literals)
             // passed to the operator
+            
             var lCount = "", rCount = ""
             var loadL: String?, loadR: String?
             

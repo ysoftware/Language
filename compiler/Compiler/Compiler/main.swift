@@ -9,11 +9,12 @@
 import Foundation
 
 let asts = [
-    IfElse,     // 0
-    ForLoop,    // 1
+    IfElse(true),   // 0
+    IfElse(false),  // 1
+    ForLoop,        // 2
 ]
 
-let ast = asts[1]
+let ast = asts[2]
 let ir = IR().generateIR(globalScope: ast)
 
 print(ir)

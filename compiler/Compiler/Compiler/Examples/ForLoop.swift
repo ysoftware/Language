@@ -34,7 +34,7 @@ let ForLoop = Scope(code: [
             // while a != 0 {
             WhileLoop(
                 condition: BinaryOperator(
-                    name: .notEqual, workingType: .int, type: .bool,
+                    name: .notEqual, operatorType: .int, type: .bool,
                     arguments: (
                         Argument(name: "global_func_main_variable_a", type: .int),
                         IntLiteral(value: 0)
@@ -49,7 +49,7 @@ let ForLoop = Scope(code: [
                     ]),
                     
                     VariableAssignment(receiverId: "global_func_main_variable_a", expression:
-                        BinaryOperator(name: .sub, workingType: .int, type: .int, arguments: (
+                        BinaryOperator(name: .sub, operatorType: .int, type: .int, arguments: (
                             Argument(name: "global_func_main_variable_a", type: .int),
                             IntLiteral(value: 1)
                         ))

@@ -73,12 +73,13 @@ final class IR {
                 
             case let condition as Condition:
                 let hasElse = !condition.elseBlock.isEmpty
+                let (expCode, expVal) = getExpressionResult(condition.condition, ident: ident)
+                
                 let counter = count()
                 let bodyLabel = "; if.\(counter) body"
                 let continueLabel = "if.\(counter).continue"
                 let elseLabel = hasElse ? "if.\(counter).else" : continueLabel
                 
-                let (expCode, expVal) = getExpressionResult(condition.condition, ident: ident)
                 emitLocal()
                 emitLocal("; if condition")
                 emitLocal(expCode)
