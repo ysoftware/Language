@@ -29,14 +29,14 @@ extension Type {
     static let uint32 = Type(name: "UInt32")
     static let uint64 = Type(name: "UInt64")
     
-    static let string = Type(name: "i8*")
+    static let string = Type(name: "String")
     static let void = Type(name: "Void")
-    
-    static func pointer(type: Type) -> Type {
-        Type(name: "\(type.name)*")
-    }
-    
-    static func array(type: Type, size: Int) -> Type {
-        Type(name: "[\(size) x \(type.name)]")
-    }
+//
+//    static func pointer(type: Type) -> Type {
+//        Type(name: "\(type.name)*")
+//    }
+//
+//    static func array(type: Type, size: Int) -> Type {
+//        Type(name: "[\(size) x \(type.name)]")
+//    }
 }

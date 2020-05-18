@@ -46,46 +46,12 @@ final class IR {
         // All statements go here
         for expression in statements {
             
-            // PROCEDURE DECLARATION
-            if let procedure = expression as? ProcedureDeclaration {
+            switch expression {
                 
-                let arguments = getProcedureArgumentString(from: procedure)
-                let returnType = matchType(procedure.returnType.name)
+            case let loop as ConditionalLoop:
+                break
                 
-                if procedure.flags.contains(.isForeign) {
-                    
-                    // @Todo: assert if not in global scope?
-                    // do it at ast building
-                    
-                    guard procedure.scope.isEmpty else {
-                        report("Foreign procedures must not have a body")
-                    }
-                    emitGlobal("declare \(returnType) @\(procedure.name) (\(arguments))")
-                }
-                else {
-                    emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
-                    _ = count() // implicit entry block takes the next name
-                    let body = processStatements(procedure.scope.code, ident: ident + 1)
-                    emitLocal(body)
-                    emitLocal("}")
-                }
-                procedures[procedure.id] = procedure
-            }
-                
-                // PROCEDURE CALL
-            else if let call = expression as? ProcedureCall {
-                
-                // just calling the procedure, ignoring result value
-                let (eCode, _) = getExpressionResult(call, ident: ident)
-                emitLocal(eCode)
-            }
-                
-                // CONDITION
-            else if let condition = expression as? Condition {
-                guard ident > 0 else {
-                    report("Conditional statements are not allowed at global scope")
-                }
-                
+            case let condition as Condition:
                 let hasElse = !condition.elseBlock.isEmpty
                 
                 emitLocal("; condition evaluation")
@@ -115,52 +81,58 @@ final class IR {
                 
                 emitLocal()
                 emitLocal("\(continueLabel):")
-            }
                 
-                // STRING LITERAL
-            else if let literal = expression as? StringLiteral {
+            case let procedure as ProcedureDeclaration:
+                
+                let arguments = getProcedureArgumentString(from: procedure)
+                let returnType = matchType(procedure.returnType.name)
+                
+                if procedure.flags.contains(.isForeign) {
+                    emitGlobal("declare \(returnType) @\(procedure.name) (\(arguments))")
+                }
+                else {
+                    emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
+                    _ = count() // implicit entry block takes the next name
+                    let body = processStatements(procedure.scope.code, ident: ident + 1)
+                    emitLocal(body)
+                    emitLocal("}")
+                }
+                procedures[procedure.id] = procedure
+                
+            case let call as ProcedureCall:
+                // just calling the procedure, ignoring result value
+                let (eCode, _) = getExpressionResult(call, ident: ident)
+                emitLocal(eCode)
+                
+            case let literal as StringLiteral:
                 // @Todo: make sure we have to assert here
                 guard let value = getCString(from: literal.value) else {
                     report("Unsupported character in string literal. Only supporting ascii for now.")
                 }
                 emitGlobal("@\(literal.id) = constant [\(literal.value.count) x i8] c\"\(value)\"")
                 stringLiterals[literal.id] = literal
-            }
                 
-                // VARIABLE DECLARATION
-            else if let variable = expression as? VariableDeclaration {
+            case let variable as VariableDeclaration:
                 // @Todo: support constant variables
                 // do it at ast building?
-                
                 let (eCode, eValue) = getExpressionResult(variable.expression, ident: ident)
                 emitLocal(eCode)
-                
                 let type = matchType(variable.type.name)
                 emitLocal("%\(variable.id) = alloca \(type)")
                 emitLocal("store \(type) \(eValue), \(type)* %\(variable.id)")
-            }
                 
-                // ASSIGNMENT
-            else if let variable = expression as? VariableAssignment {
-                
+            case let variable as VariableAssignment:
                 let (eCode, eValue) = getExpressionResult(variable.expression, ident: ident)
                 emitLocal(eCode)
-                
                 let type = matchType(variable.expression.type.name)
                 emitLocal("store \(type) \(eValue), \(type)* %\(variable.receiverId)")
-            }
                 
-                // RETURN
-            else if let ret = expression as? Return {
-                
+            case let ret as Return:
                 let (eCode, eValue) = getExpressionResult(ret.value, ident: ident)
-                
                 emitLocal(eCode)
                 emitLocal("ret \(matchType(ret.value.type.name)) \(eValue)")
-            }
                 
-            else {
-                
+            default:
                 report("Undefined expression:\n\(expression)")
             }
         }
