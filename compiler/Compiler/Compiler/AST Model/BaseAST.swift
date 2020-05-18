@@ -22,9 +22,7 @@ struct Argument: Expression {
     let type: Type
 }
 
-protocol Statement {
-    
-}
+protocol Statement { }
 
 protocol Expression {
     

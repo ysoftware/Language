@@ -10,17 +10,19 @@ import Foundation
 
 struct StringLiteral: Statement {
 
-    let type = Type(name: "String")
-    
+    let type: Type = .string
     let id: String
     let value: String
 }
 
 struct IntLiteral: Expression {
     
-    let type = Type(name: "Int32")
-    
-    let id: String?
+    let type: Type = .int
     let value: Int32
 }
 
+struct BoolLiteral: Expression {
+    
+    var type: Type = .bool
+    let value: Bool
+}

@@ -28,9 +28,9 @@ struct VariableAssignment: Statement {
     let expression: Expression
 }
 
-struct BinaryOperator: Expression {
+struct BinaryOperator: Expression, Statement {
     
-    let name: String
+    let name: Operator
     let type: Type
     let arguments: (Expression, Expression)
 }

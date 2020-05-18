@@ -16,6 +16,7 @@ struct Condition: Statement {
 }
 
 struct ConditionalLoop: Statement {
-    
-    
+
+    let condition: Expression
+    let block: Scope
 }

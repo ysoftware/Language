@@ -25,7 +25,7 @@ struct ProcedureDeclaration: Statement {
     let arguments: [Type]
     let returnType: Type
     let flags: Flags
-    let code: Scope
+    let scope: Scope
 }
 
 struct ProcedureCall: Expression, Statement {

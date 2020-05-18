@@ -16,6 +16,8 @@ struct Type: Equatable {
 extension Type {
     
     static let int = int32
+    static let bool = int1
+    
     static let int1 = Type(name: "Int1")
     static let int8 = Type(name: "Int8")
     static let int16 = Type(name: "Int16")
@@ -27,10 +29,14 @@ extension Type {
     static let uint32 = Type(name: "UInt32")
     static let uint64 = Type(name: "UInt64")
     
-    static let bool = Type(name: "Bool") // ?
-    
-    static let string = Type(name: "String")
-    static let array = Type(name: "Array")
-    static let pointer = Type(name: "Pointer")
+    static let string = Type(name: "i8*")
     static let void = Type(name: "Void")
+    
+    static func pointer(type: Type) -> Type {
+        Type(name: "\(type.name)*")
+    }
+    
+    static func array(type: Type, size: Int) -> Type {
+        Type(name: "[\(size) x \(type.name)]")
+    }
 }
