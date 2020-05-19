@@ -2,7 +2,7 @@
 clear; printf '\033[3J';
 printf "Running tests...\n\n"
 
-for i in {0..2}
+for i in {0..3}
 do
 
 printf 'Test %s: ' "$i"
