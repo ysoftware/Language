@@ -1,14 +1,15 @@
 #!/bin/bash
-echo ""
+clear; printf '\033[3J';
+printf "Running tests...\n\n"
 
 for i in {0..2}
 do
-   
-    printf 'AST %s output:\n' "$i"
+
+printf 'Test %s: ' "$i"
 /Users/yerokhin/Library/Developer/Xcode/DerivedData/Compiler-gxtfqytswywkrqgfssbpireaoowy/Build/Products/Debug/Compiler -ast$i \
-    > generated.ll \
-    && lli generated.ll \
-    && rm -rf generated.ll \
-    && printf '————————————————————\nTest %s ✅\n\n' "$i"
+    > generated.ll && lli generated.ll > /dev/null && rm -rf generated.ll \
+    && ( printf '%s' ${string:5:-2} | printf ' ✅\n') \
+    \
+    || printf 'Failed ❌\n\n'
 done
 
