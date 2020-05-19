@@ -1,0 +1,14 @@
+#!/bin/bash
+echo ""
+
+for i in {0..2}
+do
+   
+    printf 'AST %s output:\n' "$i"
+/Users/yerokhin/Library/Developer/Xcode/DerivedData/Compiler-gxtfqytswywkrqgfssbpireaoowy/Build/Products/Debug/Compiler -ast$i \
+    > generated.ll \
+    && lli generated.ll \
+    && rm -rf generated.ll \
+    && printf '————————————————————\nTest %s ✅\n\n' "$i"
+done
+

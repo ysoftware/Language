@@ -16,6 +16,7 @@ internal extension IR {
         let identation = String(repeating: "\t", count: ident)
         
         switch expression {
+            
         case let literal as IntLiteral:
             return (nil, "\(literal.value)")
             
@@ -82,46 +83,39 @@ internal extension IR {
             
             
         case let op as BinaryOperator:
-            let workingType = matchType(op.operatorType.name)
-            
-            let l = op.arguments.0
-            let r = op.arguments.1
-            let (leCode, leValue) = getExpressionResult(l, ident: ident)
-            let (reCode, reValue) = getExpressionResult(r, ident: ident)
-            
-            // @Incomplete: this only takes pointers, doesn't work with int literals
-            // these are identifiers or values (if literals)
-            // passed to the operator
-            
-            var lCount = "", rCount = ""
+            var lValue = "", rValue = ""
             var loadL: String?, loadR: String?
+            let (l, r) = op.arguments
+            let (lExpCode, lExpVal) = getExpressionResult(l, ident: ident)
+            let (rExpCode, rExpVal) = getExpressionResult(r, ident: ident)
             
             if l is IntLiteral {
-                lCount = leValue
+                lValue = lExpVal
             }
             else {
-                lCount = "%\(count())"
-                loadL = "\(lCount) = load \(matchType(l.type.name)), \(matchType(l.type.name))* \(leValue)"
+                lValue = "%\(count())"
+                loadL = "\(lValue) = load \(matchType(l.type.name)), \(matchType(l.type.name))* \(lExpVal)"
             }
             
             if r is IntLiteral {
-                rCount = reValue
+                rValue = rExpVal
             }
             else {
-                rCount = "%\(count())"
-                loadR = "\(rCount) = load \(matchType(r.type.name)), \(matchType(r.type.name))* \(reValue)"
+                rValue = "%\(count())"
+                loadR = "\(rValue) = load \(matchType(r.type.name)), \(matchType(r.type.name))* \(rExpVal)"
             }
             
             let resultCount = count()
             let instruction: String = op.name.int
-            let result = "%\(resultCount) = \(instruction) \(workingType) \(lCount), \(rCount)"
+            let workingType = matchType(op.operatorType.name)
+            let result = "%\(resultCount) = \(instruction) \(workingType) \(lValue), \(rValue)"
             let value = "%\(resultCount)"
             
             var code = "\n"
             code += "\(identation); binary operator: \(op.name)\n"
-            leCode.map { code += "\(identation)\($0)\n" }
+            lExpCode.map { code += "\(identation)\($0)\n" }
             loadL.map { code += "\(identation)\($0)\n" }
-            reCode.map { code += "\(identation)\($0)\n" }
+            rExpCode.map { code += "\(identation)\($0)\n" }
             loadR.map { code += "\(identation)\($0)\n" }
             code += "\(identation)\(result)"
             return (code, value)

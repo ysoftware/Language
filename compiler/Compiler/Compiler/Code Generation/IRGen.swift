@@ -103,7 +103,6 @@ final class IR {
                 emitLocal("\(continueLabel):")
                 
             case let procedure as ProcedureDeclaration:
-                
                 procedures[procedure.id] = procedure
                 let arguments = getProcedureArgumentString(from: procedure)
                 let returnType = matchType(procedure.returnType.name)
@@ -124,18 +123,18 @@ final class IR {
                 emitLocal(expCode)
                 
             case let literal as StringLiteral:
-                // @Todo: make sure we have to assert here
                 guard let value = getCString(from: literal.value) else {
+                    // @Todo: make sure we have to assert here
                     report("Unsupported character in string literal. Only supporting ascii for now.")
                 }
-                emitGlobal("@\(literal.id) = constant [\(literal.value.count) x i8] c\"\(value)\"")
                 stringLiterals[literal.id] = literal
+                emitGlobal("@\(literal.id) = constant [\(literal.value.count) x i8] c\"\(value)\"")
                 
             case let variable as VariableDeclaration:
-                // @Todo: support constant variables
-                // do it at ast building?
                 let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
                 emitLocal(expCode)
+                // @Todo: support constant variables
+                // do it at ast building?
                 let type = matchType(variable.type.name)
                 emitLocal("%\(variable.id) = alloca \(type)")
                 emitLocal("store \(type) \(expVal), \(type)* %\(variable.id)")
