@@ -19,12 +19,12 @@ struct Scope {
 struct Argument: Expression {
     
     let name: String
-    let type: Type
+    let expType: Type
 }
 
 protocol Statement { }
 
 protocol Expression {
     
-    var type: Type { get }
+    var expType: Type { get }
 }

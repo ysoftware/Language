@@ -32,6 +32,9 @@ internal extension IR {
         case let variable as Argument:
             return (nil, "%\(variable.name)")
             
+        case let literal as BoolLiteral:
+            return (nil, "\(literal.value)")
+
         case let call as ProcedureCall:
             guard let procedure = procedures[call.name] else {
                 report("Undefined procedure call: \(call.name)")
@@ -41,7 +44,7 @@ internal extension IR {
             var arguments: [String] = []
             
             for arg in call.arguments {
-                code += "\(identation); argument \(arg.type.name)\n"
+                code += "\(identation); argument \(arg.expType.name)\n"
 
                 // @Todo: dereference all arguments passed by value
                 // for now, doing that manually
@@ -49,7 +52,7 @@ internal extension IR {
                 // is there even such a thing? passing something by value?
                 // in IR values are a completely different thing (SSA)
                 
-                if arg.type == .string {
+                if arg.expType == .string {
                     
                     // @Todo: make it work with dynamic strings somehow
                     // I don't think we have to calculate its length before doing this?
@@ -72,7 +75,7 @@ internal extension IR {
                 }
                 else {
                     let argCount = count()
-                    let type = matchType(arg.type.name)
+                    let type = matchType(arg.expType.name)
                     code += "\(identation)%\(argCount) = load \(type), \(type)* %\(arg.name)"
                     arguments.append("\(type) %\(argCount)")
                 }
@@ -99,13 +102,13 @@ internal extension IR {
             if l is IntLiteral { lValue = lExpVal }
             else {
                 lValue = "%\(count())"
-                loadL = "\(lValue) = load \(matchType(l.type.name)), \(matchType(l.type.name))* \(lExpVal)"
+                loadL = "\(lValue) = load \(matchType(l.expType.name)), \(matchType(l.expType.name))* \(lExpVal)"
             }
             
             if r is IntLiteral { rValue = rExpVal }
             else {
                 rValue = "%\(count())"
-                loadR = "\(rValue) = load \(matchType(r.type.name)), \(matchType(r.type.name))* \(rExpVal)"
+                loadR = "\(rValue) = load \(matchType(r.expType.name)), \(matchType(r.expType.name))* \(rExpVal)"
             }
             
             let resultCount = count()

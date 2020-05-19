@@ -17,12 +17,12 @@ struct StringLiteral: Statement {
 
 struct IntLiteral: Expression {
     
-    let type: Type = .int
+    let expType: Type = .int
     let value: Int32
 }
 
 struct BoolLiteral: Expression {
     
-    var type: Type = .bool
+    let expType: Type = .bool
     let value: Bool
 }

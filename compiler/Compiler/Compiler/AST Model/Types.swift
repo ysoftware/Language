@@ -31,12 +31,4 @@ extension Type {
     
     static let string = Type(name: "String")
     static let void = Type(name: "Void")
-//
-//    static func pointer(type: Type) -> Type {
-//        Type(name: "\(type.name)*")
-//    }
-//
-//    static func array(type: Type, size: Int) -> Type {
-//        Type(name: "[\(size) x \(type.name)]")
-//    }
 }

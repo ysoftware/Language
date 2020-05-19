@@ -20,3 +20,15 @@ struct WhileLoop: Statement {
     let condition: Expression
     let block: Scope
 }
+
+struct Break: Statement {
+    
+    /// label set in the code
+    let userLabel: String?
+}
+
+struct Continue: Statement {
+    
+    /// label set in the code
+    let userLabel: String?
+}

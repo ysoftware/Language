@@ -1,0 +1,16 @@
+1 + 3 * 7 - 2
+
+1. sort and group binops
+2. calculate groups recursively
+
+((1 + (3 * 7)) - 2)
+
+for all:
+    if groups in expression: 
+        calculate group expression 
+    else: 
+        calculate expression
+
+((1 + 21) - 2)
+(22 - 2)
+20

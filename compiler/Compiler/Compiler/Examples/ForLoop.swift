@@ -6,7 +6,7 @@
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 
-let ForLoop = Scope(code: [
+let ForLoopAST = Scope(code: [
     
     StringLiteral(id: "global_string_literal_1", value: "a == %d\n\0"),
     StringLiteral(id: "global_string_literal_2", value: "Left the loop, a == %d\n\0"),
@@ -28,29 +28,29 @@ let ForLoop = Scope(code: [
             
             // a: Int = 10
             VariableDeclaration(id: "global_func_main_variable_a",
-                                type: .int,
+                                expType: .int,
                                 flags: [], expression: IntLiteral(value: 10)),
             
             // while a != 0 {
             WhileLoop(
                 condition: BinaryOperator(
-                    name: .notEqual, operatorType: .int, type: .bool,
+                    name: .notEqual, operatorType: .int, expType: .bool,
                     arguments: (
-                        Argument(name: "global_func_main_variable_a", type: .int),
+                        Argument(name: "global_func_main_variable_a", expType: .int),
                         IntLiteral(value: 0)
                 )),
                 block: Scope(code: [
                     
                     // printf(string1, a)
                     ProcedureCall(
-                        name: "global_func_prinf", type: .int8, arguments: [
-                            Argument(name: "global_string_literal_1", type: .string),
-                            Argument(name: "global_func_main_variable_a", type: .int)
+                        name: "global_func_prinf", expType: .int8, arguments: [
+                            Argument(name: "global_string_literal_1", expType: .string),
+                            Argument(name: "global_func_main_variable_a", expType: .int)
                     ]),
                     
                     VariableAssignment(receiverId: "global_func_main_variable_a", expression:
-                        BinaryOperator(name: .sub, operatorType: .int, type: .int, arguments: (
-                            Argument(name: "global_func_main_variable_a", type: .int),
+                        BinaryOperator(name: .sub, operatorType: .int, expType: .int, arguments: (
+                            Argument(name: "global_func_main_variable_a", expType: .int),
                             IntLiteral(value: 1)
                         ))
                     )
@@ -59,9 +59,9 @@ let ForLoop = Scope(code: [
             
             // printf(string2, a)
             ProcedureCall(
-                name: "global_func_prinf", type: .int8, arguments: [
-                    Argument(name: "global_string_literal_2", type: .string),
-                    Argument(name: "global_func_main_variable_a", type: .int32)
+                name: "global_func_prinf", expType: .int8, arguments: [
+                    Argument(name: "global_string_literal_2", expType: .string),
+                    Argument(name: "global_func_main_variable_a", expType: .int32)
             ]),
             
             Return(value: IntLiteral(value: 0))

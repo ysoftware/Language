@@ -17,7 +17,7 @@ struct VariableDeclaration: Expression, Statement {
     }
     
     let id: String
-    let type: Type
+    let expType: Type
     let flags: Flags
     let expression: Expression
 }
@@ -32,7 +32,7 @@ struct BinaryOperator: Expression, Statement {
     
     let name: Operator
     let operatorType: Type
-    let type: Type
+    let expType: Type
     let arguments: (Expression, Expression)
 }
 

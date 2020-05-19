@@ -20,7 +20,7 @@ final class IR {
     
     /// Use this to generate LLVM IR code
     func generateIR(globalScope ast: Scope) -> String {
-        let code = processStatements(ast.code, ident: 0)
+        let code = processStatements(ast.code, ident: 0, contexts: [])
         return globalScope + "\n" + code
     }
     
@@ -36,8 +36,11 @@ final class IR {
     }
     
     /// Process statements and return IR text
-    private func processStatements(_ statements: [Statement], ident: Int) -> String {
-        var scope = ""        
+    private func processStatements(_ statements: [Statement],
+                                   ident: Int,
+                                   contexts: [StatementContext]) -> String {
+        
+        var scope = ""
         let identation = String(repeating: "\t", count: ident)
         func emitLocal(_ string: String? = "") {
             guard let string = string else { return }
@@ -47,11 +50,14 @@ final class IR {
         // All statements go here
         for expression in statements {
             switch expression {
-                
+            
             case let loop as WhileLoop:
                 let counter = count()
                 let bodyLabel = "loop.\(counter).body"
                 let continueLabel = "loop.\(counter).continue"
+                let context = LoopContext(userLabel: nil,
+                                          breakLabel: continueLabel,
+                                          continueLabel: "%\(counter)")
                 
                 let (expCode, expVal) = getExpressionResult(loop.condition, ident: ident)
                 emitLocal("br label %\(counter) ; terminating previous block")
@@ -60,7 +66,9 @@ final class IR {
                 emitLocal(expCode)
                 emitLocal("br i1 \(expVal), label %\(bodyLabel), label %\(continueLabel)")
                 
-                let loopBody = processStatements(loop.block.code, ident: ident + 1)
+                let loopBody = processStatements(loop.block.code,
+                                                 ident: ident + 1,
+                                                 contexts: contexts + [context])
                 emitLocal()
                 emitLocal("\(bodyLabel):")
                 emitLocal(loopBody)
@@ -69,6 +77,21 @@ final class IR {
                 // continue
                 emitLocal()
                 emitLocal("\(continueLabel):")
+                
+            case let br as Break:
+                _ = count() // eat block # after br
+                let label = getLoopContext(from: contexts, with: br.userLabel).breakLabel
+                emitLocal()
+                emitLocal("; loop break")
+                emitLocal("br label %\(normalizeLabel(label))")
+                
+            case let cont as Continue:
+                _ = count() // eat block # after br
+                let label = getLoopContext(from: contexts, with: cont.userLabel).continueLabel
+                emitLocal()
+                emitLocal("; loop continue")
+                emitLocal("br label %\(normalizeLabel(label))")
+                
                 
             case let condition as Condition:
                 let hasElse = !condition.elseBlock.isEmpty
@@ -84,14 +107,18 @@ final class IR {
                 emitLocal(expCode)
                 emitLocal("br i1 \(expVal), label %\(counter), label %\(elseLabel)")
                 
-                let ifBody = processStatements(condition.block.code, ident: ident + 1)
+                let ifBody = processStatements(condition.block.code,
+                                               ident: ident + 1,
+                                               contexts: contexts)
                 emitLocal()
                 emitLocal("\(bodyLabel):")
                 emitLocal(ifBody)
                 emitLocal("br label %\(continueLabel)")
                 
                 if hasElse {
-                    let elseBody = processStatements(condition.elseBlock.code, ident: ident + 1)
+                    let elseBody = processStatements(condition.elseBlock.code,
+                                                     ident: ident + 1,
+                                                     contexts: contexts)
                     emitLocal()
                     emitLocal("\(elseLabel):")
                     emitLocal(elseBody)
@@ -112,7 +139,9 @@ final class IR {
                 else {
                     emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
                     _ = count() // implicit entry block takes the next name
-                    let body = processStatements(procedure.scope.code, ident: ident + 1)
+                    let body = processStatements(procedure.scope.code,
+                                                 ident: ident + 1,
+                                                 contexts: contexts)
                     emitLocal(body)
                     emitLocal("}")
                 }
@@ -134,20 +163,20 @@ final class IR {
                 emitLocal(expCode)
                 // @Todo: support constant variables
                 // do it at ast building?
-                let type = matchType(variable.type.name)
+                let type = matchType(variable.expType.name)
                 emitLocal("%\(variable.id) = alloca \(type)")
                 emitLocal("store \(type) \(expVal), \(type)* %\(variable.id)")
                 
             case let variable as VariableAssignment:
                 let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
                 emitLocal(expCode)
-                let type = matchType(variable.expression.type.name)
+                let type = matchType(variable.expression.expType.name)
                 emitLocal("store \(type) \(expVal), \(type)* %\(variable.receiverId)")
                 
             case let ret as Return:
                 let (expCode, expVal) = getExpressionResult(ret.value, ident: ident)
                 emitLocal(expCode)
-                emitLocal("ret \(matchType(ret.value.type.name)) \(expVal)")
+                emitLocal("ret \(matchType(ret.value.expType.name)) \(expVal)")
                 
             default:
                 report("Undefined expression:\n\(expression)")
@@ -155,5 +184,28 @@ final class IR {
         }
         
         return scope.trimmingCharacters(in: .newlines)
+    }
+    
+    /// Remove % before label if it's unnamed, % is added later while emiting
+    private func normalizeLabel(_ label: String) -> String {
+        label.replacingOccurrences(of: "%", with: "")
+    }
+    
+    /// Returns the latest loop context found (with a user label if specified)
+    private func getLoopContext(from contexts: [StatementContext],
+                                with userLabel: String?) -> LoopContext {
+        
+        if let userLabel = userLabel {
+            guard let loopContext = contexts.last(where:
+                { userLabel == ($0 as? LoopContext)?.userLabel }) as? LoopContext
+                else { report("Undefined break label \(userLabel)") }
+            return loopContext
+        }
+        else {
+            guard let loopContext = contexts.last(where:
+                { $0 is LoopContext }) as? LoopContext
+                else { report("Can not break outside of loop context") }
+            return loopContext
+        }
     }
 }

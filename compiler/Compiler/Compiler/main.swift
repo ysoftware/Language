@@ -12,12 +12,13 @@ import Foundation
 let index: Int = CommandLine.arguments
     .first { $0.starts(with: "-ast") }
     .map { String($0[$0.index($0.startIndex, offsetBy: 4)..<$0.endIndex]) }
-    .flatMap { Int($0) } ?? 0
+    .flatMap { Int($0) } ?? 3
 
 let asts = [
-    IfElse(false),  // 0
-    IfElse(true),   // 1
-    ForLoop,        // 2
+    /* 0 */ IfElseAST(false),
+    /* 1 */ IfElseAST(true),
+    /* 2 */ ForLoopAST,
+    /* 3 */ LoopBreakContinueAST,
 ]
 
 let ast = asts[index]

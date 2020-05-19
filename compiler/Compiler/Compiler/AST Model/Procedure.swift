@@ -31,6 +31,6 @@ struct ProcedureDeclaration: Statement {
 struct ProcedureCall: Expression, Statement {
     
     let name: String
-    let type: Type
+    let expType: Type
     let arguments: [Argument]
 }
