@@ -8,10 +8,24 @@
 
 import Foundation
 
+// a: Int = 0
+// outerLoop: while true {
+//     while true {
+//         a = a + 1
+//         if a > 500 { break outerLoop }
+//         if a == 100 { break }
+//         if a > 1 { continue }
+//         else { printf("Did not continue! a is %d\n\", a) }
+//     }
+//     printf("Broke out of loop 1, a is %d\n\", a)
+// }
+// printf("Broke out of loop 2, a is %d\n\", a)
+ 
 let LoopBreakContinueAST = Scope(code: [
     
     StringLiteral(id: "global_string_literal_1", value: "Did not continue! a is %d\n\0"),
-    StringLiteral(id: "global_string_literal_2", value: "Broke out of the loop, a is %d\n\0"),
+    StringLiteral(id: "global_string_literal_2", value: "Broke out of loop 1, a is %d\n\0"),
+    StringLiteral(id: "global_string_literal_3", value: "Broke out of loop 2, a is %d\n\0"),
     
     // func printf(_ format: String, _ arguments: Int32...) -> Int32 #foreign
     ProcedureDeclaration(
@@ -33,56 +47,90 @@ let LoopBreakContinueAST = Scope(code: [
                                 expType: .int,
                                 flags: [], expression: IntLiteral(value: 0)),
             
-            // while true {
+            // outerLoop: while true {
             WhileLoop(
+                userLabel: "outerLoop",
                 condition: BoolLiteral(value: true),
                 block: Scope(code: [
                     
-                    VariableAssignment(receiverId: "global_func_main_variable_a", expression:
-                        BinaryOperator(name: .add, operatorType: .int, expType: .int, arguments: (
-                            Argument(name: "global_func_main_variable_a", expType: .int),
-                            IntLiteral(value: 1)
-                        ))
+                    // while true {
+                    WhileLoop(
+                        userLabel: nil,
+                        condition: BoolLiteral(value: true),
+                        block: Scope(code: [
+                            
+                            // a = a + 1
+                            VariableAssignment(receiverId: "global_func_main_variable_a", expression:
+                                BinaryOperator(name: .add, operatorType: .int, expType: .int, arguments: (
+                                    Argument(name: "global_func_main_variable_a", expType: .int),
+                                    IntLiteral(value: 1)
+                                ))
+                            ),
+                            
+                            // if a > 500 { break outerLoop }
+                            Condition(
+                                condition: BinaryOperator(
+                                    name: .signedGreaterThan,
+                                    operatorType: .int,
+                                    expType: .bool,
+                                    arguments: (
+                                        Argument(name: "global_func_main_variable_a", expType: .int),
+                                        IntLiteral(value: 500)
+                                )), block: Scope(code: [
+                                    Break(userLabel: "outerLoop")
+                                ]), elseBlock: .empty),
+                            
+                            // if a == 100 { break }
+                            Condition(
+                                condition: BinaryOperator(
+                                    name: .equal,
+                                    operatorType: .int,
+                                    expType: .bool,
+                                    arguments: (
+                                        Argument(name: "global_func_main_variable_a", expType: .int),
+                                        IntLiteral(value: 100)
+                                )), block: Scope(code: [
+                                    Break(userLabel: nil)
+                                ]), elseBlock: .empty),
+                            
+                            // if a > 1 { continue }
+                            // else { printf("...", a)
+                            Condition(
+                                condition: BinaryOperator(
+                                    name: .signedGreaterThan,
+                                    operatorType: .int,
+                                    expType: .bool,
+                                    arguments: (
+                                        Argument(name: "global_func_main_variable_a", expType: .int),
+                                        IntLiteral(value: 1)
+                                )), block: Scope(code: [
+                                    Continue(userLabel: nil)
+                                ]), elseBlock: Scope(code: [
+                                    
+                                    ProcedureCall(
+                                        name: "global_func_prinf", expType: .int8, arguments: [
+                                            Argument(name: "global_string_literal_1", expType: .string),
+                                            Argument(name: "global_func_main_variable_a", expType: .int32)
+                                    ]),
+                                ])),
+                            
+                            
+                        ])
                     ),
                     
-                    // if a == 100 { break }
-                    Condition(
-                        condition: BinaryOperator(
-                            name: .equal,
-                            operatorType: .int,
-                            expType: .bool,
-                            arguments: (
-                                Argument(name: "global_func_main_variable_a", expType: .int),
-                                IntLiteral(value: 100)
-                        )), block: Scope(code: [
-                            Break(userLabel: nil)
-                        ]), elseBlock: .empty),
-                    
-                    // if a > 1 { continue }
-                    Condition(
-                        condition: BinaryOperator(
-                            name: .signedGreaterThan,
-                            operatorType: .int,
-                            expType: .bool,
-                            arguments: (
-                                Argument(name: "global_func_main_variable_a", expType: .int),
-                                IntLiteral(value: 1)
-                        )), block: Scope(code: [
-                            Continue(userLabel: nil)
-                        ]), elseBlock: Scope(code: [
-                            ProcedureCall(
-                                name: "global_func_prinf", expType: .int8, arguments: [
-                                    Argument(name: "global_string_literal_1", expType: .string),
-                                    Argument(name: "global_func_main_variable_a", expType: .int32)
-                            ]),
-                        ]))
+                    // printf(string2, a)
+                    ProcedureCall(
+                        name: "global_func_prinf", expType: .int8, arguments: [
+                            Argument(name: "global_string_literal_2", expType: .string),
+                            Argument(name: "global_func_main_variable_a", expType: .int32)
+                    ]),
                 ])
             ),
             
-            // printf(string2, a)
+            // printf(string3, a)
             ProcedureCall(
                 name: "global_func_prinf", expType: .int8, arguments: [
-                    Argument(name: "global_string_literal_2", expType: .string),
+                    Argument(name: "global_string_literal_3", expType: .string),
                     Argument(name: "global_func_main_variable_a", expType: .int32)
             ]),
             

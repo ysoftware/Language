@@ -13,7 +13,7 @@
 		1F286DA3247453B60072120C /* LoopBreakContinue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F286DA2247453B60072120C /* LoopBreakContinue.swift */; };
 		1FAA3E922472C5F30015C8BD /* CInterop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E912472C5F30015C8BD /* CInterop.swift */; };
 		1FAA3E942472DC540015C8BD /* IfElse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E932472DC530015C8BD /* IfElse.swift */; };
-		1FAA3E972472DCC50015C8BD /* ForLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E962472DCC50015C8BD /* ForLoop.swift */; };
+		1FAA3E972472DCC50015C8BD /* WhileLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E962472DCC50015C8BD /* WhileLoop.swift */; };
 		1FAA3E992472E09D0015C8BD /* Instructions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E982472E09D0015C8BD /* Instructions.swift */; };
 		1FAA3E9B2472ECB80015C8BD /* ParseExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E9A2472ECB80015C8BD /* ParseExpression.swift */; };
 		1FFF349424711E3100389B0C /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF349324711E3100389B0C /* main.swift */; };
@@ -45,7 +45,7 @@
 		1F286DA2247453B60072120C /* LoopBreakContinue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopBreakContinue.swift; sourceTree = "<group>"; };
 		1FAA3E912472C5F30015C8BD /* CInterop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CInterop.swift; sourceTree = "<group>"; };
 		1FAA3E932472DC530015C8BD /* IfElse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IfElse.swift; sourceTree = "<group>"; };
-		1FAA3E962472DCC50015C8BD /* ForLoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForLoop.swift; sourceTree = "<group>"; };
+		1FAA3E962472DCC50015C8BD /* WhileLoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhileLoop.swift; sourceTree = "<group>"; };
 		1FAA3E982472E09D0015C8BD /* Instructions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Instructions.swift; sourceTree = "<group>"; };
 		1FAA3E9A2472ECB80015C8BD /* ParseExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseExpression.swift; sourceTree = "<group>"; };
 		1FFF349024711E3100389B0C /* Compiler */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Compiler; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -85,7 +85,7 @@
 			isa = PBXGroup;
 			children = (
 				1FAA3E932472DC530015C8BD /* IfElse.swift */,
-				1FAA3E962472DCC50015C8BD /* ForLoop.swift */,
+				1FAA3E962472DCC50015C8BD /* WhileLoop.swift */,
 				1F286DA2247453B60072120C /* LoopBreakContinue.swift */,
 			);
 			path = Examples;
@@ -212,7 +212,7 @@
 				1FAA3E992472E09D0015C8BD /* Instructions.swift in Sources */,
 				1FFF349424711E3100389B0C /* main.swift in Sources */,
 				1FAA3E942472DC540015C8BD /* IfElse.swift in Sources */,
-				1FAA3E972472DCC50015C8BD /* ForLoop.swift in Sources */,
+				1FAA3E972472DCC50015C8BD /* WhileLoop.swift in Sources */,
 				1F09BF6B2471B8DF00171D0A /* ControlFlow.swift in Sources */,
 				1FFF34A92471249100389B0C /* Procedure.swift in Sources */,
 				1FFF34A12471210700389B0C /* Literals.swift in Sources */,

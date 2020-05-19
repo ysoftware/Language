@@ -55,14 +55,15 @@ final class IR {
                 let counter = count()
                 let bodyLabel = "loop.\(counter).body"
                 let continueLabel = "loop.\(counter).continue"
-                let context = LoopContext(userLabel: nil,
+                let context = LoopContext(userLabel: loop.userLabel,
                                           breakLabel: continueLabel,
                                           continueLabel: "%\(counter)")
                 
                 let (expCode, expVal) = getExpressionResult(loop.condition, ident: ident)
+                emitLocal()
                 emitLocal("br label %\(counter) ; terminating previous block")
                 emitLocal()
-                emitLocal("; %\(counter) loop condition")
+                emitLocal("; %\(counter) loop.\(counter).condition")
                 emitLocal(expCode)
                 emitLocal("br i1 \(expVal), label %\(bodyLabel), label %\(continueLabel)")
                 
@@ -70,27 +71,25 @@ final class IR {
                                                  ident: ident + 1,
                                                  contexts: contexts + [context])
                 emitLocal()
-                emitLocal("\(bodyLabel):")
+                emitLocal("\(bodyLabel): ; user label \(loop.userLabel ?? "[not set]")")
                 emitLocal(loopBody)
                 emitLocal("br label %\(counter)")
                 
                 // continue
                 emitLocal()
-                emitLocal("\(continueLabel):")
+                emitLocal("\(continueLabel): ; exiting loop.\(counter), user label \(loop.userLabel ?? "[not set]")")
                 
             case let br as Break:
                 _ = count() // eat block # after br
                 let label = getLoopContext(from: contexts, with: br.userLabel).breakLabel
                 emitLocal()
-                emitLocal("; loop break")
-                emitLocal("br label %\(normalizeLabel(label))")
+                emitLocal("br label %\(normalizeLabel(label)) ; loop break, user label \(br.userLabel ?? "[not set]")")
                 
             case let cont as Continue:
                 _ = count() // eat block # after br
                 let label = getLoopContext(from: contexts, with: cont.userLabel).continueLabel
                 emitLocal()
-                emitLocal("; loop continue")
-                emitLocal("br label %\(normalizeLabel(label))")
+                emitLocal("br label %\(normalizeLabel(label)) ; loop continue, user label \(cont.userLabel ?? "[not set]")")
                 
                 
             case let condition as Condition:
@@ -98,7 +97,7 @@ final class IR {
                 let (expCode, expVal) = getExpressionResult(condition.condition, ident: ident)
                 
                 let counter = count()
-                let bodyLabel = "; if.\(counter) body"
+                let bodyLabel = "; %\(counter) if.\(counter).body"
                 let continueLabel = "if.\(counter).continue"
                 let elseLabel = hasElse ? "if.\(counter).else" : continueLabel
                 
@@ -122,7 +121,7 @@ final class IR {
                     emitLocal()
                     emitLocal("\(elseLabel):")
                     emitLocal(elseBody)
-                    emitLocal("br label %\(continueLabel)")
+                    emitLocal("br label %\(continueLabel) ; exiting else.\(counter)")
                 }
                 
                 emitLocal()

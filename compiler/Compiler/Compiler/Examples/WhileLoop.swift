@@ -6,7 +6,7 @@
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 
-let ForLoopAST = Scope(code: [
+let WhileLoopAST = Scope(code: [
     
     StringLiteral(id: "global_string_literal_1", value: "a == %d\n\0"),
     StringLiteral(id: "global_string_literal_2", value: "Left the loop, a == %d\n\0"),
@@ -33,6 +33,7 @@ let ForLoopAST = Scope(code: [
             
             // while a != 0 {
             WhileLoop(
+                userLabel: nil,
                 condition: BinaryOperator(
                     name: .notEqual, operatorType: .int, expType: .bool,
                     arguments: (

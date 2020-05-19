@@ -17,7 +17,7 @@ let index: Int = CommandLine.arguments
 let asts = [
     /* 0 */ IfElseAST(false),
     /* 1 */ IfElseAST(true),
-    /* 2 */ ForLoopAST,
+    /* 2 */ WhileLoopAST,
     /* 3 */ LoopBreakContinueAST,
 ]
 

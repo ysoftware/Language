@@ -17,6 +17,7 @@ struct Condition: Statement {
 
 struct WhileLoop: Statement {
 
+    let userLabel: String?
     let condition: Expression
     let block: Scope
 }
