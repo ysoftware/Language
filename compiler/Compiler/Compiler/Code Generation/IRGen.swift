@@ -12,7 +12,6 @@ final class IR {
     
     // @Todo: this worked, but it sounds like a really bad idea
     // I need to investigate how this is supposed to be actually done
-    
     internal var stringLiterals: [String: StringLiteral] = [:]
     internal var procedures: [String: ProcedureDeclaration] = [:]
     
@@ -25,28 +24,28 @@ final class IR {
         return globalScope + "\n" + code
     }
     
+    /// Returns the current counter value, also advances it for the next time
     internal func count() -> Int {
-        globalCounter += 1
-        return globalCounter - 1
+        defer { globalCounter += 1 }
+        return globalCounter
     }
     
+    /// Write IR text into the global scope
     private func emitGlobal(_ string: String) {
         globalScope += string + "\n"
     }
     
+    /// Process statements and return IR text
     private func processStatements(_ statements: [Statement], ident: Int) -> String {
-        var scope = ""
-        
+        var scope = ""        
+        let identation = String(repeating: "\t", count: ident)
         func emitLocal(_ string: String? = "") {
             guard let string = string else { return }
-            let identation = String(repeating: "\t", count: ident)
             scope += "\(identation)\(string)\n"
         }
         
         // All statements go here
-        
         for expression in statements {
-
             switch expression {
                 
             case let loop as WhileLoop:

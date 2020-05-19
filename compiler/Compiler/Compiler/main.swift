@@ -8,14 +8,15 @@
 
 import Foundation
 
+
 let index: Int = CommandLine.arguments
     .first { $0.starts(with: "-ast") }
-    .map { var a = $0; a.removeFirst(4); return a }
+    .map { String($0[$0.index($0.startIndex, offsetBy: 4)..<$0.endIndex]) }
     .flatMap { Int($0) } ?? 0
 
 let asts = [
-    IfElse(true),   // 0
-    IfElse(false),  // 1
+    IfElse(false),  // 0
+    IfElse(true),   // 1
     ForLoop,        // 2
 ]
 

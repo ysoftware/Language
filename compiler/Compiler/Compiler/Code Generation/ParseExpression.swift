@@ -9,12 +9,21 @@
 import Foundation
 
 internal extension IR {
-    
-    // All expressions go here
+
+    /// Process an expression and return the code of the expression and the final IR value
+    ///
+    /// Example 1
+    ///   for an expression of `int literal of 5`
+    ///   the return value will be: `code = nil, value = "5"`
+    ///
+    /// Example 2
+    /// for an expression of `string literal of "123"`
+    ///   the return value will be: `code = "%1 = getelementptr .... ", value = "%1"`
     func getExpressionResult(
         _ expression: Expression, ident: Int) -> (code: String?, value: String) {
         let identation = String(repeating: "\t", count: ident)
         
+        // All expressions go here
         switch expression {
             
         case let literal as IntLiteral:
@@ -31,15 +40,14 @@ internal extension IR {
             var code = "\n"
             var arguments: [String] = []
             
-            // @Todo: dereference all arguments passed by value
-            // for now, doing that manually
-            
-            // is there even such a thing? passing something by value?
-            // in IR values are a completely different thing (SSA)
-            
             for arg in call.arguments {
-                
                 code += "\(identation); argument \(arg.type.name)\n"
+
+                // @Todo: dereference all arguments passed by value
+                // for now, doing that manually
+                
+                // is there even such a thing? passing something by value?
+                // in IR values are a completely different thing (SSA)
                 
                 if arg.type == .string {
                     
@@ -51,6 +59,8 @@ internal extension IR {
                     // now this only works with references to constant string literals
                     // by 'hacky' keeping a list of those while parsing AST
                     
+                    // @Todo: should we emit a string literal here, not expect AST to do it for us?
+                    // if so, emit a new literal only if a literal with the same value does not exist yet
                     guard let literal = stringLiterals[arg.name] else {
                         report("Undefined symbol \(arg.name)")
                     }
@@ -58,7 +68,6 @@ internal extension IR {
                     let argCount = count()
                     let length = literal.value.count
                     code += "\(identation)%\(argCount) = getelementptr [\(length) x i8], [\(length) x i8]* @\(literal.id), i32 0, i32 0"
-                    
                     arguments.append("i8* %\(argCount)")
                 }
                 else {
@@ -67,7 +76,6 @@ internal extension IR {
                     code += "\(identation)%\(argCount) = load \(type), \(type)* %\(arg.name)"
                     arguments.append("\(type) %\(argCount)")
                 }
-                
                 code += "\n"
             }
             
@@ -81,7 +89,6 @@ internal extension IR {
             code += "\(identation)\(value) = call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
             return (code, value)
             
-            
         case let op as BinaryOperator:
             var lValue = "", rValue = ""
             var loadL: String?, loadR: String?
@@ -89,17 +96,13 @@ internal extension IR {
             let (lExpCode, lExpVal) = getExpressionResult(l, ident: ident)
             let (rExpCode, rExpVal) = getExpressionResult(r, ident: ident)
             
-            if l is IntLiteral {
-                lValue = lExpVal
-            }
+            if l is IntLiteral { lValue = lExpVal }
             else {
                 lValue = "%\(count())"
                 loadL = "\(lValue) = load \(matchType(l.type.name)), \(matchType(l.type.name))* \(lExpVal)"
             }
             
-            if r is IntLiteral {
-                rValue = rExpVal
-            }
+            if r is IntLiteral { rValue = rExpVal }
             else {
                 rValue = "%\(count())"
                 loadR = "\(rValue) = load \(matchType(r.type.name)), \(matchType(r.type.name))* \(rExpVal)"
