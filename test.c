@@ -3,7 +3,10 @@
 
 int main() {
 
-    printf("hello %d\n", 123);
+    int64_t a = 50000000000;
+    while (a != 0) {
+        a = a - 1;
+    }
 
     return 0;
 }

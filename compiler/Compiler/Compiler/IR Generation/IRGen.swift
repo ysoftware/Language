@@ -30,7 +30,7 @@ final class IR {
         return globalCounter
     }
     
-    /// Write IR text into the global scope
+    /// Write a line of IR text into the global scope
     private func emitGlobal(_ string: String) {
         globalScope += string + "\n"
     }
@@ -42,6 +42,8 @@ final class IR {
         
         var scope = ""
         let identation = String(repeating: "\t", count: ident)
+        
+        /// Write a line of IR text into the local scope
         func emitLocal(_ string: String? = "") {
             guard let string = string else { return }
             scope += "\(identation)\(string)\n"

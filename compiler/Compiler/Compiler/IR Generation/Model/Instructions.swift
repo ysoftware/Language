@@ -8,6 +8,8 @@
 
 enum Operator {
     
+    case assign
+    
     // comparison
     case equal
     case notEqual
@@ -45,6 +47,7 @@ extension Operator {
         case .signedGreaterOrEqual:   return "icmp sge"
         case .signedLessThan:         return "icmp slt"
         case .signedLessOrEqual:      return "icmp sle"
+        default: report("Float does not support this instruction: \(self)")
         }
     }
     
@@ -54,17 +57,7 @@ extension Operator {
         case .add:                    return "fadd"
         case .sub:                    return "fsub"
         case .mul:                    return "fmul"
-            
-        case .equal:                  return "fcmp eq"
-        case .notEqual:               return "fcmp ne"
-        case .unsignedGreaterThan:    return "" // @Todo: fill these
-        case .unsignedGreaterOrEqual: return "" // and think about refactoring
-        case .unsignedLessThan:       return "" // because they might not match
-        case .unsignedLessOrEqual:    return ""
-        case .signedGreaterThan:      return ""
-        case .signedGreaterOrEqual:   return ""
-        case .signedLessThan:         return ""
-        case .signedLessOrEqual:      return ""
+        default: report("Float does not support this instruction: \(self)")
         }
     }
 }
