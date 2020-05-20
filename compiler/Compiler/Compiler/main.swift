@@ -36,7 +36,7 @@ func main() -> Int32 {
     outerLoop: while true {
         while true {
             a = a + 1
-            if a > 500e23 { break outerLoop }
+            if a > 500 { break outerLoop }
             if a == 100 { break }
             if a > 1 { continue }
             else { printf("Did not continue! a is %d\n\", a) }

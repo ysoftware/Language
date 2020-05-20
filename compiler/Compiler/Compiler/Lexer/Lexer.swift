@@ -8,6 +8,13 @@
 
 import Foundation
 
+extension String {
+    
+    func at(_ index: Int) -> Character {
+        self[self.index(startIndex, offsetBy: index)]
+    }
+}
+
 protocol LexerOutput: class {
     
     func lexer(_ instance: Lexer, didGenerateToken token: Token)
@@ -24,12 +31,18 @@ class Lexer {
     func analyze(_ string: String) {
     
         var i = 0
-        while i < string.count {
-            var char: Character { string[string.index(string.startIndex, offsetBy: i)] }
+        while i < string.count - 1 {
+            var char = string.at(i)
          
             switch char {
-            case "+", "-", "*", "/", "=", ">", "<":
+                
+                // @Todo: comment, folded comment
+                
+                // @Todo: string literal
+                
+            case ":", "+", "-", "*", "/", "=", ">", "<", "{", "}", "(", ")":
                 output?.lexer(self, didGenerateToken: .punctuator(character: String(char)))
+                
                 // @Todo: add ->, ==, += and others
                 
             case ";", "\n":
@@ -38,11 +51,13 @@ class Lexer {
             case letterRange, "_":
                 var tokenString = String(char)
                 i += 1
+                char = string.at(i)
                 
                 while i < string.count {
-                    if !letterRange.contains(char) && char != "_" { break }
+                    if !letterRange.contains(char) && char != "_" { i -= 1; break }
                     tokenString.append(char)
                     i += 1
+                    char = string.at(i)
                 }
                 
                 if keywords.contains(tokenString) {
@@ -55,14 +70,13 @@ class Lexer {
             case numberRange:
                 var value = String(char)
                 i += 1
+                char = string.at(i)
                 
                 while i < string.count {
-                    if !numberRange.contains(char)
-                        && char != "e"
-                        && char != "." { break }
-                    
+                    if !numberRange.contains(char) && char != "e" && char != "." { i -= 1; break }
                     value += String(char)
                     i += 1
+                    char = string.at(i)
                 }
                 
                 if value.contains("e") || value.contains(".") {
@@ -77,6 +91,8 @@ class Lexer {
             }
             i += 1
         }
+        
+        output?.lexerFinished(self)
     }
 }
 
