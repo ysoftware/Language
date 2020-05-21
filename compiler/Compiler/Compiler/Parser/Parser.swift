@@ -12,22 +12,22 @@ class Parser {
     
 }
 
-// func printf(format: String, arguments: Int32, ...) #foreign
+//  func printf(format: String, arguments: Int32, ...) #foreign;
 //
-// func main() -> Int32 {
-//     a: Int = 0
-//     outerLoop: while true {
-//         while true {
-//             a = a + 1
-//             if a > 500 { break outerLoop }
-//             if a == 100 { break }
-//             if a > 1 { continue }
-//             else { printf("Did not continue! a is %d\n\", a) }
-//         }
-//         printf("Broke out of loop 1, a is %d\n\", a)
-//     }
-//     printf("Broke out of loop 2, a is %d\n\", a)
-// }
+//  func main() -> Int32 {
+//      a: Int = 0;
+//      outerLoop: while true {
+//          while true {
+//              a = a + 1;
+//              if a > 500 { break outerLoop; }
+//              if a == 100 { break; }
+//              if a > 1 { continue; }
+//              else { printf("Did not continue! a is %d\n\", a); }
+//          }
+//          printf("Broke out of loop 1, a is %d\n\", a);
+//      }
+//      printf("Broke out of loop 2, a is %d\n\", a);
+//  }
  
 /*
  
@@ -55,7 +55,7 @@ class Parser {
  )          -> punctuator   [fhead] end of arguments
  #          -> punctuator   [fhead] directive name next
  foreign    -> identifier   [fhead] directive name
- \n         -> punctuator   [fhead] not a token in function declaration
+ ;          -> punctuator   [] end of statement
  
  
  func       -> keyword      [fhead] closing previous func declaration, starting a new one
@@ -73,6 +73,7 @@ class Parser {
                                                 so this is a variable declaration and this is a type. solving...
  =          -> operator     [fbody, vardef] assign operator
  0          -> literal      [fbody, vardef, expr] closing the var assignment
+ ;          -> separator    [fbody] end of var def
  
  \n         -> punctuator x [fbody, vardef, expr] this will become a separator
  outerLoop  -> identifier x [fbody] variable name or label or function name! ending expression, solving...
@@ -86,7 +87,7 @@ class Parser {
  a          -> identifier x [fbody, whilebody, assign, expr] name of variable (or function)
  +          -> punctuator   [fbody, whilebody, assign, expr] operator, solving...
  1          -> literal      [fbody, whilebody, assign, expr]
- \n         -> punctuator   [fbody, whilebody, assign, expr]
+ ;          -> separator    [fbody, whilebody] end of var assign
  if         -> keyword      [fbody, whilebody] ending assignment expression
  */
 

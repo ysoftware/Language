@@ -37,15 +37,25 @@ class Lexer {
             switch char {
                 
                 // @Todo: comment, folded comment
-                
                 // @Todo: string literal
                 
-            case ":", "+", "-", "*", "/", "=", ">", "<", "{", "}", "(", ")":
+            case ":", "+", "-", "*",
+                 "/", "=", ">", "<",
+                 ".", "#",
+                 "!", "&", // "~",
+                 "{", "}", "(", ")",  "[", "]":
+                
                 output?.lexer(self, didGenerateToken: .punctuator(character: String(char)))
                 
-                // @Todo: add ->, ==, += and others
+                // @Todo: &&, ||, >=, <=, ==, !=, +=, -=, *=, /=, %=, |=,
+                // @Todo: >>, <<, >>=, <<=
+                // @Todo: (&= for ^= ?)
+                // @Todo:
+                // @Todo: #[.]  for directive
+                // @Todo: ...   for varargs
+                // @Todo: ->    for function return type
                 
-            case ";", "\n":
+            case ";",  ",": // @Note: ignore \n for now, let's go with ;
                 output?.lexer(self, didGenerateToken: .separator(symbol: String(char)))
                 
             case letterRange, "_":
@@ -54,7 +64,9 @@ class Lexer {
                 char = string.at(i)
                 
                 while i < string.count {
-                    if !letterRange.contains(char) && char != "_" { i -= 1; break }
+                    if !letterRange.contains(char)
+                        && !numberRange.contains(char)
+                        && char != "_" { i -= 1; break }
                     tokenString.append(char)
                     i += 1
                     char = string.at(i)
@@ -71,6 +83,12 @@ class Lexer {
                 var value = String(char)
                 i += 1
                 char = string.at(i)
+                
+                // @Todo: handle - for negative literals
+                
+                // @Todo: we don't expect a number literal to continue
+                // after first '0', except when it's a hex literal like 0xffff
+                // 0 makes sense, 0124 doesn't
                 
                 while i < string.count {
                     if !numberRange.contains(char) && char != "e" && char != "." { i -= 1; break }

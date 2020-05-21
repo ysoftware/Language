@@ -30,20 +30,21 @@ import Foundation
 
 
 let code = """
-func printf(format: String, arguments: Int32, ...) #foreign
+func printf(format: String, arguments: Int32, ...) #foreign;
+
 func main() -> Int32 {
-    a: Int = 0
+    a: Int = 0;
     outerLoop: while true {
         while true {
-            a = a + 1
-            if a > 500 { break outerLoop }
-            if a == 100 { break }
-            if a > 1 { continue }
-            else { printf("Did not continue! a is %d\n\", a) }
+            a = a + 1;
+            if a > 500 { break outerLoop; }
+            if a == 100 { break; }
+            if a > 1 { continue; }
+            else { printf("Did not continue! a is %d\n\", a); }
         }
-        printf("Broke out of loop 1, a is %d\n\", a)
+        printf("Broke out of loop 1, a is %d\n\", a);
     }
-    printf("Broke out of loop 2, a is %d\n\", a)
+    printf("Broke out of loop 2, a is %d\n\", a);
 }
 """
 
