@@ -23,7 +23,8 @@ fileprivate extension String {
 struct Lexer {
     
     
-    let letterRange = ClosedRange<Character>(uncheckedBounds: ("A", "z"))
+    let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "z"))
+    let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "Z"))
     let numberRange = ClosedRange<Character>(uncheckedBounds: ("0", "9"))
     
     // @Speed: this is very slow
@@ -43,14 +44,15 @@ struct Lexer {
             case ";",  ",": // @Note: ignore \n for now, let's go with ;
                 tokens.append(.separator(symbol: String(char)))
                 
-            case letterRange, "_":
+            case lowercaseRange, uppercaseRange, "_":
                 var tokenString = String(char)
                 
                 while i < string.count - 1 {
                     i += 1
                     char = string.at(i)
                     
-                    guard letterRange.contains(char)
+                    guard lowercaseRange.contains(char)
+                        || uppercaseRange.contains(char)
                         || numberRange.contains(char)
                         || char == "_"
                         else { i -= 1; break }
@@ -119,6 +121,7 @@ struct Lexer {
                     break
                 }
                 
+                i -= 1 // default, don't eat next (it's always eaten at the end)
                 tokens.append(.punctuator(character: value))
                 
                 // @Todo: &&, ||, >=, <=, ==, !=, +=, -=, *=, /=, %=, |=,

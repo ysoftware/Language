@@ -94,6 +94,7 @@
 			children = (
 				1F9C96662475736E00BAEC04 /* Lexer.swift */,
 				1F9C9668247574DF00BAEC04 /* Model.swift */,
+				1FB1EB782476E9D40088F63D /* Test */,
 			);
 			path = Lexer;
 			sourceTree = "<group>";
@@ -148,7 +149,6 @@
 				1FFF34B024714A4400389B0C /* Compiler */,
 				1FFF34B124714A4900389B0C /* IR Generation */,
 				1FFF349D247120D200389B0C /* AST Model */,
-				1FB1EB782476E9D40088F63D /* Test */,
 				1FFF349324711E3100389B0C /* main.swift */,
 			);
 			path = Compiler;
