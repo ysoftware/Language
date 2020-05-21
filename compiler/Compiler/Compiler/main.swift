@@ -29,32 +29,4 @@ import Foundation
 
 
 
-let code = """
-func printf(format: String, arguments: Int32, ...) #foreign;
-
-func main() -> Int32 {
-    a: Int = 0;
-    outerLoop: while true {
-        while true {
-            a = a + 1;
-            if a > 500 { break outerLoop; }
-            if a == 100 { break; }
-            if a > 1 { continue; }
-            else { printf("Did not continue! a is %d\n\", a); }
-        }
-        printf("Broke out of loop 1, a is %d\n\", a);
-    }
-    printf("Broke out of loop 2, a is %d\n\", a);
-}
-"""
-
-class O: LexerOutput {
-    func lexerFinished(_ instance: Lexer) { }
-    func lexer(_ instance: Lexer, didGenerateToken token: Token) { print(token) }
-}
-
-let lexer = Lexer()
-let output = O()
-lexer.output = output
-
-lexer.analyze(code)
+lexerTest()

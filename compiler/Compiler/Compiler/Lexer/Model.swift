@@ -26,14 +26,36 @@ let keywords = [
     "defer"
 ]
 
-enum LiteralToken {
+enum LiteralToken: Equatable {
+    
+    static func == (lhs: LiteralToken, rhs: LiteralToken) -> Bool {
+        switch (lhs, rhs) {
+        case (.string(let v), .string(let v2)): return v == v2
+        case (.float(let v), .float(let v2)): return v == v2
+        case (.int(let v), .int(let v2)): return v == v2
+        default: return false
+        }
+    }
     
     case string(value: String)
     case float(value: Float)
     case int(value: Int)
 }
 
-enum Token {
+enum Token: Equatable {
+    
+    static func == (lhs: Token, rhs: Token) -> Bool {
+        switch (lhs, rhs) {
+        case (.literal(let v), .literal(let v2)): return v == v2
+        case (.identifier(let v), .identifier(let v2)): return v == v2
+        case (.keyword(let v), .keyword(let v2)): return v == v2
+        case (.punctuator(let v), .punctuator(let v2)): return v == v2
+        case (.`operator`(let v), .`operator`(let v2)): return v == v2
+        case (.comment(let v), .comment(let v2)): return v == v2
+        case (.separator(let v), .separator(let v2)): return v == v2
+        default: return false
+        }
+    }
     
     case identifier(name: String)
     case keyword(name: String)
