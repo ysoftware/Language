@@ -65,3 +65,25 @@ enum Token: Equatable {
     case comment(text: String)
     case separator(symbol: String)
 }
+
+struct LexerError: Error {
+    
+    let lineNumber: Int
+    let character: Int
+    let message: String
+    let filename: String
+    
+    init(_ message: String) {
+        lineNumber = 0
+        character = 0
+        filename = "<no file>"
+        self.message = message
+    }
+    
+    init(filename: String, lineNumber: Int, character: Int, _ message: String) {
+        self.lineNumber = lineNumber
+        self.character = character
+        self.message = message
+        self.filename = filename
+    }
+}

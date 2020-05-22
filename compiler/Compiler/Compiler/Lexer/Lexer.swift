@@ -8,39 +8,34 @@
 
 import Foundation
 
-// @Todo: file name and line number
-
-private extension String {
+enum Lexer {
     
-    func endIndex(offsetBy offset: Int) -> String.Index { index(endIndex, offsetBy: offset) }
-    func startIndex(offsetBy offset: Int) -> String.Index { index(startIndex, offsetBy: offset) }
-    subscript(index: Int) -> Character { self[startIndex(offsetBy: index)] }
-}
-
-struct Lexer {
-    
-    let symbols: [Character] = [ ":", "+", "-", "*", "/", "=", ">", "<", ".", "#", "!", "&", "{", "}", "(", ")",  "[", "]"]
-    let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "z"))
-    let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "Z"))
-    let numberRange = ClosedRange<Character>(uncheckedBounds: ("0", "9"))
-    
-    // @Speed: this is very slow
-    func analyze(_ string: String) -> [Token] {
+    static func analyze(filename: String = "<no file>", _ string: String) -> Result<[Token], LexerError> {
+        let symbols: [Character] = [ ":", "+", "-", "*", "/", "=", ">", "<", ".", "#", "!", "&", "{", "}", "(", ")",  "[", "]"]
+        let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "z"))
+        let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "Z"))
+        let numberRange = ClosedRange<Character>(uncheckedBounds: ("0", "9"))
+        
         var tokens: [Token] = []
+        var lineNumber = 0
+        var characterOnLine = 0
         var i = 0
         var char = string[i]
         
+        func advance(_ count: Int = 1) {
+            i += count
+            characterOnLine += count
+        }
+        
         func nextChar() {
-            i += 1
+            advance()
             guard string.count > i else { return }
             char = string[i]
         }
         
-        
-        // checks if next char exists and matches, but does not eat it
-        // func match(_ compare: (Character)->Bool) -> Bool {
-        //
-        // }
+        func lookahead() -> Character {
+            string[i + 1]
+        }
         
         // checks if next char exists and matches, then eats it if it does
         // if not, does nothing and returns nil
@@ -49,7 +44,7 @@ struct Lexer {
             guard string.count > nextIndex else { return nil }
             let char = string[nextIndex]
             if compare(char) {
-                i += 1 // eat
+                advance()
                 return char
             }
             return nil
@@ -70,7 +65,7 @@ struct Lexer {
                 if filtered.isEmpty {
                     let prevQuery = String(query[query.startIndex..<query.endIndex(offsetBy: -1)])
                     if leftValues.contains(prevQuery) {
-                        i += prevQuery.count - 1
+                        advance(prevQuery.count - 1)
                         return prevQuery
                     }
                     return nil
@@ -78,7 +73,7 @@ struct Lexer {
                 
                 leftValues = filtered
                 if leftValues.count == 1, leftValues[0] == query {
-                    i += query.count - 1
+                    advance(query.count - 1)
                     return query
                 }
                 
@@ -90,28 +85,18 @@ struct Lexer {
             return nil
         }
         
-//        // TEST
-//        while string.count > i {
-//            char = string[i]
-//            if let found = expect(oneOf: ["..", "...", "."]) {
-//                print("result:", found, "\n\n\n")
-//            }
-//            i += 1
-//        }
-//
-//        return []
         
-        
-        
-        
-        loop: while i < string.count {
-            
+        while i < string.count {
             switch char {
                 
                 // @Todo: comment, folded comment
                 // @Todo: string literal
                 
-            case ";",  ",": // @Note: ignore \n for now, let's go with ;
+            case "\n":
+                lineNumber += 1
+                characterOnLine = 0
+                
+            case ";",  ",":
                 // SEPARATORS
                 tokens.append(.separator(symbol: String(char)))
                 
@@ -138,17 +123,20 @@ struct Lexer {
                 // NUMBER LITERALS
                 var value = String(char)
                 
-                // @Todo: handle "-" for negative literals
-                
-                // @Todo: we don't expect a number literal to continue
-                // after first '0', except when it's a hex literal like 0xffff
-                // 0 makes sense, 0124 doesn't
-                
-                while let next = match({
-                    numberRange.contains($0)
-                        || ($0 == "e" && !value.contains("e"))
-                        || ($0 == "." && !value.contains(".")) }) {
-                            value.append(next)
+                // this is not a number literal
+                if !numberRange.contains(char) && !numberRange.contains(lookahead()) {
+                    fallthrough
+                }
+                                
+                while let next = match({ numberRange.contains($0) || $0 == "." || $0 == "e"}) {
+                    if next == "." && value.contains(".") || next == "e" && value.contains("e") {
+                        return .failure(
+                            LexerError(filename: filename,
+                                       lineNumber: lineNumber,
+                                       character: characterOnLine,
+                                       "Unexpected \"\(next)\" in the middle of a number literal"))
+                    }
+                    value.append(next)
                 }
                 
                 if value == "-" || value.replacingOccurrences(of: ".", with: "").isEmpty {
@@ -171,7 +159,7 @@ struct Lexer {
                     break
                 }
                 
-                let operators = ["..",
+                let operators = ["..", "=", ":=",
                                  "&&", "||", "!=", "==", "^=",
                                  ">>", "<<", ">>=", "<<=",
                                  "<=", ">=", "+=", "-=", "*=", "/=", "%="]
@@ -191,7 +179,7 @@ struct Lexer {
             nextChar()
         }
         
-        return tokens
+        return .success(tokens)
     }
 }
 
