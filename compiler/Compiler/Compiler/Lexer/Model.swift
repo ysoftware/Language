@@ -47,6 +47,7 @@ enum Token: Equatable {
     static func == (lhs: Token, rhs: Token) -> Bool {
         switch (lhs, rhs) {
         case (.literal(let v), .literal(let v2)): return v == v2
+        case (.directive(let v), .directive(let v2)): return v == v2
         case (.identifier(let v), .identifier(let v2)): return v == v2
         case (.keyword(let v), .keyword(let v2)): return v == v2
         case (.punctuator(let v), .punctuator(let v2)): return v == v2
@@ -60,6 +61,7 @@ enum Token: Equatable {
     case identifier(value: String)
     case keyword(value: String)
     case punctuator(value: String)
+    case directive(value: String)
     case `operator`(value: String)
     case literal(value: LiteralToken)
     case comment(value: String)
@@ -68,13 +70,15 @@ enum Token: Equatable {
 
 struct LexerError: Error {
     
-    enum Message: String {
+    enum Message: String, Equatable {
         
         case unexpectedDotInFloatLiteral = "Only a single `.` is expected in a float literal."
         case unexpectedEInFloatLiteral = "Only a single `e` is expected in a float literal."
         case newLineInStringLiteral = "String literal is not terminated before a new line"
         case newlineExpectedBeforeMultilineStringLiteral = "Multiline string literal is expected to start from a new line."
         case newlineExpectedAfterMultilineStringLiteral = "Multiline string literal is expected to end after a new line."
+        case emptyDirectiveName = "Directive identifier is expected after #."
+        case unexpectedDirectiveName = "Unexpected characters in a directive identifier after #."
     }
     
     let lineNumber: Int

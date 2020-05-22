@@ -57,6 +57,28 @@ func lexer_testStringLiteral() {
     ])
 }
 
+func lexer_testDirectiveFail() {
+    let code = "hello #"
+    printLexerTestFail(code, Lexer.analyze(code), LexerError(.emptyDirectiveName))
+}
+
+
+func lexer_testDirectiveFail2() {
+    let code = "hello # hello"
+    printLexerTestFail(code, Lexer.analyze(code), LexerError(.emptyDirectiveName))
+}
+
+func lexer_testDirective() {
+    let code = "id: Int #foreign"
+    
+    printLexerTestResult(code, Lexer.analyze(code), [
+        .identifier(value: "id"),
+        .punctuator(value: ":"),
+        .identifier(value: "Int"),
+        .directive(value: "foreign")
+    ])
+}
+
 func lexer_testStringLiteralFail() {
     let code = """
 "Hello sailor

@@ -22,6 +22,11 @@ enum Lexer {
         var i = 0
         var char = string[i]
         
+        func error(_ error: LexerError.Message) -> Result<[Token], LexerError> {
+            .failure(LexerError(filename: filename, lineNumber: lineNumber,
+                                character: characterOnLine, error))
+        }
+        
         /// advances the counter
         func advance(_ count: Int = 1) {
             i += count
@@ -29,10 +34,12 @@ enum Lexer {
         }
         
         /// advances the counter and sets `char` to the next character in string
-        func nextChar() {
+        @discardableResult
+        func nextChar() -> Bool {
             advance()
-            guard string.count > i else { return }
+            guard string.count > i else { return false }
             char = string[i]
+            return true
         }
         
         /// Peeks at the `next` character
@@ -105,10 +112,7 @@ enum Lexer {
 
                 let isMultiline = match(string: "\"\"\"")
                 if isMultiline, !matchNext("\n") {
-                    return .failure(
-                        LexerError(filename: filename, lineNumber: lineNumber,
-                                   character: characterOnLine,
-                                   .newlineExpectedBeforeMultilineStringLiteral))
+                    return error(.newlineExpectedBeforeMultilineStringLiteral)
                 }
                 else {
                     nextChar()
@@ -123,17 +127,11 @@ enum Lexer {
                     
                     if isMultiline {
                         if match(string: "\"\"\"") {
-                            return .failure(
-                                LexerError(filename: filename, lineNumber: lineNumber,
-                                           character: characterOnLine,
-                                           .newlineExpectedAfterMultilineStringLiteral))
+                            return error(.newlineExpectedAfterMultilineStringLiteral)
                         }
                         else if match(string: "\n\"\"\"") {
                             if lookahead() != nil && !matchNext("\n") {
-                                return .failure(
-                                    LexerError(filename: filename, lineNumber: lineNumber,
-                                               character: characterOnLine,
-                                               .newlineExpectedAfterMultilineStringLiteral))
+                                return error(.newlineExpectedAfterMultilineStringLiteral)
                             }
                             else {
                                 tokens.append(.literal(value: .string(value: value)))
@@ -147,8 +145,7 @@ enum Lexer {
                             break
                         }
                         else if match(string: "\n") {
-                            return .failure(LexerError(filename: filename, lineNumber: lineNumber,
-                                                       character: characterOnLine, .newLineInStringLiteral))
+                            return error(.newLineInStringLiteral)
                         }
                     }
                     
@@ -164,8 +161,21 @@ enum Lexer {
                 // SEPARATORS
                 tokens.append(.separator(value: String(char)))
                 
-            case lowercaseRange, uppercaseRange, "_":
-                // KEYWORDS / IDENTIFIERS
+            case lowercaseRange, uppercaseRange, "_", "#":
+                // KEYWORDS / IDENTIFIERS / DIRECTIVES
+                
+                let isDirective = match(string: "#")
+                if isDirective {
+                    if !nextChar() {
+                        return error(.emptyDirectiveName)
+                    }
+                    else if char == " " {
+                        return error(.emptyDirectiveName)
+                    }
+                    else if !lowercaseRange.contains(char) && !uppercaseRange.contains(char) && char != "_" {
+                       return error(.unexpectedDirectiveName)
+                    }
+                }
                 
                 var value = String(char)
                 while let next = matchNext(where: {
@@ -176,7 +186,13 @@ enum Lexer {
                             value.append(next)
                 }
                 
-                if keywords.contains(value) {
+                if isDirective {
+                    if value.isEmpty {
+                        return error(.emptyDirectiveName)
+                    }
+                    tokens.append(.directive(value: value))
+                }
+                else if keywords.contains(value) {
                     tokens.append(.keyword(value: value))
                 }
                 else {
@@ -195,13 +211,7 @@ enum Lexer {
                 var value = String(char)
                 while let next = matchNext(where: { numberRange.contains($0) || $0 == "." || $0 == "e"}) {
                     if next == "." && value.contains(".") || next == "e" && value.contains("e") {
-                        let error: LexerError.Message = next == "."
-                            ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral
-                        return .failure(
-                            LexerError(filename: filename,
-                                       lineNumber: lineNumber,
-                                       character: characterOnLine,
-                                       error))
+                        return error(next == "." ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral)
                     }
                     value.append(next)
                 }
@@ -302,7 +312,6 @@ enum Lexer {
             }
             nextChar()
         }
-        
         return .success(tokens)
     }
 }
