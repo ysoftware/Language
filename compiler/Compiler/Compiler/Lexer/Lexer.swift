@@ -8,33 +8,44 @@
 
 import Foundation
 
-fileprivate extension String {
-    
-    func at(_ index: Int) -> Character {
-        self[self.index(startIndex, offsetBy: index)]
-    }
-    
-    func safeAt(_ index: Int) -> Character? {
-        guard count > index else { return nil }
-        return self[self.index(startIndex, offsetBy: index)]
-    }
-}
+// @Todo: file name and line number
 
 struct Lexer {
     
-    
+    let symbols: [Character] = [ ":", "+", "-", "*", "/", "=", ">", "<", ".", "#", "!", "&", "{", "}", "(", ")",  "[", "]"]
     let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "z"))
     let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "Z"))
     let numberRange = ClosedRange<Character>(uncheckedBounds: ("0", "9"))
     
     // @Speed: this is very slow
     func analyze(_ string: String) -> [Token] {
-        
         var tokens: [Token] = []
-        
         var i = 0
-        while i < string.count {
-            var char = string.at(i)
+        var char = string[string.index(string.startIndex, offsetBy: i)]
+        
+        func nextChar() {
+            i += 1
+            guard string.count > i else { return }
+            char = string[string.index(string.startIndex, offsetBy: i)]
+        }
+        
+        
+        // checks if next char exists and matches, then eats it if it does
+        // if not, does nothing and returns nil
+        func expect(_ compare: (Character)->Bool) -> Character? {
+            let nextIndex = i + 1
+            guard string.count > nextIndex else { return nil }
+            let char = string[string.index(string.startIndex, offsetBy: nextIndex)]
+            if compare(char) {
+                i += 1 // eat
+                return char
+            }
+            return nil
+        }
+        
+        
+        
+        loop: while i < string.count {
             
             switch char {
                 
@@ -45,26 +56,21 @@ struct Lexer {
                 tokens.append(.separator(symbol: String(char)))
                 
             case lowercaseRange, uppercaseRange, "_":
-                var tokenString = String(char)
+                var value = String(char)
                 
-                while i < string.count - 1 {
-                    i += 1
-                    char = string.at(i)
-                    
-                    guard lowercaseRange.contains(char)
-                        || uppercaseRange.contains(char)
-                        || numberRange.contains(char)
-                        || char == "_"
-                        else { i -= 1; break }
-                    
-                    tokenString.append(char)
+                while let next = expect({
+                    lowercaseRange.contains($0)
+                        || uppercaseRange.contains($0)
+                        || numberRange.contains($0)
+                        || $0 == "_" }) {
+                            value.append(next)
                 }
                 
-                if keywords.contains(tokenString) {
-                    tokens.append(.keyword(name: tokenString))
+                if keywords.contains(value) {
+                    tokens.append(.keyword(name: value))
                 }
                 else {
-                    tokens.append(.identifier(name: tokenString))
+                    tokens.append(.identifier(name: value))
                 }
                 
             case numberRange, ".":
@@ -76,57 +82,46 @@ struct Lexer {
                 // after first '0', except when it's a hex literal like 0xffff
                 // 0 makes sense, 0124 doesn't
                 
-                while i < string.count {
-                    i += 1
-                    char = string.at(i)
-                    
-                    guard numberRange.contains(char)
-                        || (char == "e" && !value.contains("e"))
-                        || (char == "." && !value.contains("."))
-                        else { i -= 1; break }
-                    
-                    value += String(char)
+                while let next = expect({
+                    numberRange.contains($0)
+                        || ($0 == "e" && !value.contains("e"))
+                        || ($0 == "." && !value.contains("."))}) {
+                            value.append(next)
                 }
                 
-                // if only dots
                 if value.replacingOccurrences(of: ".", with: "").isEmpty {
                     fallthrough
                 }
-                
-                if value.contains("e") || value.contains(".") {
+                else if value.contains("e") || value.contains(".") {
                     tokens.append(.literal(value: .float(value: Float(value)!)))
                 }
                 else {
                     tokens.append(.literal(value: .int(value: Int(value)!)))
                 }
                 
-            case ":", "+", "-", "*",
-                 "/", "=", ">", "<",
-                 ".", "#",
-                 "!", "&", // "~",
-            "{", "}", "(", ")",  "[", "]":
+            case _ where symbols.contains(char):
                 
-                let value = String(char)
-                i += 1
-                
-                if value == ".", let secondDot = string.safeAt(i), secondDot == "." {
-                    
-                    if let thirdDot = string.safeAt(i+1), thirdDot == "." {
-                        i += 1
+                // .., ...
+                if char == ".", let _ = expect({ $0 == "." }) {
+                    if let _ = expect({ $0 == "." }) {
                         tokens.append(.punctuator(character: "..."))
                         break
                     }
-                    
                     tokens.append(.punctuator(character: ".."))
                     break
                 }
                 
-                i -= 1 // default, don't eat next (it's always eaten at the end)
-                tokens.append(.punctuator(character: value))
+                if char == "-", let _ = expect({ $0 == ">" }) {
+                    tokens.append(.punctuator(character: "->"))
+                    break
+                }
+                
+                // fallback
+                tokens.append(.punctuator(character: String(char)))
                 
                 // @Todo: &&, ||, >=, <=, ==, !=, +=, -=, *=, /=, %=, |=,
                 // @Todo: >>, <<, >>=, <<=
-                // @Todo: (&= for ^= ?)
+                // @Todo: ^=
                 // @Todo:
                 // @Todo: #[.]  for directive
                 // @Todo: ...   for varargs
@@ -137,7 +132,7 @@ struct Lexer {
             default:
                 break
             }
-            i += 1
+            nextChar()
         }
         
         return tokens

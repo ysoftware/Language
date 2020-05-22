@@ -9,16 +9,36 @@
 import Foundation
     
 func lexerTest() {
-
+ 
+    print("Testing the lexer...")
     lexer_testVarargsRangeSpecialFloat()
     lexer_testBrackets()
+    lexer_testFunctionDeclaration()
+    print("Lexer tests done.")
+}
+
+func lexer_testFunctionDeclaration() {
+    let code = "func main(string: String) -> Int32 { }"
+    
+    printLexerTestResult(code, Lexer().analyze(code), [
+        .keyword(name: "func"),
+        .identifier(name: "main"),
+        .punctuator(character: "("),
+        .identifier(name: "string"),
+        .punctuator(character: ":"),
+        .identifier(name: "String"),
+        .punctuator(character: ")"),
+        .punctuator(character: "->"),
+        .identifier(name: "Int32"),
+        .punctuator(character: "{"),
+        .punctuator(character: "}"),
+    ])
 }
 
 func lexer_testBrackets() {
-    let lexer = Lexer()
-    let result = lexer.analyze("I[aZ]a(saw)d")
+    let code = "I[aZ]a(saw)d"
     
-    let expect: [Token] = [
+    printLexerTestResult(code, Lexer().analyze(code), [
         .identifier(name: "I"),
         .punctuator(character: "["),
         .identifier(name: "aZ"),
@@ -28,16 +48,13 @@ func lexer_testBrackets() {
         .identifier(name: "saw"),
         .punctuator(character: ")"),
         .identifier(name: "d")
-    ]
-    
-    printLexerTestResult(expect, result)
+    ])
 }
 
 func lexer_testVarargsRangeSpecialFloat() {
-    let lexer = Lexer()
-    let result = lexer.analyze("Int32, ..., .1234, A..z")
+    let code = "Int32, ..., .1234, A..z"
     
-    let expect: [Token] = [
+    printLexerTestResult(code, Lexer().analyze(code), [
         .identifier(name: "Int32"),
         .separator(symbol: ","),
         .punctuator(character: "..."),
@@ -47,15 +64,15 @@ func lexer_testVarargsRangeSpecialFloat() {
         .identifier(name: "A"),
         .punctuator(character: ".."),
         .identifier(name: "z"),
-    ]
-    
-    printLexerTestResult(expect, result)
+    ])
 }
 
-func printLexerTestResult(caseName: String = #function, _ expect: [Token], _ result: [Token]) {
+func printLexerTestResult(caseName: String = #function, _ code: String,
+                          _ result: [Token], _ expect: [Token]) {
     
     if result != expect {
-        print("\n\(caseName): ❌")
+        print("❌ \(caseName)")
+        print("\"\(code)\"")
         if result.count != expect.count {
             print("counts don't match", result.count, "vs expected", expect.count, "\n===")
             print(result.map { String(describing: $0) }.joined(separator: "\n"))
@@ -70,7 +87,7 @@ func printLexerTestResult(caseName: String = #function, _ expect: [Token], _ res
         print("===\n\n")
     }
     else {
-        print("\(caseName): ✅")
+        print("OK \(caseName)")
     }
 }
 
