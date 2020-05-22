@@ -8,13 +8,6 @@
 
 import Foundation
 
-//  identifier      x, color, UP
-//  keyword         if, while, return, func
-//  punctuator      }, (, ;, :
-//  operator        +, <, =
-//  literal         true, 6.02e23, "music"
-//  comment         /* Retrieves user data */, // must be negative
-
 let keywords = [
     "func",
     "break",

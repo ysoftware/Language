@@ -14,9 +14,10 @@ fileprivate var failed = false
 func lexerTest() {
     failed = false
     
+    lexer_testDirective()
+    lexer_testDirectiveFail3()
     lexer_testDirectiveFail2()
     lexer_testDirectiveFail()
-    lexer_testDirective()
     lexer_testMultilineStringLiteralFail2()
     lexer_testMultilineStringLiteralFail()
     lexer_testMultilineStringLiteral()

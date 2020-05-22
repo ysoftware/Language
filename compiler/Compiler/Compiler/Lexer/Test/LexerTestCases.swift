@@ -62,20 +62,25 @@ func lexer_testDirectiveFail() {
     printLexerTestFail(code, Lexer.analyze(code), LexerError(.emptyDirectiveName))
 }
 
-
 func lexer_testDirectiveFail2() {
     let code = "hello # hello"
     printLexerTestFail(code, Lexer.analyze(code), LexerError(.emptyDirectiveName))
 }
 
+func lexer_testDirectiveFail3() {
+    let code = "hello #123"
+    printLexerTestFail(code, Lexer.analyze(code), LexerError(.unexpectedDirectiveName))
+}
+
 func lexer_testDirective() {
-    let code = "id: Int #foreign"
+    let code = "id: Int #foreign #_internal"
     
     printLexerTestResult(code, Lexer.analyze(code), [
         .identifier(value: "id"),
         .punctuator(value: ":"),
         .identifier(value: "Int"),
-        .directive(value: "foreign")
+        .directive(value: "foreign"),
+        .directive(value: "_internal")
     ])
 }
 
