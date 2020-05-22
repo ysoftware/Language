@@ -7,9 +7,12 @@
 //
 
 import Foundation
+
+fileprivate let PRINT_PASSES = false
+fileprivate var failed = false
     
 func lexerTest() {
-    print("Testing the lexer...")
+    failed = false
     
     lexer_testComments()
     lexer_testNumbersFail()
@@ -18,7 +21,12 @@ func lexerTest() {
     lexer_testFunctionDeclaration()
     lexer_testNumbers()
 
-    print("Lexer tests done.")
+    if failed {
+        print("❌ Some lexer tests have failed!")
+    }
+    else {
+        print("All lexer tests have passed.\n")
+    }
 }
 
 func printLexerTestFail(caseName: String = #function,  _ code: String,
@@ -27,9 +35,11 @@ func printLexerTestFail(caseName: String = #function,  _ code: String,
     switch resultR {
     case .failure(let error):
         if error.message == expected.message {
+            guard PRINT_PASSES else { return }
             print("OK \(caseName)")
             return
         }
+        failed = true
         print("❌ \(caseName)")
         print("code: \"\(code)\"")
         print("Expected error:", expected.message)
@@ -37,6 +47,7 @@ func printLexerTestFail(caseName: String = #function,  _ code: String,
         print("\n\n")
         
     case .success(let tokens):
+        failed = true
         print("❌ \(caseName)")
         print("code: \"\(code)\"")
         print("Expected error:", expected.message, "\n===")
@@ -50,6 +61,7 @@ func printLexerTestResult(caseName: String = #function, _ code: String,
     
     switch resultR {
     case .failure(let error):
+        failed = true
         print("\n❌ \(caseName)\n")
         print("\"\(code)\"")
         // @Todo: print the line at error.lineNumber, ignore for now
@@ -59,22 +71,24 @@ func printLexerTestResult(caseName: String = #function, _ code: String,
 
     case .success(let result):
         if result != expect {
+            failed = true
             print("\n❌ \(caseName)")
             print("\"\(code)\"")
             if result.count != expect.count {
                 print("counts don't match", result.count, "vs expected", expect.count, "\n===")
                 printTokens(result)
+                print("===\n\n")
             }
             else {
                 for i in 0..<result.count {
                     if result[i] != expect[i] {
-                        print("mismatch in \(i):", result[i], "expected", expect[i])
+                        print("mismatch in \(i):", result[i], "expected", expect[i], "\n\n")
                     }
                 }
             }
-            print("===\n\n")
         }
         else {
+            guard PRINT_PASSES else { return }
             print("OK \(caseName)")
         }
     }

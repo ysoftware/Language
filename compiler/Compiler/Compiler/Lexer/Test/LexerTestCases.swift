@@ -12,7 +12,7 @@ func lexer_testComments() {
     let code = """
 1 / 2
 hello // this is a comment
-violin /* this is another comment */
+violin /* this is another comment */ hello
 maker /* this is a
 /* folded */
 multiline comment */
@@ -21,16 +21,17 @@ multiline comment */
     
     printLexerTestResult(code, Lexer.analyze(code), [
         .literal(value: .int(value: 1)),
-        .operator(name: "/"),
+        .operator(value: "/"),
         .literal(value: .int(value: 2)),
-        .identifier(name: "hello"),
-        .comment(text: "this is a comment"),
-        .identifier(name: "violin"),
-        .comment(text: "this is another comment"),
-        .identifier(name: "maker"),
-        .comment(text: "this is a\n/* folded */\nmultiline comment"),
-        .comment(text: "1"),
-        .identifier(name: "goodbye"),
+        .identifier(value: "hello"),
+        .comment(value: "this is a comment"),
+        .identifier(value: "violin"),
+        .comment(value: "this is another comment"),
+        .identifier(value: "hello"),
+        .identifier(value: "maker"),
+        .comment(value: "this is a\n/* folded */\nmultiline comment"),
+        .comment(value: "1"),
+        .identifier(value: "goodbye"),
     ])
 }
 
@@ -43,7 +44,7 @@ func lexer_testNumbersFail() {
 }
 
 func lexer_testNumbers() {
-    let code = "1 -123 17.e2 1.1724 0 011 11. .11"
+    let code = "1 -123 17.e2 1.1724 0 011 11. .11 -0"
     
     printLexerTestResult(code, Lexer.analyze(code), [
         .literal(value: .int(value: 1)),
@@ -54,6 +55,7 @@ func lexer_testNumbers() {
         .literal(value: .int(value: 011)),
         .literal(value: .float(value: Float(11))),
         .literal(value: .float(value: Float(0.11))),
+        .literal(value: .int(value: Int(-0))),
     ])
 }
 
@@ -61,17 +63,17 @@ func lexer_testFunctionDeclaration() {
     let code = "func main(string: String) -> Int32 { }"
     
     printLexerTestResult(code, Lexer.analyze(code), [
-        .keyword(name: "func"),
-        .identifier(name: "main"),
-        .punctuator(character: "("),
-        .identifier(name: "string"),
-        .punctuator(character: ":"),
-        .identifier(name: "String"),
-        .punctuator(character: ")"),
-        .punctuator(character: "->"),
-        .identifier(name: "Int32"),
-        .punctuator(character: "{"),
-        .punctuator(character: "}"),
+        .keyword(value: "func"),
+        .identifier(value: "main"),
+        .punctuator(value: "("),
+        .identifier(value: "string"),
+        .punctuator(value: ":"),
+        .identifier(value: "String"),
+        .punctuator(value: ")"),
+        .punctuator(value: "->"),
+        .identifier(value: "Int32"),
+        .punctuator(value: "{"),
+        .punctuator(value: "}"),
     ])
 }
 
@@ -79,15 +81,15 @@ func lexer_testBrackets() {
     let code = "I[aZ]a(saw)d"
     
     printLexerTestResult(code, Lexer.analyze(code), [
-        .identifier(name: "I"),
-        .punctuator(character: "["),
-        .identifier(name: "aZ"),
-        .punctuator(character: "]"),
-        .identifier(name: "a"),
-        .punctuator(character: "("),
-        .identifier(name: "saw"),
-        .punctuator(character: ")"),
-        .identifier(name: "d")
+        .identifier(value: "I"),
+        .punctuator(value: "["),
+        .identifier(value: "aZ"),
+        .punctuator(value: "]"),
+        .identifier(value: "a"),
+        .punctuator(value: "("),
+        .identifier(value: "saw"),
+        .punctuator(value: ")"),
+        .identifier(value: "d")
     ])
 }
 
@@ -95,14 +97,14 @@ func lexer_testVarargsRangeSpecialFloat() {
     let code = "Int32, ..., .1234, A..z"
     
     printLexerTestResult(code, Lexer.analyze(code), [
-        .identifier(name: "Int32"),
-        .separator(symbol: ","),
-        .punctuator(character: "..."),
-        .separator(symbol: ","),
+        .identifier(value: "Int32"),
+        .separator(value: ","),
+        .punctuator(value: "..."),
+        .separator(value: ","),
         .literal(value: .float(value: 0.1234)),
-        .separator(symbol: ","),
-        .identifier(name: "A"),
-        .operator(name: ".."),
-        .identifier(name: "z"),
+        .separator(value: ","),
+        .identifier(value: "A"),
+        .operator(value: ".."),
+        .identifier(value: "z"),
     ])
 }

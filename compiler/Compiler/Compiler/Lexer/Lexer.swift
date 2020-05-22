@@ -96,10 +96,19 @@ enum Lexer {
         }
         
         
-        while i < string.count {
+        while string.count > i {
             switch char {
 
-            // @Todo: string literal
+            // @Todo: multiline string literal
+                
+            case "\"":
+                
+                var value = ""
+                while string.count > i {
+                    
+                    
+                }
+                
             
             case "\n":
                 lineNumber += 1
@@ -107,12 +116,12 @@ enum Lexer {
                 
             case ";",  ",":
                 // SEPARATORS
-                tokens.append(.separator(symbol: String(char)))
+                tokens.append(.separator(value: String(char)))
                 
             case lowercaseRange, uppercaseRange, "_":
                 // KEYWORDS / IDENTIFIERS
-                var value = String(char)
                 
+                var value = String(char)
                 while let next = matchNext(where: {
                     lowercaseRange.contains($0)
                         || uppercaseRange.contains($0)
@@ -122,15 +131,14 @@ enum Lexer {
                 }
                 
                 if keywords.contains(value) {
-                    tokens.append(.keyword(name: value))
+                    tokens.append(.keyword(value: value))
                 }
                 else {
-                    tokens.append(.identifier(name: value))
+                    tokens.append(.identifier(value: value))
                 }
                 
             case numberRange, ".", "-":
                 // NUMBER LITERALS
-                var value = String(char)
                 
                 // if this and the next characters are both not numbers
                 // @Note: this will fail "---1", and maybe we don't need it
@@ -138,6 +146,7 @@ enum Lexer {
                     fallthrough
                 }
                 
+                var value = String(char)
                 while let next = matchNext(where: { numberRange.contains($0) || $0 == "." || $0 == "e"}) {
                     if next == "." && value.contains(".") || next == "e" && value.contains("e") {
                         return .failure(
@@ -161,57 +170,57 @@ enum Lexer {
                 
             case "/":
                 // COMMENTS
-                var commentString = ""
                 
                 // @Note: we fallthrough to here from the case above
                 // can expect ".", "e" and number characters
                 
+                var value = ""
                 if match(string: "//") {
                     nextChar()
                     
-                    while i < string.count {
+                    while string.count > i {
                         if match(string: "\n") {
                             lineNumber += 1
                             characterOnLine = 0
                             break
                         }
                         else {
-                            commentString.append(char)
+                            value.append(char)
                             nextChar()
                         }
                     }
-                    tokens.append(.comment(text:
-                        commentString.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    tokens.append(.comment(value:
+                        value.trimmingCharacters(in: .whitespacesAndNewlines)))
                 }
                 else if match(string: "/*") {
                     var commentLevel = 1
                     nextChar()
                     
-                    while i < string.count && commentLevel > 0 {
+                    while string.count > i && commentLevel > 0 {
                         if match(string: "/*") {
                             commentLevel += 1
                             if commentLevel > 0 {
-                                commentString.append("/*")
+                                value.append("/*")
                             }
                         }
                         else if match(string: "*/") {
                             commentLevel -= 1
                             if commentLevel > 0 {
-                                commentString.append("*/")
+                                value.append("*/")
                             }
                         }
                         else if match(string: "\n") {
                             lineNumber += 1
                             characterOnLine = 0
-                            commentString.append("\n")
+                            value.append("\n")
                         }
                         else {
-                            commentString.append(char)
+                            value.append(char)
                         }
                         nextChar()
                     }
-                    tokens.append(.comment(text:
-                        commentString.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    tokens.append(.comment(value:
+                        value.trimmingCharacters(in: .whitespacesAndNewlines)))
                 }
                 else {
                     fallthrough
@@ -223,7 +232,7 @@ enum Lexer {
                 let punctuators = ["->", "...", "[", "]", "(", ")", "{", "}", ":"]
 
                 if let value = match(oneOf: punctuators) {
-                    tokens.append(.punctuator(character: value))
+                    tokens.append(.punctuator(value: value))
                     break
                 }
                 
@@ -234,7 +243,7 @@ enum Lexer {
                                  "<=", ">=", "+=", "-=", "*=", "/=", "%="]
                 
                 if let value = match(oneOf: operators) {
-                    tokens.append(.operator(name: value))
+                    tokens.append(.operator(value: value))
                     break
                 }
                 
@@ -249,5 +258,3 @@ enum Lexer {
         return .success(tokens)
     }
 }
-
-

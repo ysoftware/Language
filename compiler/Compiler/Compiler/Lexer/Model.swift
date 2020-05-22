@@ -57,13 +57,13 @@ enum Token: Equatable {
         }
     }
     
-    case identifier(name: String)
-    case keyword(name: String)
-    case punctuator(character: String)
-    case `operator`(name: String)
+    case identifier(value: String)
+    case keyword(value: String)
+    case punctuator(value: String)
+    case `operator`(value: String)
     case literal(value: LiteralToken)
-    case comment(text: String)
-    case separator(symbol: String)
+    case comment(value: String)
+    case separator(value: String)
 }
 
 struct LexerError: Error {
