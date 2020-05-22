@@ -13,7 +13,22 @@ func lexerTest() {
     lexer_testVarargsRangeSpecialFloat()
     lexer_testBrackets()
     lexer_testFunctionDeclaration()
+    lexer_testNumbers()
     print("Lexer tests done.")
+}
+
+func lexer_testNumbers() {
+    let code = "1 -123 17.e2 1.1724 0 011 11."
+    
+    printLexerTestResult(code, Lexer().analyze(code), [
+        .literal(value: .int(value: 1)),
+        .literal(value: .int(value: -123)),
+        .literal(value: .float(value: Float("17.e2")!)),
+        .literal(value: .float(value: Float(1.1724))),
+        .literal(value: .int(value: 0)),
+        .literal(value: .int(value: 011)),
+        .literal(value: .float(value: Float(11))),
+    ])
 }
 
 func lexer_testFunctionDeclaration() {

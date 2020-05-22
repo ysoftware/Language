@@ -44,7 +44,7 @@ struct Lexer {
         
         // checks if next char exists and matches, then eats it if it does
         // if not, does nothing and returns nil
-        func expect(_ compare: (Character)->Bool) -> Character? {
+        func match(_ compare: (Character)->Bool) -> Character? {
             let nextIndex = i + 1
             guard string.count > nextIndex else { return nil }
             let char = string[nextIndex]
@@ -57,7 +57,7 @@ struct Lexer {
         
         // checks if one of the strings in the array
         // matches current and subsequent characters
-        func expect(oneOf array: [String]) -> String? {
+        func match(oneOf array: [String]) -> String? {
             var leftValues = array
             var index = 0
             var query = String(char)
@@ -119,7 +119,7 @@ struct Lexer {
                 // KEYWORDS / IDENTIFIERS
                 var value = String(char)
                 
-                while let next = expect({
+                while let next = match({
                     lowercaseRange.contains($0)
                         || uppercaseRange.contains($0)
                         || numberRange.contains($0)
@@ -144,14 +144,14 @@ struct Lexer {
                 // after first '0', except when it's a hex literal like 0xffff
                 // 0 makes sense, 0124 doesn't
                 
-                while let next = expect({
+                while let next = match({
                     numberRange.contains($0)
                         || ($0 == "e" && !value.contains("e"))
-                        || ($0 == "." && !value.contains("."))}) {
+                        || ($0 == "." && !value.contains(".")) }) {
                             value.append(next)
                 }
                 
-                if value.replacingOccurrences(of: ".", with: "").isEmpty {
+                if value == "-" || value.replacingOccurrences(of: ".", with: "").isEmpty {
                     fallthrough
                 }
                 else if value.contains("e") || value.contains(".") {
@@ -166,7 +166,7 @@ struct Lexer {
                 
                 let punctuators = ["->", "...", "[", "]", "(", ")", "{", "}", ":"]
 
-                if let value = expect(oneOf: punctuators) {
+                if let value = match(oneOf: punctuators) {
                     tokens.append(.punctuator(character: value))
                     break
                 }
@@ -176,7 +176,7 @@ struct Lexer {
                                  ">>", "<<", ">>=", "<<=",
                                  "<=", ">=", "+=", "-=", "*=", "/=", "%="]
                 
-                if let value = expect(oneOf: operators) {
+                if let value = match(oneOf: operators) {
                     tokens.append(.punctuator(character: value))
                     break
                 }
