@@ -8,13 +8,19 @@
 
 import Foundation
 
-fileprivate let PRINT_PASSES = false
+fileprivate let PRINT_PASSES = true
 fileprivate var failed = false
     
 func lexerTest() {
     failed = false
     
+    lexer_testMultilineStringLiteralFail2()
+    lexer_testMultilineStringLiteralFail()
+    lexer_testMultilineStringLiteral()
+    lexer_testStringLiteralFail()
+    lexer_testStringLiteral()
     lexer_testComments()
+    lexer_testNumbersFail2()
     lexer_testNumbersFail()
     lexer_testVarargsRangeSpecialFloat()
     lexer_testBrackets()

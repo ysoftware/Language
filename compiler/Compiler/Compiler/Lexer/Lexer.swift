@@ -37,8 +37,9 @@ enum Lexer {
         
         /// Peeks at the `next` character
         func lookahead() -> Character? {
-            guard string.count > i else { return nil }
-            return string[i + 1]
+            let nextIndex = i + 1
+            guard string.count > nextIndex else { return nil }
+            return string[nextIndex]
         }
         
         /// checks if `next char` exists and matches, then eats it if it does
@@ -99,16 +100,61 @@ enum Lexer {
         while string.count > i {
             switch char {
 
-            // @Todo: multiline string literal
-                
             case "\"":
+                // STRING LITERAL
+
+                let isMultiline = match(string: "\"\"\"")
+                if isMultiline, !matchNext("\n") {
+                    return .failure(
+                        LexerError(filename: filename, lineNumber: lineNumber,
+                                   character: characterOnLine,
+                                   .newlineExpectedBeforeMultilineStringLiteral))
+                }
+                else {
+                    nextChar()
+                }
                 
                 var value = ""
                 while string.count > i {
+                    if char == "\n" {
+                        lineNumber += 1
+                        characterOnLine = 0
+                    }
                     
+                    if isMultiline {
+                        if match(string: "\"\"\"") {
+                            return .failure(
+                                LexerError(filename: filename, lineNumber: lineNumber,
+                                           character: characterOnLine,
+                                           .newlineExpectedAfterMultilineStringLiteral))
+                        }
+                        else if match(string: "\n\"\"\"") {
+                            if lookahead() != nil && !matchNext("\n") {
+                                return .failure(
+                                    LexerError(filename: filename, lineNumber: lineNumber,
+                                               character: characterOnLine,
+                                               .newlineExpectedAfterMultilineStringLiteral))
+                            }
+                            else {
+                                tokens.append(.literal(value: .string(value: value)))
+                                break
+                            }
+                        }
+                    }
+                    else {
+                        if match(string: "\"") {
+                            tokens.append(.literal(value: .string(value: value)))
+                            break
+                        }
+                        else if match(string: "\n") {
+                            return .failure(LexerError(filename: filename, lineNumber: lineNumber,
+                                                       character: characterOnLine, .newLineInStringLiteral))
+                        }
+                    }
                     
+                    value.append(char)
+                    nextChar()
                 }
-                
             
             case "\n":
                 lineNumber += 1
@@ -149,11 +195,13 @@ enum Lexer {
                 var value = String(char)
                 while let next = matchNext(where: { numberRange.contains($0) || $0 == "." || $0 == "e"}) {
                     if next == "." && value.contains(".") || next == "e" && value.contains("e") {
+                        let error: LexerError.Message = next == "."
+                            ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral
                         return .failure(
                             LexerError(filename: filename,
                                        lineNumber: lineNumber,
                                        character: characterOnLine,
-                                       "Unexpected \"\(next)\" in the middle of a number literal"))
+                                       error))
                     }
                     value.append(next)
                 }

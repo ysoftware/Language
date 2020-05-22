@@ -8,6 +8,64 @@
 
 import Foundation
 
+func lexer_testMultilineStringLiteralFail2() {
+    let code = """
+\"\"\"
+Hello
+"\"\"\"a
+"""
+    printLexerTestFail(code, Lexer.analyze(code), LexerError(.newlineExpectedAfterMultilineStringLiteral))
+}
+
+func lexer_testMultilineStringLiteralFail() {
+    let code = """
+\"\"\"
+Hello"\"\"\"
+"""
+    printLexerTestFail(code, Lexer.analyze(code), LexerError(.newlineExpectedAfterMultilineStringLiteral))
+}
+
+func lexer_testMultilineStringLiteral() {
+    let code = """
+\"\"\"
+
+
+\"\"\"
+
+\"\"\"
+
+Hello, Sailor!
+When is JAI out?
+"I really like it"
+\"\"\"
+"""
+    
+    printLexerTestResult(code, Lexer.analyze(code), [
+        .literal(value: .string(value: "\n")),
+        .literal(value: .string(value: "\nHello, Sailor!\nWhen is JAI out?\n\"I really like it\""))
+    ])
+}
+
+func lexer_testStringLiteral() {
+    let code = """
+"Hello, Sailor!" ""
+"""
+    
+    printLexerTestResult(code, Lexer.analyze(code), [
+        .literal(value: .string(value: "Hello, Sailor!")),
+        .literal(value: .string(value: ""))
+    ])
+}
+
+func lexer_testStringLiteralFail() {
+    let code = """
+"Hello sailor
+
+"""
+    
+    printLexerTestFail(code, Lexer.analyze(code), LexerError(.newLineInStringLiteral))
+}
+
 func lexer_testComments() {
     let code = """
 1 / 2
@@ -37,10 +95,12 @@ multiline comment */
 
 func lexer_testNumbersFail() {
     let code = "1.1.1"
-    
-    printLexerTestFail(
-        code, Lexer.analyze(code),
-        LexerError("Unexpected \".\" in the middle of a number literal"))
+    printLexerTestFail(code, Lexer.analyze(code), LexerError(.unexpectedDotInFloatLiteral))
+}
+
+func lexer_testNumbersFail2() {
+    let code = "10.134e12e37"
+    printLexerTestFail(code, Lexer.analyze(code), LexerError(.unexpectedEInFloatLiteral))
 }
 
 func lexer_testNumbers() {

@@ -68,22 +68,31 @@ enum Token: Equatable {
 
 struct LexerError: Error {
     
+    enum Message: String {
+        
+        case unexpectedDotInFloatLiteral = "Only a single `.` is expected in a float literal."
+        case unexpectedEInFloatLiteral = "Only a single `e` is expected in a float literal."
+        case newLineInStringLiteral = "String literal is not terminated before a new line"
+        case newlineExpectedBeforeMultilineStringLiteral = "Multiline string literal is expected to start from a new line."
+        case newlineExpectedAfterMultilineStringLiteral = "Multiline string literal is expected to end after a new line."
+    }
+    
     let lineNumber: Int
     let character: Int
-    let message: String
+    let message: Message
     let filename: String
     
-    init(_ message: String) {
+    init(_ message: Message) {
         lineNumber = 0
         character = 0
         filename = "<no file>"
         self.message = message
     }
     
-    init(filename: String, lineNumber: Int, character: Int, _ message: String) {
+    init(filename: String, lineNumber: Int, character: Int, _ message: Message) {
+        self.message = message
         self.lineNumber = lineNumber
         self.character = character
-        self.message = message
         self.filename = filename
     }
 }
