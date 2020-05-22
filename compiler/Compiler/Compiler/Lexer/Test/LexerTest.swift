@@ -10,13 +10,14 @@ import Foundation
     
 func lexerTest() {
     print("Testing the lexer...")
-    // parsed
+    
+    lexer_testComments()
+    lexer_testNumbersFail()
     lexer_testVarargsRangeSpecialFloat()
     lexer_testBrackets()
     lexer_testFunctionDeclaration()
     lexer_testNumbers()
-    // errored
-    lexer_testNumbersFail()
+
     print("Lexer tests done.")
 }
 
@@ -58,7 +59,7 @@ func printLexerTestResult(caseName: String = #function, _ code: String,
 
     case .success(let result):
         if result != expect {
-            print("❌ \(caseName)")
+            print("\n❌ \(caseName)")
             print("\"\(code)\"")
             if result.count != expect.count {
                 print("counts don't match", result.count, "vs expected", expect.count, "\n===")
@@ -67,7 +68,7 @@ func printLexerTestResult(caseName: String = #function, _ code: String,
             else {
                 for i in 0..<result.count {
                     if result[i] != expect[i] {
-                        print(i, result[i], "expected", expect[i])
+                        print("mismatch in \(i):", result[i], "expected", expect[i])
                     }
                 }
             }

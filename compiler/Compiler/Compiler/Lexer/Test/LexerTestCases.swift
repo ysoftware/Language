@@ -8,6 +8,32 @@
 
 import Foundation
 
+func lexer_testComments() {
+    let code = """
+1 / 2
+hello // this is a comment
+violin /* this is another comment */
+maker /* this is a
+/* folded */
+multiline comment */
+/* 1 */ goodbye
+"""
+    
+    printLexerTestResult(code, Lexer.analyze(code), [
+        .literal(value: .int(value: 1)),
+        .operator(name: "/"),
+        .literal(value: .int(value: 2)),
+        .identifier(name: "hello"),
+        .comment(text: "this is a comment"),
+        .identifier(name: "violin"),
+        .comment(text: "this is another comment"),
+        .identifier(name: "maker"),
+        .comment(text: "this is a\n/* folded */\nmultiline comment"),
+        .comment(text: "1"),
+        .identifier(name: "goodbye"),
+    ])
+}
+
 func lexer_testNumbersFail() {
     let code = "1.1.1"
     

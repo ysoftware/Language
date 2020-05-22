@@ -11,36 +11,45 @@ import Foundation
 enum Lexer {
     
     static func analyze(filename: String = "<no file>", _ string: String) -> Result<[Token], LexerError> {
-        let symbols: [Character] = [ ":", "+", "-", "*", "/", "=", ">", "<", ".", "#", "!", "&", "{", "}", "(", ")",  "[", "]"]
         let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "z"))
         let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "Z"))
         let numberRange = ClosedRange<Character>(uncheckedBounds: ("0", "9"))
         
         var tokens: [Token] = []
+        
         var lineNumber = 0
         var characterOnLine = 0
         var i = 0
         var char = string[i]
         
+        /// advances the counter
         func advance(_ count: Int = 1) {
             i += count
             characterOnLine += count
         }
         
+        /// advances the counter and sets `char` to the next character in string
         func nextChar() {
             advance()
             guard string.count > i else { return }
             char = string[i]
         }
         
+        /// Peeks at the `next` character
         func lookahead() -> Character? {
             guard string.count > i else { return nil }
             return string[i + 1]
         }
         
-        /// checks if next char exists and matches, then eats it if it does
+        /// checks if `next char` exists and matches, then eats it if it does
+        /// if not, does nothing and returns false
+        func matchNext(_ character: Character) -> Bool {
+            matchNext(where: { $0 == character }) != nil
+        }
+        
+        /// checks if `next char` exists and matches the predicate, then eats it if it does
         /// if not, does nothing and returns nil
-        func match(_ compare: (Character)->Bool) -> Character? {
+        func matchNext(where compare: (Character)->Bool) -> Character? {
             let nextIndex = i + 1
             guard string.count > nextIndex else { return nil }
             let char = string[nextIndex]
@@ -51,18 +60,20 @@ enum Lexer {
             return nil
         }
         
+        /// checks if the string
+        /// matches `current and subsequent` characters
+        func match(string: String) -> Bool {
+            match(oneOf: [string]) != nil
+        }
+        
         /// checks if one of the strings in the array
-        /// matches current and subsequent characters
+        /// matches `current and subsequent` characters
         func match(oneOf array: [String]) -> String? {
             var leftValues = array
             var index = 0
             var query = String(char)
-            
             while string.count > i + index {
-                let filtered = leftValues.filter {
-                    $0.count >= index && $0.starts(with: query)
-                }
-                
+                let filtered = leftValues.filter { $0.count >= index && $0.starts(with: query) }
                 if filtered.isEmpty {
                     let prevQuery = String(query[query.startIndex..<query.endIndex(offsetBy: -1)])
                     if leftValues.contains(prevQuery) {
@@ -71,17 +82,15 @@ enum Lexer {
                     }
                     return nil
                 }
-                
                 leftValues = filtered
                 if leftValues.count == 1, leftValues[0] == query {
                     advance(query.count - 1)
                     return query
                 }
-                
                 index += 1
                 guard string.count > i + index else { return nil }
                 let nextChar = string[i + index]
-                query += String(nextChar)
+                query.append(nextChar)
             }
             return nil
         }
@@ -89,10 +98,9 @@ enum Lexer {
         
         while i < string.count {
             switch char {
-                
-                // @Todo: comment, folded comment
-                // @Todo: string literal
-                
+
+            // @Todo: string literal
+            
             case "\n":
                 lineNumber += 1
                 characterOnLine = 0
@@ -105,7 +113,7 @@ enum Lexer {
                 // KEYWORDS / IDENTIFIERS
                 var value = String(char)
                 
-                while let next = match({
+                while let next = matchNext(where: {
                     lowercaseRange.contains($0)
                         || uppercaseRange.contains($0)
                         || numberRange.contains($0)
@@ -130,7 +138,7 @@ enum Lexer {
                     fallthrough
                 }
                 
-                while let next = match({ numberRange.contains($0) || $0 == "." || $0 == "e"}) {
+                while let next = matchNext(where: { numberRange.contains($0) || $0 == "." || $0 == "e"}) {
                     if next == "." && value.contains(".") || next == "e" && value.contains("e") {
                         return .failure(
                             LexerError(filename: filename,
@@ -151,7 +159,65 @@ enum Lexer {
                     tokens.append(.literal(value: .int(value: Int(value)!)))
                 }
                 
-            case _ where symbols.contains(char):
+            case "/":
+                // COMMENTS
+                var commentString = ""
+                
+                // @Note: we fallthrough to here from the case above
+                // can expect ".", "e" and number characters
+                
+                if match(string: "//") {
+                    nextChar()
+                    
+                    while i < string.count {
+                        if match(string: "\n") {
+                            lineNumber += 1
+                            characterOnLine = 0
+                            break
+                        }
+                        else {
+                            commentString.append(char)
+                            nextChar()
+                        }
+                    }
+                    tokens.append(.comment(text:
+                        commentString.trimmingCharacters(in: .whitespacesAndNewlines)))
+                }
+                else if match(string: "/*") {
+                    var commentLevel = 1
+                    nextChar()
+                    
+                    while i < string.count && commentLevel > 0 {
+                        if match(string: "/*") {
+                            commentLevel += 1
+                            if commentLevel > 0 {
+                                commentString.append("/*")
+                            }
+                        }
+                        else if match(string: "*/") {
+                            commentLevel -= 1
+                            if commentLevel > 0 {
+                                commentString.append("*/")
+                            }
+                        }
+                        else if match(string: "\n") {
+                            lineNumber += 1
+                            characterOnLine = 0
+                            commentString.append("\n")
+                        }
+                        else {
+                            commentString.append(char)
+                        }
+                        nextChar()
+                    }
+                    tokens.append(.comment(text:
+                        commentString.trimmingCharacters(in: .whitespacesAndNewlines)))
+                }
+                else {
+                    fallthrough
+                }
+                
+            default:
                 // PUNCTUATORS, OPERATORS
                 
                 let punctuators = ["->", "...", "[", "]", "(", ")", "{", "}", ":"]
@@ -172,12 +238,10 @@ enum Lexer {
                     break
                 }
                 
-                fallthrough
+                break
                 
                 // @Todo: #[.]  for directive
                 
-            default:
-                break
             }
             nextChar()
         }
