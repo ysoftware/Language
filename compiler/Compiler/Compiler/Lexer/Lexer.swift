@@ -10,6 +10,13 @@ import Foundation
 
 // @Todo: file name and line number
 
+private extension String {
+    
+    func endIndex(offsetBy offset: Int) -> String.Index { index(endIndex, offsetBy: offset) }
+    func startIndex(offsetBy offset: Int) -> String.Index { index(startIndex, offsetBy: offset) }
+    subscript(index: Int) -> Character { self[startIndex(offsetBy: index)] }
+}
+
 struct Lexer {
     
     let symbols: [Character] = [ ":", "+", "-", "*", "/", "=", ">", "<", ".", "#", "!", "&", "{", "}", "(", ")",  "[", "]"]
@@ -21,27 +28,79 @@ struct Lexer {
     func analyze(_ string: String) -> [Token] {
         var tokens: [Token] = []
         var i = 0
-        var char = string[string.index(string.startIndex, offsetBy: i)]
+        var char = string[i]
         
         func nextChar() {
             i += 1
             guard string.count > i else { return }
-            char = string[string.index(string.startIndex, offsetBy: i)]
+            char = string[i]
         }
         
+        
+        // checks if next char exists and matches, but does not eat it
+        // func match(_ compare: (Character)->Bool) -> Bool {
+        //
+        // }
         
         // checks if next char exists and matches, then eats it if it does
         // if not, does nothing and returns nil
         func expect(_ compare: (Character)->Bool) -> Character? {
             let nextIndex = i + 1
             guard string.count > nextIndex else { return nil }
-            let char = string[string.index(string.startIndex, offsetBy: nextIndex)]
+            let char = string[nextIndex]
             if compare(char) {
                 i += 1 // eat
                 return char
             }
             return nil
         }
+        
+        // checks if one of the strings in the array
+        // matches current and subsequent characters
+        func expect(oneOf array: [String]) -> String? {
+            var leftValues = array
+            var index = 0
+            var query = String(char)
+            
+            while string.count > i + index {
+                let filtered = leftValues.filter {
+                    $0.count >= index && $0.starts(with: query)
+                }
+                
+                if filtered.isEmpty {
+                    let prevQuery = String(query[query.startIndex..<query.endIndex(offsetBy: -1)])
+                    if leftValues.contains(prevQuery) {
+                        i += prevQuery.count - 1
+                        return prevQuery
+                    }
+                    return nil
+                }
+                
+                leftValues = filtered
+                if leftValues.count == 1, leftValues[0] == query {
+                    i += query.count - 1
+                    return query
+                }
+                
+                index += 1
+                guard string.count > i + index else { return nil }
+                let nextChar = string[i + index]
+                query += String(nextChar)
+            }
+            return nil
+        }
+        
+//        // TEST
+//        while string.count > i {
+//            char = string[i]
+//            if let found = expect(oneOf: ["..", "...", "."]) {
+//                print("result:", found, "\n\n\n")
+//            }
+//            i += 1
+//        }
+//
+//        return []
+        
         
         
         
@@ -53,9 +112,11 @@ struct Lexer {
                 // @Todo: string literal
                 
             case ";",  ",": // @Note: ignore \n for now, let's go with ;
+                // SEPARATORS
                 tokens.append(.separator(symbol: String(char)))
                 
             case lowercaseRange, uppercaseRange, "_":
+                // KEYWORDS / IDENTIFIERS
                 var value = String(char)
                 
                 while let next = expect({
@@ -73,10 +134,11 @@ struct Lexer {
                     tokens.append(.identifier(name: value))
                 }
                 
-            case numberRange, ".":
+            case numberRange, ".", "-":
+                // NUMBER LITERALS
                 var value = String(char)
                 
-                // @Todo: handle - for negative literals
+                // @Todo: handle "-" for negative literals
                 
                 // @Todo: we don't expect a number literal to continue
                 // after first '0', except when it's a hex literal like 0xffff
@@ -100,34 +162,28 @@ struct Lexer {
                 }
                 
             case _ where symbols.contains(char):
+                // PUNCTUATORS, OPERATORS
                 
-                // .., ...
-                if char == ".", let _ = expect({ $0 == "." }) {
-                    if let _ = expect({ $0 == "." }) {
-                        tokens.append(.punctuator(character: "..."))
-                        break
-                    }
-                    tokens.append(.punctuator(character: ".."))
+                let punctuators = ["->", "...", "[", "]", "(", ")", "{", "}", ":"]
+
+                if let value = expect(oneOf: punctuators) {
+                    tokens.append(.punctuator(character: value))
                     break
                 }
                 
-                if char == "-", let _ = expect({ $0 == ">" }) {
-                    tokens.append(.punctuator(character: "->"))
+                let operators = ["..",
+                                 "&&", "||", "!=", "==", "^=",
+                                 ">>", "<<", ">>=", "<<=",
+                                 "<=", ">=", "+=", "-=", "*=", "/=", "%="]
+                
+                if let value = expect(oneOf: operators) {
+                    tokens.append(.punctuator(character: value))
                     break
                 }
                 
-                // fallback
-                tokens.append(.punctuator(character: String(char)))
+                fallthrough
                 
-                // @Todo: &&, ||, >=, <=, ==, !=, +=, -=, *=, /=, %=, |=,
-                // @Todo: >>, <<, >>=, <<=
-                // @Todo: ^=
-                // @Todo:
                 // @Todo: #[.]  for directive
-                // @Todo: ...   for varargs
-                // @Todo: ..    for ranges
-                // @Todo: ->    for function return type
-                
                 
             default:
                 break

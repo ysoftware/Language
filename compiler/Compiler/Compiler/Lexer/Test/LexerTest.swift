@@ -9,7 +9,6 @@
 import Foundation
     
 func lexerTest() {
- 
     print("Testing the lexer...")
     lexer_testVarargsRangeSpecialFloat()
     lexer_testBrackets()
