@@ -33,12 +33,13 @@ enum Lexer {
             char = string[i]
         }
         
-        func lookahead() -> Character {
-            string[i + 1]
+        func lookahead() -> Character? {
+            guard string.count > i else { return nil }
+            return string[i + 1]
         }
         
-        // checks if next char exists and matches, then eats it if it does
-        // if not, does nothing and returns nil
+        /// checks if next char exists and matches, then eats it if it does
+        /// if not, does nothing and returns nil
         func match(_ compare: (Character)->Bool) -> Character? {
             let nextIndex = i + 1
             guard string.count > nextIndex else { return nil }
@@ -50,8 +51,8 @@ enum Lexer {
             return nil
         }
         
-        // checks if one of the strings in the array
-        // matches current and subsequent characters
+        /// checks if one of the strings in the array
+        /// matches current and subsequent characters
         func match(oneOf array: [String]) -> String? {
             var leftValues = array
             var index = 0
@@ -123,11 +124,12 @@ enum Lexer {
                 // NUMBER LITERALS
                 var value = String(char)
                 
-                // this is not a number literal
-                if !numberRange.contains(char) && !numberRange.contains(lookahead()) {
+                // if this and the next characters are both not numbers
+                // @Note: this will fail "---1", and maybe we don't need it
+                if !numberRange.contains(char), let next = lookahead(), !numberRange.contains(next) {
                     fallthrough
                 }
-                                
+                
                 while let next = match({ numberRange.contains($0) || $0 == "." || $0 == "e"}) {
                     if next == "." && value.contains(".") || next == "e" && value.contains("e") {
                         return .failure(
@@ -159,13 +161,14 @@ enum Lexer {
                     break
                 }
                 
-                let operators = ["..", "=", ":=",
+                let operators = ["-", "+", "/", "*",
+                                 "..", "=", ":=",
                                  "&&", "||", "!=", "==", "^=",
                                  ">>", "<<", ">>=", "<<=",
                                  "<=", ">=", "+=", "-=", "*=", "/=", "%="]
                 
                 if let value = match(oneOf: operators) {
-                    tokens.append(.punctuator(character: value))
+                    tokens.append(.operator(name: value))
                     break
                 }
                 

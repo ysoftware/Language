@@ -76,7 +76,7 @@ func lexer_testVarargsRangeSpecialFloat() {
         .literal(value: .float(value: 0.1234)),
         .separator(symbol: ","),
         .identifier(name: "A"),
-        .punctuator(character: ".."),
+        .operator(name: ".."),
         .identifier(name: "z"),
     ])
 }
