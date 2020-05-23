@@ -8,7 +8,6 @@
 
 import Foundation
 
-
 //let index: Int = CommandLine.arguments
 //    .first { $0.starts(with: "-ast") }
 //    .map { String($0[$0.index($0.startIndex, offsetBy: 4)..<$0.endIndex]) }
