@@ -8,8 +8,10 @@
 
 let WhileLoopAST = Scope(code: [
     
-    StringLiteral(id: "global_string_literal_1", value: "a == %d\n\0"),
-    StringLiteral(id: "global_string_literal_2", value: "Left the loop, a == %d\n\0"),
+    VariableDeclaration(id: "global_string_literal_1", expType: .string, flags: .isConstant,
+                        expression: StringLiteral(value: "a == %d\n\0")),
+    VariableDeclaration(id: "global_string_literal_2", expType: .string, flags: .isConstant,
+                        expression: StringLiteral(value: "Left the loop, a == %d\n\0")),
     
     // func printf(_ format: String, _ arguments: Int32...) -> Int32 #foreign
     ProcedureDeclaration(

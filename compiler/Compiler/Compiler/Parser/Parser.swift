@@ -10,4 +10,8 @@ import Foundation
 
 enum Parser {
 
+    func parse(_ tokens: [Token]) -> Scope {
+        
+        return .empty
+    }
 }

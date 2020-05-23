@@ -15,7 +15,7 @@ extension LexerTest {
 \"\"\"
 Hello
 """
-        printLexerTestFail(code, Lexer.analyze(code), LexerError(.unexpectedEndOfFile))
+        printErrorCase(code, Lexer.analyze(code), LexerError(.unexpectedEndOfFile))
     }
     
     func testMultilineStringLiteralFail2() {
@@ -24,7 +24,7 @@ Hello
 Hello
 "\"\"\"a
 """
-        printLexerTestFail(code, Lexer.analyze(code), LexerError(.newlineExpectedAfterMultilineStringLiteral))
+        printErrorCase(code, Lexer.analyze(code), LexerError(.newlineExpectedAfterMultilineStringLiteral))
     }
     
     func testMultilineStringLiteralFail() {
@@ -32,7 +32,7 @@ Hello
 \"\"\"
 Hello"\"\"\"
 """
-        printLexerTestFail(code, Lexer.analyze(code), LexerError(.newlineExpectedAfterMultilineStringLiteral))
+        printErrorCase(code, Lexer.analyze(code), LexerError(.newlineExpectedAfterMultilineStringLiteral))
     }
     
     func testMultilineStringLiteral() {
@@ -48,8 +48,7 @@ Test
 "It"
 \"\"\"
 """
-        
-        printLexerTestResult(code, Lexer.analyze(code), [
+        printResultCase(code, Lexer.analyze(code), [
             .literal(value: .string(value: "\n")),
             .literal(value: .string(value: "\nTest\n\"It\""))
         ])
@@ -60,26 +59,24 @@ Test
 "Hello sailor
 
 """
-        
-        printLexerTestFail(code, Lexer.analyze(code), LexerError(.newLineInStringLiteral))
+        printErrorCase(code, Lexer.analyze(code), LexerError(.newLineInStringLiteral))
     }
     
     func testStingLiteralFail3() {
         let code = "\"No end"
-        printLexerTestFail(code, Lexer.analyze(code), LexerError(.unexpectedEndOfFile))
+        printErrorCase(code, Lexer.analyze(code), LexerError(.unexpectedEndOfFile))
     }
     
     func testStingLiteralFail2() {
         let code = "\""
-        printLexerTestFail(code, Lexer.analyze(code), LexerError(.unexpectedEndOfFile))
+        printErrorCase(code, Lexer.analyze(code), LexerError(.unexpectedEndOfFile))
     }
     
     func testStringLiteral() {
         let code = """
 "Hello, Sailor!" ""
 """
-        
-        printLexerTestResult(code, Lexer.analyze(code), [
+        printResultCase(code, Lexer.analyze(code), [
             .literal(value: .string(value: "Hello, Sailor!")),
             .literal(value: .string(value: ""))
         ])
@@ -87,23 +84,23 @@ Test
     
     func testDirectiveFail() {
         let code = "hello #"
-        printLexerTestFail(code, Lexer.analyze(code), LexerError(.emptyDirectiveName))
+        printErrorCase(code, Lexer.analyze(code), LexerError(.emptyDirectiveName))
     }
     
     func testDirectiveFail2() {
         let code = "hello # hello"
-        printLexerTestFail(code, Lexer.analyze(code), LexerError(.emptyDirectiveName))
+        printErrorCase(code, Lexer.analyze(code), LexerError(.emptyDirectiveName))
     }
     
     func testDirectiveFail3() {
         let code = "hello #123"
-        printLexerTestFail(code, Lexer.analyze(code), LexerError(.unexpectedDirectiveName))
+        printErrorCase(code, Lexer.analyze(code), LexerError(.unexpectedDirectiveName))
     }
     
     func testDirective() {
         let code = "id: Int #foreign #_internal"
         
-        printLexerTestResult(code, Lexer.analyze(code), [
+        printResultCase(code, Lexer.analyze(code), [
             .identifier(value: "id"),
             .punctuator(value: ":"),
             .identifier(value: "Int"),
@@ -126,7 +123,7 @@ multiline comment */
 bye
 """
         
-        printLexerTestResult(code, Lexer.analyze(code), [
+        printResultCase(code, Lexer.analyze(code), [
             .literal(value: .int(value: 1)),
             .operator(value: "/"),
             .literal(value: .int(value: 2)),
@@ -145,18 +142,18 @@ bye
     
     func testNumbersFail() {
         let code = "1.1.1"
-        printLexerTestFail(code, Lexer.analyze(code), LexerError(.unexpectedDotInFloatLiteral))
+        printErrorCase(code, Lexer.analyze(code), LexerError(.unexpectedDotInFloatLiteral))
     }
     
     func testNumbersFail2() {
         let code = "10.134e12e37"
-        printLexerTestFail(code, Lexer.analyze(code), LexerError(.unexpectedEInFloatLiteral))
+        printErrorCase(code, Lexer.analyze(code), LexerError(.unexpectedEInFloatLiteral))
     }
     
     func testNumbers() {
         let code = "1 -123 17.e2 1.1724 0 011 11. .11 -0"
         
-        printLexerTestResult(code, Lexer.analyze(code), [
+        printResultCase(code, Lexer.analyze(code), [
             .literal(value: .int(value: 1)),
             .literal(value: .int(value: -123)),
             .literal(value: .float(value: Float("17.e2")!)),
@@ -172,7 +169,7 @@ bye
     func testFunctionDeclaration() {
         let code = "func main(string: String) -> Int32 { }"
         
-        printLexerTestResult(code, Lexer.analyze(code), [
+        printResultCase(code, Lexer.analyze(code), [
             .keyword(value: "func"),
             .identifier(value: "main"),
             .punctuator(value: "("),
@@ -190,7 +187,7 @@ bye
     func testBrackets() {
         let code = "I[aZ]a(saw)d"
         
-        printLexerTestResult(code, Lexer.analyze(code), [
+        printResultCase(code, Lexer.analyze(code), [
             .identifier(value: "I"),
             .punctuator(value: "["),
             .identifier(value: "aZ"),
@@ -206,7 +203,7 @@ bye
     func testVarargsRangeSpecialFloat() {
         let code = "Int32, ..., .1234, A..z"
         
-        printLexerTestResult(code, Lexer.analyze(code), [
+        printResultCase(code, Lexer.analyze(code), [
             .identifier(value: "Int32"),
             .separator(value: ","),
             .punctuator(value: "..."),

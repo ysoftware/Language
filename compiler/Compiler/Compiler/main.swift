@@ -8,24 +8,24 @@
 
 import Foundation
 
-//let index: Int = CommandLine.arguments
-//    .first { $0.starts(with: "-ast") }
-//    .map { String($0[$0.index($0.startIndex, offsetBy: 4)..<$0.endIndex]) }
-//    .flatMap { Int($0) } ?? 3
-//
-//let asts = [
-//    /* 0 */ IfElseAST(false),
-//    /* 1 */ IfElseAST(true),
-//    /* 2 */ WhileLoopAST,
-//    /* 3 */ LoopBreakContinueAST,
-//]
-//
-//let ast = asts[index]
-//let ir = IR().generateIR(globalScope: ast)
-//
-//print(ir)
-//print("\n")
+let index: Int = CommandLine.arguments
+    .first { $0.starts(with: "-ast") }
+    .map { String($0[$0.index($0.startIndex, offsetBy: 4)..<$0.endIndex]) }
+    .flatMap { Int($0) } ?? 3
+
+let asts = [
+    /* 0 */ IfElseAST(false),
+    /* 1 */ IfElseAST(true),
+    /* 2 */ WhileLoopAST,
+    /* 3 */ LoopBreakContinueAST,
+]
+
+let ast = asts[index]
+let ir = IR().generateIR(globalScope: ast)
+
+print(ir)
+print("\n")
 
 
 
-LexerTest.run()
+//LexerTest.run()

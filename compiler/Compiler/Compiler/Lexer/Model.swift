@@ -75,22 +75,16 @@ struct LexerError: Error {
         case unexpectedDirectiveName = "Unexpected characters in a directive identifier after #."
     }
     
-    let lineNumber: Int
-    let character: Int
+    let cursor: Cursor
     let message: Message
-    let filename: String
     
     init(_ message: Message) {
-        lineNumber = 0
-        character = 0
-        filename = "<no file>"
+        self.cursor = Cursor()
         self.message = message
     }
     
-    init(filename: String, lineNumber: Int, character: Int, _ message: Message) {
+    init(cursor: Cursor, _ message: Message) {
         self.message = message
-        self.lineNumber = lineNumber
-        self.character = character
-        self.filename = filename
+        self.cursor = cursor
     }
 }

@@ -70,7 +70,7 @@ internal extension IR {
                     
                     let argCount = count()
                     let length = literal.value.count
-                    code += "\(identation)%\(argCount) = getelementptr [\(length) x i8], [\(length) x i8]* @\(literal.id), i32 0, i32 0"
+                    code += "\(identation)%\(argCount) = getelementptr [\(length) x i8], [\(length) x i8]* @\(arg.name), i32 0, i32 0"
                     arguments.append("i8* %\(argCount)")
                 }
                 else {

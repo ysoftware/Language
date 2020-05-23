@@ -8,11 +8,11 @@
 
 import Foundation
 
-fileprivate let PRINT_PASSES = true
+fileprivate let PRINT_PASSES = false
 
 class LexerTest {
     fileprivate var failed = 0
-
+    
     static func run() {
         let i = LexerTest()
         i.failed = 0
@@ -45,8 +45,8 @@ class LexerTest {
         }
     }
     
-    func printLexerTestFail(caseName: String = #function,  _ code: String,
-                            _ resultR: Result<[Token], LexerError>, _ expected: LexerError) {
+    func printErrorCase(caseName: String = #function, _ code: String,
+                        _ resultR: Result<[Token], LexerError>, _ expected: LexerError) {
         
         switch resultR {
         case .failure(let error):
@@ -60,7 +60,7 @@ class LexerTest {
             print("❌ \(caseName)")
             print("code: \"\(code)\"")
             print("Expected error:", expected.message)
-            print("Received error:", error.message)
+            print("Received error:", error.message.rawValue)
             print("\n\n")
             
         case .success(let tokens):
@@ -73,17 +73,17 @@ class LexerTest {
         }
     }
     
-    func printLexerTestResult(caseName: String = #function, _ code: String,
-                              _ resultR: Result<[Token], LexerError>, _ expect: [Token]) {
+    func printResultCase(caseName: String = #function, _ code: String,
+                         _ resultR: Result<[Token], LexerError>, _ expect: [Token]) {
         
         switch resultR {
         case .failure(let error):
             failed += 1
-            print("\n❌ \(caseName)\n")
-            print("\"\(code)\"")
-            // @Todo: print the line at error.lineNumber, ignore for now
-            print("\(String(repeating: "_", count: error.character + 1))^")
-            print("Error:", error.message)
+            print("\n❌ \(caseName)\nUnexpected error on line \(error.cursor.lineNumber):",
+                error.message.rawValue, "\n")
+            let line = code.split(separator: "\n")[error.cursor.lineNumber-1]
+            print("\"\(line)\"")
+            print("\(String(repeating: "_", count: error.cursor.character + 1))^")
             print("\n\n")
             
         case .success(let result):
@@ -92,14 +92,14 @@ class LexerTest {
                 print("\n❌ \(caseName)")
                 print("\"\(code)\"")
                 if result.count != expect.count {
-                    print("counts don't match", result.count, "vs expected", expect.count, "\n===")
+                    print("Counts don't match", result.count, "vs expected", expect.count, "\n===")
                     printTokens(result)
                     print("===\n\n")
                 }
                 else {
                     for i in 0..<result.count {
                         if result[i] != expect[i] {
-                            print("mismatch in \(i):", result[i], "expected", expect[i], "\n\n")
+                            print("Mismatch in \(i):", result[i], "expected", expect[i], "\n\n")
                         }
                     }
                 }

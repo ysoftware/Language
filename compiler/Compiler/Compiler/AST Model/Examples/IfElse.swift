@@ -13,10 +13,12 @@ func IfElseAST(_ value: Bool) -> Scope {
     return Scope(code: [
         
         // "%d\n"
-        
-        StringLiteral(id: "global_string_literal_1", value: "%d\n\0"),
-        StringLiteral(id: "global_string_literal_2", value: "we hit if! %d %d\n\0"),
-        StringLiteral(id: "global_string_literal_3", value: "we hit else %d %d\n\0"),
+        VariableDeclaration(id: "global_string_literal_1", expType: .string, flags: .isConstant,
+                            expression: StringLiteral(value: "%d\n\0")),
+        VariableDeclaration(id: "global_string_literal_2", expType: .string, flags: .isConstant,
+                            expression: StringLiteral(value: "we hit if! %d %d\n\0")),
+        VariableDeclaration(id: "global_string_literal_3", expType: .string, flags: .isConstant,
+                            expression: StringLiteral(value: "we hit else %d %d\n\0")),
         
         // func printf(_ format: String, _ arguments: Int32...) -> Int32 #foreign
         

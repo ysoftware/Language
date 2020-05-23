@@ -8,10 +8,9 @@
 
 import Foundation
 
-struct StringLiteral: Statement {
+struct StringLiteral: Expression {
 
-    let type: Type = .string
-    let id: String
+    let expType: Type = .string
     let value: String
 }
 
@@ -20,6 +19,12 @@ struct IntLiteral: Expression {
     let expType: Type = .int
     let value: Int32
 }
+
+//struct FloatLiteral: Expression {
+//
+//    let expType: Type = .float
+//    let value: Float32
+//}
 
 struct BoolLiteral: Expression {
     

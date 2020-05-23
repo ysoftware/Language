@@ -10,7 +10,8 @@ import Foundation
 
 enum Lexer {
     
-    static func analyze(filename: String = "<no file>", _ string: String) -> Result<[Token], LexerError> {
+    static func analyze(filename: String = "",
+                        _ string: String) -> Result<[Token], LexerError> {
 
         // Constants
         
@@ -26,8 +27,7 @@ enum Lexer {
         // Variables
         
         var tokens: [Token] = []
-        var lineNumber = 0
-        var characterOnLine = 0
+        var cursor = Cursor(filename: filename)
         var i = 0
         var char = string[i]
         
@@ -35,14 +35,13 @@ enum Lexer {
         
         /// returns the error set at the current point
         func error(_ error: LexerError.Message) -> Result<[Token], LexerError> {
-            .failure(LexerError(filename: filename, lineNumber: lineNumber,
-                                character: characterOnLine, error))
+            .failure(LexerError(cursor: cursor, error))
         }
         
         /// advances the counter
         func advance(_ count: Int = 1) {
             i += count
-            characterOnLine += count
+            cursor.advanceCharacter(by: count)
         }
         
         /// advances the counter and sets `char` to the next character in string
@@ -133,8 +132,7 @@ enum Lexer {
                 var value = ""
                 while string.count > i {
                     if char == "\n" {
-                        lineNumber += 1
-                        characterOnLine = 0
+                        cursor.advanceLine()
                     }
                     
                     if isMultiline {
@@ -169,8 +167,7 @@ enum Lexer {
                 }
             
             case "\n":
-                lineNumber += 1
-                characterOnLine = 0
+                cursor.advanceLine()
                 
             case ";",  ",":
                 // SEPARATORS
@@ -253,8 +250,7 @@ enum Lexer {
                     
                     while string.count > i {
                         if consume(string: "\n") {
-                            lineNumber += 1
-                            characterOnLine = 0
+                            cursor.advanceLine()
                             break
                         }
                         else {
@@ -283,8 +279,7 @@ enum Lexer {
                             }
                         }
                         else if consume(string: "\n") {
-                            lineNumber += 1
-                            characterOnLine = 0
+                            cursor.advanceLine()
                             value.append("\n")
                         }
                         else {

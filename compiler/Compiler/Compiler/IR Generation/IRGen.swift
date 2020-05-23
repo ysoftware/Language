@@ -151,22 +151,25 @@ final class IR {
                 let (expCode, _) = getExpressionResult(call, ident: ident)
                 emitLocal(expCode)
                 
-            case let literal as StringLiteral:
-                guard let value = getCString(from: literal.value) else {
-                    // @Todo: make sure we have to assert here
-                    report("Unsupported character in string literal. Only supporting ascii for now.")
-                }
-                stringLiterals[literal.id] = literal
-                emitGlobal("@\(literal.id) = constant [\(literal.value.count) x i8] c\"\(value)\"")
-                
             case let variable as VariableDeclaration:
-                let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
-                emitLocal(expCode)
-                // @Todo: support constant variables
-                // do it at ast building?
-                let type = matchType(variable.expType.name)
-                emitLocal("%\(variable.id) = alloca \(type)")
-                emitLocal("store \(type) \(expVal), \(type)* %\(variable.id)")
+                
+                if let literal = variable.expression as? StringLiteral {
+                    guard let value = getCString(from: literal.value) else {
+                        // @Todo: make sure we have to assert here
+                        report("Unsupported character in string literal. Only supporting ascii for now.")
+                    }
+                    stringLiterals[variable.id] = literal
+                    emitGlobal("@\(variable.id) = constant [\(literal.value.count) x i8] c\"\(value)\"")
+                }
+                else {
+                    let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
+                    emitLocal(expCode)
+                    // @Todo: support constant variables
+                    // do it at ast building?
+                    let type = matchType(variable.expType.name)
+                    emitLocal("%\(variable.id) = alloca \(type)")
+                    emitLocal("store \(type) \(expVal), \(type)* %\(variable.id)")
+                }
                 
             case let variable as VariableAssignment:
                 let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
