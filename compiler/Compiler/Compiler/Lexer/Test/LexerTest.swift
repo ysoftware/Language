@@ -8,103 +8,111 @@
 
 import Foundation
 
-fileprivate let PRINT_PASSES = false
-fileprivate var failed = false
-    
-func lexerTest() {
-    failed = false
-    
-    lexer_testMultilineStringLiteral()
-    lexer_testMultilineStringLiteralFail3()
-    lexer_testMultilineStringLiteralFail2()
-    lexer_testMultilineStringLiteralFail()
-    lexer_testStringLiteralFail()
-    lexer_testStringLiteral()
-    lexer_testDirective()
-    lexer_testDirectiveFail3()
-    lexer_testDirectiveFail2()
-    lexer_testDirectiveFail()
-    lexer_testComments()
-    lexer_testNumbersFail2()
-    lexer_testNumbersFail()
-    lexer_testVarargsRangeSpecialFloat()
-    lexer_testBrackets()
-    lexer_testFunctionDeclaration()
-    lexer_testNumbers()
+fileprivate let PRINT_PASSES = true
 
-    if failed {
-        print("❌ Some lexer tests have failed!")
-    }
-    else {
-        print("All lexer tests have passed.\n")
-    }
-}
+class LexerTest {
+    fileprivate var failed = 0
 
-func printLexerTestFail(caseName: String = #function,  _ code: String,
-                        _ resultR: Result<[Token], LexerError>, _ expected: LexerError) {
-    
-    switch resultR {
-    case .failure(let error):
-        if error.message == expected.message {
-            guard PRINT_PASSES else { return }
-            print("OK \(caseName)")
-            return
-        }
-        failed = true
-        print("❌ \(caseName)")
-        print("code: \"\(code)\"")
-        print("Expected error:", expected.message)
-        print("Received error:", error.message)
-        print("\n\n")
+    static func run() {
+        let i = LexerTest()
+        i.failed = 0
         
-    case .success(let tokens):
-        failed = true
-        print("❌ \(caseName)")
-        print("code: \"\(code)\"")
-        print("Expected error:", expected.message, "\n===")
-        printTokens(tokens)
-        print("===\n\n")
+        i.testMultilineStringLiteral()
+        i.testMultilineStringLiteralFail3()
+        i.testMultilineStringLiteralFail2()
+        i.testMultilineStringLiteralFail()
+        i.testStingLiteralFail3()
+        i.testStingLiteralFail2()
+        i.testStringLiteralFail()
+        i.testStringLiteral()
+        i.testDirective()
+        i.testDirectiveFail3()
+        i.testDirectiveFail2()
+        i.testDirectiveFail()
+        i.testComments()
+        i.testNumbersFail2()
+        i.testNumbersFail()
+        i.testVarargsRangeSpecialFloat()
+        i.testBrackets()
+        i.testFunctionDeclaration()
+        i.testNumbers()
+        
+        if i.failed != 0 {
+            print("❌ \(i.failed) lexer test\(i.failed == 1 ? "" : "s") have failed!")
+        }
+        else {
+            print("All lexer tests have passed.\n")
+        }
     }
-}
-
-func printLexerTestResult(caseName: String = #function, _ code: String,
-                          _ resultR: Result<[Token], LexerError>, _ expect: [Token]) {
     
-    switch resultR {
-    case .failure(let error):
-        failed = true
-        print("\n❌ \(caseName)\n")
-        print("\"\(code)\"")
-        // @Todo: print the line at error.lineNumber, ignore for now
-        print("\(String(repeating: "_", count: error.character + 1))^")
-        print("Error:", error.message)
-        print("\n\n")
-
-    case .success(let result):
-        if result != expect {
-            failed = true
-            print("\n❌ \(caseName)")
-            print("\"\(code)\"")
-            if result.count != expect.count {
-                print("counts don't match", result.count, "vs expected", expect.count, "\n===")
-                printTokens(result)
-                print("===\n\n")
+    func printLexerTestFail(caseName: String = #function,  _ code: String,
+                            _ resultR: Result<[Token], LexerError>, _ expected: LexerError) {
+        
+        switch resultR {
+        case .failure(let error):
+            if error.message == expected.message {
+                guard PRINT_PASSES else { return }
+                let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
+                print("OK \(name)")
+                return
             }
-            else {
-                for i in 0..<result.count {
-                    if result[i] != expect[i] {
-                        print("mismatch in \(i):", result[i], "expected", expect[i], "\n\n")
+            failed += 1
+            print("❌ \(caseName)")
+            print("code: \"\(code)\"")
+            print("Expected error:", expected.message)
+            print("Received error:", error.message)
+            print("\n\n")
+            
+        case .success(let tokens):
+            failed += 1
+            print("❌ \(caseName)")
+            print("code: \"\(code)\"")
+            print("Expected error:", expected.message, "\n===")
+            printTokens(tokens)
+            print("===\n\n")
+        }
+    }
+    
+    func printLexerTestResult(caseName: String = #function, _ code: String,
+                              _ resultR: Result<[Token], LexerError>, _ expect: [Token]) {
+        
+        switch resultR {
+        case .failure(let error):
+            failed += 1
+            print("\n❌ \(caseName)\n")
+            print("\"\(code)\"")
+            // @Todo: print the line at error.lineNumber, ignore for now
+            print("\(String(repeating: "_", count: error.character + 1))^")
+            print("Error:", error.message)
+            print("\n\n")
+            
+        case .success(let result):
+            if result != expect {
+                failed += 1
+                print("\n❌ \(caseName)")
+                print("\"\(code)\"")
+                if result.count != expect.count {
+                    print("counts don't match", result.count, "vs expected", expect.count, "\n===")
+                    printTokens(result)
+                    print("===\n\n")
+                }
+                else {
+                    for i in 0..<result.count {
+                        if result[i] != expect[i] {
+                            print("mismatch in \(i):", result[i], "expected", expect[i], "\n\n")
+                        }
                     }
                 }
             }
-        }
-        else {
-            guard PRINT_PASSES else { return }
-            print("OK \(caseName)")
+            else {
+                guard PRINT_PASSES else { return }
+                let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
+                print("OK \(name)")
+            }
         }
     }
-}
-
-private func printTokens(_ tokens: [Token]) {
-    print(tokens.map { String(describing: $0) }.joined(separator: "\n"))
+    
+    private func printTokens(_ tokens: [Token]) {
+        print(tokens.map { String(describing: $0) }.joined(separator: "\n"))
+    }
 }

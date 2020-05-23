@@ -29,4 +29,4 @@ import Foundation
 
 
 
-lexerTest()
+LexerTest.run()

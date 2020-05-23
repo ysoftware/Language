@@ -109,8 +109,7 @@ enum Lexer {
                 }
                 index += 1
                 guard string.count > i + index else { return nil }
-                let nextChar = string[i + index]
-                query.append(nextChar)
+                query.append(string[i + index])
             }
             return nil
         }
@@ -127,8 +126,8 @@ enum Lexer {
                 if isMultiline, !consumeNext("\n") {
                     return error(.newlineExpectedBeforeMultilineStringLiteral)
                 }
-                else {
-                    nextChar()
+                else if !nextChar() {
+                    return error(.unexpectedEndOfFile)
                 }
                 
                 var value = ""
@@ -166,7 +165,7 @@ enum Lexer {
                     }
                     
                     value.append(char)
-                    nextChar()
+                    if !nextChar() { return error(.unexpectedEndOfFile) }
                 }
             
             case "\n":
