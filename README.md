@@ -4,11 +4,11 @@
 
 
 ## Прогресс:
-    ✔️. use LLVM to parse manually-written IR
-    ✔️. generate IR from some manually written and pre-typed AST
-    ✔️. develop lexer (tokenizer)
-    3. parse code into AST
-    4. type infer AST and hook it to IR generation
+- [x] use LLVM to parse manually-written IR
+- [x] generate IR from some manually written and pre-typed AST
+- [x] develop lexer (tokenizer)
+- [ ] parse code into AST
+- [ ] type infer AST and hook it to IR generation
 
 
 ## Syntax Description
@@ -46,10 +46,14 @@ func printf(_ format: String, _ arguments: Int32, ...) #foreign;
  
 ## Future Feature Roadmap:
 
- - polymorphic procedures
+Polymorphic procedures
+ ```
 func array_add(_ array: *($T[]), _ element: T);
+```
 
-- variable length arrays
+Variable length arrays
+```
 // first I need to learn how they work
 a := [1, 2, 3, 4, ...] // use varargs for not constraining to length?
+```
 
