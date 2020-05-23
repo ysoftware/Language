@@ -68,6 +68,7 @@ struct LexerError: Error {
         case unexpectedDotInFloatLiteral = "Only a single `.` is expected in a float literal."
         case unexpectedEInFloatLiteral = "Only a single `e` is expected in a float literal."
         case newLineInStringLiteral = "String literal is not terminated before a new line"
+        case unexpectedEndOfFile = "Unexpected end of file"
         case newlineExpectedBeforeMultilineStringLiteral = "Multiline string literal is expected to start from a new line."
         case newlineExpectedAfterMultilineStringLiteral = "Multiline string literal is expected to end after a new line."
         case emptyDirectiveName = "Directive identifier is expected after #."

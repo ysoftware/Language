@@ -8,6 +8,14 @@
 
 import Foundation
 
+func lexer_testMultilineStringLiteralFail3() {
+    let code = """
+\"\"\"
+Hello
+"""
+    printLexerTestFail(code, Lexer.analyze(code), LexerError(.unexpectedEndOfFile))
+}
+
 func lexer_testMultilineStringLiteralFail2() {
     let code = """
 \"\"\"
@@ -34,15 +42,14 @@ func lexer_testMultilineStringLiteral() {
 
 \"\"\"
 
-Hello, Sailor!
-When is JAI out?
-"I really like it"
+Test
+"It"
 \"\"\"
 """
     
     printLexerTestResult(code, Lexer.analyze(code), [
         .literal(value: .string(value: "\n")),
-        .literal(value: .string(value: "\nHello, Sailor!\nWhen is JAI out?\n\"I really like it\""))
+        .literal(value: .string(value: "\nTest\n\"It\""))
     ])
 }
 
@@ -102,6 +109,9 @@ maker /* this is a
 /* folded */
 multiline comment */
 /* 1 */ goodbye
+
+/*
+bye
 """
     
     printLexerTestResult(code, Lexer.analyze(code), [
@@ -117,6 +127,7 @@ multiline comment */
         .comment(value: "this is a\n/* folded */\nmultiline comment"),
         .comment(value: "1"),
         .identifier(value: "goodbye"),
+        .comment(value: "bye"), // comment to the end of the file
     ])
 }
 

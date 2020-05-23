@@ -11,17 +11,29 @@ import Foundation
 enum Lexer {
     
     static func analyze(filename: String = "<no file>", _ string: String) -> Result<[Token], LexerError> {
+
+        // Constants
+        
+        let punctuators = [".", ":", "(", ")", "{", "}", "[", "]", "->", "..."]
+        let operators = ["-", "+", "/", "*", "..", "=", ":=",
+                         "==", "!=", "<=", ">=", "&&", "||",
+                         "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<="]
+        
         let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "z"))
         let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "Z"))
         let numberRange = ClosedRange<Character>(uncheckedBounds: ("0", "9"))
         
-        var tokens: [Token] = []
+        // Variables
         
+        var tokens: [Token] = []
         var lineNumber = 0
         var characterOnLine = 0
         var i = 0
         var char = string[i]
         
+        // Methods
+        
+        /// returns the error set at the current point
         func error(_ error: LexerError.Message) -> Result<[Token], LexerError> {
             .failure(LexerError(filename: filename, lineNumber: lineNumber,
                                 character: characterOnLine, error))
@@ -43,7 +55,7 @@ enum Lexer {
         }
         
         /// Peeks at the `next` character
-        func lookahead() -> Character? {
+        func peekNext() -> Character? {
             let nextIndex = i + 1
             guard string.count > nextIndex else { return nil }
             return string[nextIndex]
@@ -51,13 +63,13 @@ enum Lexer {
         
         /// checks if `next char` exists and matches, then eats it if it does
         /// if not, does nothing and returns false
-        func matchNext(_ character: Character) -> Bool {
-            matchNext(where: { $0 == character }) != nil
+        func consumeNext(_ character: Character) -> Bool {
+            consumeNext(where: { $0 == character }) != nil
         }
         
         /// checks if `next char` exists and matches the predicate, then eats it if it does
         /// if not, does nothing and returns nil
-        func matchNext(where compare: (Character)->Bool) -> Character? {
+        func consumeNext(where compare: (Character)->Bool) -> Character? {
             let nextIndex = i + 1
             guard string.count > nextIndex else { return nil }
             let char = string[nextIndex]
@@ -70,13 +82,13 @@ enum Lexer {
         
         /// checks if the string
         /// matches `current and subsequent` characters
-        func match(string: String) -> Bool {
-            match(oneOf: [string]) != nil
+        func consume(string: String) -> Bool {
+            consume(oneOf: [string]) != nil
         }
         
         /// checks if one of the strings in the array
         /// matches `current and subsequent` characters
-        func match(oneOf array: [String]) -> String? {
+        func consume(oneOf array: [String]) -> String? {
             var leftValues = array
             var index = 0
             var query = String(char)
@@ -103,6 +115,7 @@ enum Lexer {
             return nil
         }
         
+        // Cycle
         
         while string.count > i {
             switch char {
@@ -110,8 +123,8 @@ enum Lexer {
             case "\"":
                 // STRING LITERAL
 
-                let isMultiline = match(string: "\"\"\"")
-                if isMultiline, !matchNext("\n") {
+                let isMultiline = consume(string: "\"\"\"")
+                if isMultiline, !consumeNext("\n") {
                     return error(.newlineExpectedBeforeMultilineStringLiteral)
                 }
                 else {
@@ -126,11 +139,14 @@ enum Lexer {
                     }
                     
                     if isMultiline {
-                        if match(string: "\"\"\"") {
+                        if peekNext() == nil {
+                            return error(.unexpectedEndOfFile)
+                        }
+                        else if consume(string: "\"\"\"") {
                             return error(.newlineExpectedAfterMultilineStringLiteral)
                         }
-                        else if match(string: "\n\"\"\"") {
-                            if lookahead() != nil && !matchNext("\n") {
+                        else if consume(string: "\n\"\"\"") {
+                            if let next = peekNext(), next != "\n" {
                                 return error(.newlineExpectedAfterMultilineStringLiteral)
                             }
                             else {
@@ -140,11 +156,11 @@ enum Lexer {
                         }
                     }
                     else {
-                        if match(string: "\"") {
+                        if consume(string: "\"") {
                             tokens.append(.literal(value: .string(value: value)))
                             break
                         }
-                        else if match(string: "\n") {
+                        else if consume(string: "\n") {
                             return error(.newLineInStringLiteral)
                         }
                     }
@@ -164,7 +180,7 @@ enum Lexer {
             case lowercaseRange, uppercaseRange, "_", "#":
                 // KEYWORDS / IDENTIFIERS / DIRECTIVES
                 
-                let isDirective = match(string: "#")
+                let isDirective = consume(string: "#")
                 if isDirective {
                     if !nextChar() {
                         return error(.emptyDirectiveName)
@@ -178,7 +194,7 @@ enum Lexer {
                 }
                 
                 var value = String(char)
-                while let next = matchNext(where: {
+                while let next = consumeNext(where: {
                     lowercaseRange.contains($0)
                         || uppercaseRange.contains($0)
                         || numberRange.contains($0)
@@ -204,12 +220,12 @@ enum Lexer {
                 
                 // if this and the next characters are both not numbers
                 // @Note: this will fail "---1", and maybe we don't need it
-                if !numberRange.contains(char), let next = lookahead(), !numberRange.contains(next) {
+                if !numberRange.contains(char), let next = peekNext(), !numberRange.contains(next) {
                     fallthrough
                 }
                 
                 var value = String(char)
-                while let next = matchNext(where: { numberRange.contains($0) || $0 == "." || $0 == "e"}) {
+                while let next = consumeNext(where: { numberRange.contains($0) || $0 == "." || $0 == "e"}) {
                     if next == "." && value.contains(".") || next == "e" && value.contains("e") {
                         return error(next == "." ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral)
                     }
@@ -230,14 +246,14 @@ enum Lexer {
                 // COMMENTS
                 
                 // @Note: we fallthrough to here from the case above
-                // can expect ".", "e" and number characters
+                // can expect ".", "e", "-" and number characters
                 
                 var value = ""
-                if match(string: "//") {
+                if consume(string: "//") {
                     nextChar()
                     
                     while string.count > i {
-                        if match(string: "\n") {
+                        if consume(string: "\n") {
                             lineNumber += 1
                             characterOnLine = 0
                             break
@@ -250,24 +266,24 @@ enum Lexer {
                     tokens.append(.comment(value:
                         value.trimmingCharacters(in: .whitespacesAndNewlines)))
                 }
-                else if match(string: "/*") {
+                else if consume(string: "/*") {
                     var commentLevel = 1
                     nextChar()
                     
                     while string.count > i && commentLevel > 0 {
-                        if match(string: "/*") {
+                        if consume(string: "/*") {
                             commentLevel += 1
                             if commentLevel > 0 {
                                 value.append("/*")
                             }
                         }
-                        else if match(string: "*/") {
+                        else if consume(string: "*/") {
                             commentLevel -= 1
                             if commentLevel > 0 {
                                 value.append("*/")
                             }
                         }
-                        else if match(string: "\n") {
+                        else if consume(string: "\n") {
                             lineNumber += 1
                             characterOnLine = 0
                             value.append("\n")
@@ -286,29 +302,12 @@ enum Lexer {
                 
             default:
                 // PUNCTUATORS, OPERATORS
-                
-                let punctuators = ["->", "...", "[", "]", "(", ")", "{", "}", ":"]
-
-                if let value = match(oneOf: punctuators) {
+                if let value = consume(oneOf: punctuators) {
                     tokens.append(.punctuator(value: value))
-                    break
                 }
-                
-                let operators = ["-", "+", "/", "*",
-                                 "..", "=", ":=",
-                                 "&&", "||", "!=", "==", "^=",
-                                 ">>", "<<", ">>=", "<<=",
-                                 "<=", ">=", "+=", "-=", "*=", "/=", "%="]
-                
-                if let value = match(oneOf: operators) {
+                else if let value = consume(oneOf: operators) {
                     tokens.append(.operator(value: value))
-                    break
                 }
-                
-                break
-                
-                // @Todo: #[.]  for directive
-                
             }
             nextChar()
         }
