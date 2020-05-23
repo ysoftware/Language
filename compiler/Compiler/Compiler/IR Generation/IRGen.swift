@@ -159,7 +159,7 @@ final class IR {
                         report("Unsupported character in string literal. Only supporting ascii for now.")
                     }
                     stringLiterals[variable.id] = literal
-                    emitGlobal("@\(variable.id) = constant [\(literal.value.count) x i8] c\"\(value)\"")
+                    emitGlobal("@\(variable.id) = private unnamed_addr constant [\(literal.value.count) x i8] c\"\(value)\"")
                 }
                 else {
                     let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
