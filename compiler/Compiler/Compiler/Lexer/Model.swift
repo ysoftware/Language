@@ -35,30 +35,56 @@ enum LiteralToken: Equatable {
     case int(value: Int)
 }
 
-enum Token: Equatable {
+struct Token: Equatable {
     
-    static func == (lhs: Token, rhs: Token) -> Bool {
-        switch (lhs, rhs) {
-        case (.literal(let v), .literal(let v2)): return v == v2
-        case (.directive(let v), .directive(let v2)): return v == v2
-        case (.identifier(let v), .identifier(let v2)): return v == v2
-        case (.keyword(let v), .keyword(let v2)): return v == v2
-        case (.punctuator(let v), .punctuator(let v2)): return v == v2
-        case (.`operator`(let v), .`operator`(let v2)): return v == v2
-        case (.comment(let v), .comment(let v2)): return v == v2
-        case (.separator(let v), .separator(let v2)): return v == v2
-        default: return false
+    let startCursor: Cursor
+    let endCursor: Cursor
+    let value: Value
+
+    enum Value: Equatable {
+        
+        static func == (lhs: Value, rhs: Value) -> Bool {
+            switch (lhs, rhs) {
+            case (.literal   (let v), .literal   (let v2)): return v == v2
+            case (.directive (let v), .directive (let v2)): return v == v2
+            case (.identifier(let v), .identifier(let v2)): return v == v2
+            case (.keyword   (let v), .keyword   (let v2)): return v == v2
+            case (.punctuator(let v), .punctuator(let v2)): return v == v2
+            case (.operator  (let v), .operator  (let v2)): return v == v2
+            case (.comment   (let v), .comment   (let v2)): return v == v2
+            case (.separator (let v), .separator (let v2)): return v == v2
+            default: return false
+            }
         }
+        
+        case identifier(value: String)
+        case keyword(value: String)
+        case punctuator(value: String)
+        case directive(value: String)
+        case `operator`(value: String)
+        case literal(value: LiteralToken)
+        case comment(value: String)
+        case separator(value: String)
     }
     
-    case identifier(value: String)
-    case keyword(value: String)
-    case punctuator(value: String)
-    case directive(value: String)
-    case `operator`(value: String)
-    case literal(value: LiteralToken)
-    case comment(value: String)
-    case separator(value: String)
+    init(_ value: Value, start: Cursor = Cursor(), end: Cursor = Cursor()) {
+        self.value = value
+        self.startCursor = start
+        self.endCursor = end
+    }
+    
+    static func == (lhs: Token, rhs: Token) -> Bool {
+        
+        // this is for cursor tests
+        if rhs.startCursor != rhs.endCursor {
+            
+            return lhs.startCursor == rhs.startCursor
+                && lhs.endCursor == rhs.endCursor
+                && lhs.value == rhs.value
+        }
+        
+        return lhs.value == rhs.value
+    }
 }
 
 struct LexerError: Error {
@@ -73,6 +99,7 @@ struct LexerError: Error {
         case newlineExpectedAfterMultilineStringLiteral = "Multiline string literal is expected to end after a new line."
         case emptyDirectiveName = "Directive identifier is expected after #."
         case unexpectedDirectiveName = "Unexpected characters in a directive identifier after #."
+        case unexpectedCharacter = "Unexpected character"
     }
     
     let cursor: Cursor
@@ -86,5 +113,29 @@ struct LexerError: Error {
     init(cursor: Cursor, _ message: Message) {
         self.message = message
         self.cursor = cursor
+    }
+}
+
+struct Cursor: Equatable {
+    
+    var lineNumber: Int
+    var character: Int
+    
+    init(lineNumber: Int = 1, character: Int = 0) {
+        self.lineNumber = lineNumber
+        self.character = character
+    }
+    
+    mutating func advanceCharacter(by count: Int = 1) {
+        character += count
+    }
+    
+    mutating func advanceLine() {
+        character = 0
+        lineNumber += 1
+    }
+    
+    static func ==(lhs: Cursor, rhs: Cursor) -> Bool {
+        lhs.lineNumber == rhs.lineNumber && lhs.character == rhs.character
     }
 }

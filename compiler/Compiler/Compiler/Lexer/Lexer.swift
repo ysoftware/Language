@@ -10,6 +10,8 @@ import Foundation
 
 enum Lexer {
     
+    // @Todo: pass cursor into all tokens
+    
     static func analyze(filename: String = "",
                         _ string: String) -> Result<[Token], LexerError> {
 
@@ -27,21 +29,28 @@ enum Lexer {
         // Variables
         
         var tokens: [Token] = []
-        var cursor = Cursor(filename: filename)
+        var startCursor = Cursor()
+        var endCursor = Cursor()
         var i = 0
         var char = string[i]
         
         // Methods
         
+        /// add this token to the return
+        func append(_ value: Token.Value) {
+            tokens.append(Token(value, start: startCursor, end: endCursor)) // @Todo fix
+            startCursor = endCursor
+        }
+        
         /// returns the error set at the current point
         func error(_ error: LexerError.Message) -> Result<[Token], LexerError> {
-            .failure(LexerError(cursor: cursor, error))
+            .failure(LexerError(cursor: endCursor, error))
         }
         
         /// advances the counter
         func advance(_ count: Int = 1) {
             i += count
-            cursor.advanceCharacter(by: count)
+            endCursor.advanceCharacter(by: count)
         }
         
         /// advances the counter and sets `char` to the next character in string
@@ -132,7 +141,7 @@ enum Lexer {
                 var value = ""
                 while string.count > i {
                     if char == "\n" {
-                        cursor.advanceLine()
+                        endCursor.advanceLine()
                     }
                     
                     if isMultiline {
@@ -147,14 +156,14 @@ enum Lexer {
                                 return error(.newlineExpectedAfterMultilineStringLiteral)
                             }
                             else {
-                                tokens.append(.literal(value: .string(value: value)))
+                                append(.literal(value: .string(value: value)))
                                 break
                             }
                         }
                     }
                     else {
                         if consume(string: "\"") {
-                            tokens.append(.literal(value: .string(value: value)))
+                            append(.literal(value: .string(value: value)))
                             break
                         }
                         else if consume(string: "\n") {
@@ -167,11 +176,12 @@ enum Lexer {
                 }
             
             case "\n":
-                cursor.advanceLine()
+                startCursor.advanceLine()
+                endCursor.advanceLine()
                 
             case ";",  ",":
                 // SEPARATORS
-                tokens.append(.separator(value: String(char)))
+                append(.separator(value: String(char)))
                 
             case lowercaseRange, uppercaseRange, "_", "#":
                 // KEYWORDS / IDENTIFIERS / DIRECTIVES
@@ -202,13 +212,13 @@ enum Lexer {
                     if value.isEmpty {
                         return error(.emptyDirectiveName)
                     }
-                    tokens.append(.directive(value: value))
+                    append(.directive(value: value))
                 }
                 else if keywords.contains(value) {
-                    tokens.append(.keyword(value: value))
+                    append(.keyword(value: value))
                 }
                 else {
-                    tokens.append(.identifier(value: value))
+                    append(.identifier(value: value))
                 }
                 
             case numberRange, ".", "-":
@@ -232,10 +242,10 @@ enum Lexer {
                     fallthrough
                 }
                 else if value.contains("e") || value.contains(".") {
-                    tokens.append(.literal(value: .float(value: Float(value)!)))
+                    append(.literal(value: .float(value: Float(value)!)))
                 }
                 else {
-                    tokens.append(.literal(value: .int(value: Int(value)!)))
+                    append(.literal(value: .int(value: Int(value)!)))
                 }
                 
             case "/":
@@ -250,7 +260,7 @@ enum Lexer {
                     
                     while string.count > i {
                         if consume(string: "\n") {
-                            cursor.advanceLine()
+                            endCursor.advanceLine()
                             break
                         }
                         else {
@@ -258,8 +268,7 @@ enum Lexer {
                             nextChar()
                         }
                     }
-                    tokens.append(.comment(value:
-                        value.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    append(.comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)))
                 }
                 else if consume(string: "/*") {
                     var commentLevel = 1
@@ -279,7 +288,7 @@ enum Lexer {
                             }
                         }
                         else if consume(string: "\n") {
-                            cursor.advanceLine()
+                            endCursor.advanceLine()
                             value.append("\n")
                         }
                         else {
@@ -287,8 +296,7 @@ enum Lexer {
                         }
                         nextChar()
                     }
-                    tokens.append(.comment(value:
-                        value.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    append(.comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)))
                 }
                 else {
                     fallthrough
@@ -297,10 +305,17 @@ enum Lexer {
             default:
                 // PUNCTUATORS, OPERATORS
                 if let value = consume(oneOf: punctuators) {
-                    tokens.append(.punctuator(value: value))
+                    append(.punctuator(value: value))
                 }
                 else if let value = consume(oneOf: operators) {
-                    tokens.append(.operator(value: value))
+                    append(.operator(value: value))
+                }
+                else if char == " " {
+                    startCursor.advanceCharacter()
+                }
+                else {
+                    // for some reason?
+                    return error(.unexpectedCharacter)
                 }
             }
             nextChar()

@@ -10,6 +10,9 @@ import Foundation
 
 final class IR {
     
+    // @Todo: arrays
+    // @Todo: structs
+    
     // @Todo: this worked, but it sounds like a really bad idea
     // I need to investigate how this is supposed to be actually done
     internal var stringLiterals: [String: StringLiteral] = [:]

@@ -17,6 +17,7 @@ class LexerTest {
         let i = LexerTest()
         i.failed = 0
         
+        i.testCursors()
         i.testMultilineStringLiteral()
         i.testMultilineStringLiteralFail3()
         i.testMultilineStringLiteralFail2()
@@ -50,7 +51,7 @@ class LexerTest {
         
         switch resultR {
         case .failure(let error):
-            if error.message == expected.message {
+            if expected.message == error.message {
                 guard PRINT_PASSES else { return }
                 let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
                 print("OK \(name)")
@@ -98,8 +99,8 @@ class LexerTest {
                 }
                 else {
                     for i in 0..<result.count {
-                        if result[i] != expect[i] {
-                            print("Mismatch in \(i):", result[i], "expected", expect[i], "\n\n")
+                        if expect[i] != result[i] {
+                            print("Mismatch in \(i):", result[i], "\nexpected", expect[i], "\n\n")
                         }
                     }
                 }
@@ -115,4 +116,8 @@ class LexerTest {
     private func printTokens(_ tokens: [Token]) {
         print(tokens.map { String(describing: $0) }.joined(separator: "\n"))
     }
+}
+
+func asTokens(_ values: [Token.Value]) -> [Token] {
+    values.map { Token($0) }
 }
