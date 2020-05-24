@@ -13,6 +13,10 @@ struct ParserError: Error {
     enum Message: String, Equatable {
         
         case notImplemented = "Not implemented"
+        
+        // procedure declaration
+        case procExpectedBrace = "Expected an opening or closing parenthesis."
+        case procExpectedArgumentType = "Expected a type of an argument after `:`."
     }
     
     let fileName: String?

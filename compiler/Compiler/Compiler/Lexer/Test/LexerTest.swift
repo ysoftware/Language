@@ -17,6 +17,8 @@ class LexerTest {
         let i = LexerTest()
         i.failed = 0
         
+//        i.testNumbersFail4() // @Todo: this test fails, maybe "while let ..." was a bad decision
+        i.testNumbersFail3()
         i.testCursors()
         i.testMultilineStringLiteral()
         i.testMultilineStringLiteralFail3()
@@ -42,7 +44,7 @@ class LexerTest {
             print("❌ \(i.failed) lexer test\(i.failed == 1 ? "" : "s") have failed!")
         }
         else {
-            print("All lexer tests have passed.\n")
+            print("All lexer tests have passed.")
         }
     }
     
@@ -118,6 +120,6 @@ class LexerTest {
     }
 }
 
-func asTokens(_ values: [Token.Value]) -> [Token] {
+func asTokens(_ values: [TokenValue]) -> [Token] {
     values.map { Token($0) }
 }

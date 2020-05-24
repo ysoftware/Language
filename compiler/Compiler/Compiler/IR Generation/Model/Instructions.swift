@@ -6,7 +6,7 @@
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 
-enum Operator {
+enum Instruction {
     
     case assign
     
@@ -28,7 +28,7 @@ enum Operator {
     case mul
 }
 
-extension Operator {
+extension Instruction {
     
     /// name of the instruction for integer types
     var int: String {

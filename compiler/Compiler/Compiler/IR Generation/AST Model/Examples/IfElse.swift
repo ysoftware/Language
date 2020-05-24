@@ -8,7 +8,7 @@
 
 func IfElseAST(_ value: Bool) -> Scope {
     
-    let instruction: Operator = value ? .sub : .add
+    let instruction: Instruction = value ? .sub : .add
     
     return Scope(code: [
         

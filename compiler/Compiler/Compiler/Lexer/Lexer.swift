@@ -6,8 +6,6 @@
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 
-import Foundation
-
 // Constants
 
 fileprivate let punctuators = [".", ":", "(", ")", "{", "}", "[", "]", "->", "..."]
@@ -33,7 +31,7 @@ func lexerAnalyze(fileName: String? = nil,
     // Methods
     
     /// add this token to the return
-    func append(_ value: Token.Value) {
+    func append(_ value: TokenValue) {
         tokens.append(Token(value, start: startCursor, end: endCursor)) // @Todo fix
         startCursor = endCursor
     }
@@ -152,14 +150,14 @@ func lexerAnalyze(fileName: String? = nil,
                             return error(.newlineExpectedAfterMultilineStringLiteral)
                         }
                         else {
-                            append(.literal(value: .string(value: value)))
+                            append(TokenLiteral(value: .string(value: value)))
                             break
                         }
                     }
                 }
                 else {
                     if consume(string: "\"") {
-                        append(.literal(value: .string(value: value)))
+                        append(TokenLiteral(value: .string(value: value)))
                         break
                     }
                     else if consume(string: "\n") {
@@ -177,7 +175,7 @@ func lexerAnalyze(fileName: String? = nil,
             
         case ";",  ",":
             // SEPARATORS
-            append(.separator(value: String(char)))
+            append(Separator(value: String(char)))
             
         case lowercaseRange, uppercaseRange, "_", "#":
             // KEYWORDS / IDENTIFIERS / DIRECTIVES
@@ -208,13 +206,13 @@ func lexerAnalyze(fileName: String? = nil,
                 if value.isEmpty {
                     return error(.emptyDirectiveName)
                 }
-                append(.directive(value: value))
+                append(Directive(value: value))
             }
-            else if keywords.contains(value) {
-                append(.keyword(value: value))
+            else if let keyword = Keyword(rawValue: value) {
+                append(keyword)
             }
             else {
-                append(.identifier(value: value))
+                append(Identifier(value: value))
             }
             
         case numberRange, ".", "-":
@@ -227,8 +225,11 @@ func lexerAnalyze(fileName: String? = nil,
             }
             
             var value = String(char)
-            while let next = consumeNext(where: { numberRange.contains($0) || $0 == "." || $0 == "e"}) {
-                if next == "." && value.contains(".") || next == "e" && value.contains("e") {
+            while let next = consumeNext(where: { numberRange.contains($0) || $0 == "." || $0 == "e" || $0 == "-" }) {
+                if value.count >= 1 && next == "-" && value.last != "e" {
+                    return error(.unexpectedMinusInNumberLiteral)
+                }
+                else if next == "." && value.contains(".") || next == "e" && value.contains("e") {
                     return error(next == "." ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral)
                 }
                 value.append(next)
@@ -238,10 +239,10 @@ func lexerAnalyze(fileName: String? = nil,
                 fallthrough
             }
             else if value.contains("e") || value.contains(".") {
-                append(.literal(value: .float(value: Float(value)!)))
+                append(TokenLiteral(value: .float(value: Float(value)!)))
             }
             else {
-                append(.literal(value: .int(value: Int(value)!)))
+                append(TokenLiteral(value: .int(value: Int(value)!)))
             }
             
         case "/":
@@ -264,7 +265,7 @@ func lexerAnalyze(fileName: String? = nil,
                         nextChar()
                     }
                 }
-                append(.comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)))
+                append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)))
             }
             else if consume(string: "/*") {
                 var commentLevel = 1
@@ -292,7 +293,7 @@ func lexerAnalyze(fileName: String? = nil,
                     }
                     nextChar()
                 }
-                append(.comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)))
+                append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)))
             }
             else {
                 fallthrough
@@ -301,10 +302,10 @@ func lexerAnalyze(fileName: String? = nil,
         default:
             // PUNCTUATORS, OPERATORS
             if let value = consume(oneOf: punctuators) {
-                append(.punctuator(value: value))
+                append(Punctuator(value: value))
             }
             else if let value = consume(oneOf: operators) {
-                append(.operator(value: value))
+                append(Operator(value: value))
             }
             else if char == " " {
                 startCursor.advanceCharacter()

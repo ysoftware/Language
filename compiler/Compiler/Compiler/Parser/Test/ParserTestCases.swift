@@ -7,3 +7,20 @@
 //
 
 import Foundation
+
+extension ParserTest {
+    
+    func testFunctionDeclaration() {
+        let code = "func printf(format: String, arguments: Int32, ...) #foreign"
+        let tokens = try! lexerAnalyze(code).get()
+        
+        printResultCase(code, parse(tokens), Scope(code: [
+            ProcedureDeclaration(
+                id: "global_func_printf",
+                name: "printf",
+                arguments: [.string, .int],
+                returnType: .void, flags: [.isVarargs, .isForeign],
+                scope: .empty)
+        ]))
+    }
+}

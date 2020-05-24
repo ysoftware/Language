@@ -14,19 +14,19 @@ extension LexerTest {
         let code = "hello, world\n1\n\n123"
         
         printResultCase(code, lexerAnalyze(code), [
-            Token(.identifier(value: "hello"),
+            Token(Identifier(value: "hello"),
                   start: Cursor(lineNumber: 1, character: 0),
                   end: Cursor(lineNumber: 1, character: 4)),
-            Token(.separator(value: ","),
+            Token(Separator(value: ","),
                   start: Cursor(lineNumber: 1, character: 4),
                   end: Cursor(lineNumber: 1, character: 5)),
-            Token(.identifier(value: "world"),
+            Token(Identifier(value: "world"),
                   start: Cursor(lineNumber: 1, character: 6),
                   end: Cursor(lineNumber: 1, character: 11)),
-            Token(.literal(value: .int(value: 1)),
+            Token(TokenLiteral(value: .int(value: 1)),
                   start: Cursor(lineNumber: 2, character: 0),
                   end: Cursor(lineNumber: 2, character: 1)),
-            Token(.literal(value: .int(value: 123)),
+            Token(TokenLiteral(value: .int(value: 123)),
                   start: Cursor(lineNumber: 4, character: 0),
                   end: Cursor(lineNumber: 4, character: 3)),
         ])
@@ -71,8 +71,8 @@ Test
 \"\"\"
 """
         printResultCase(code, lexerAnalyze(code), asTokens([
-            .literal(value: .string(value: "\n")),
-            .literal(value: .string(value: "\nTest\n\"It\""))
+            TokenLiteral(value: .string(value: "\n")),
+            TokenLiteral(value: .string(value: "\nTest\n\"It\""))
         ]))
     }
     
@@ -99,8 +99,8 @@ Test
 "Hello, Sailor!" ""
 """
         printResultCase(code, lexerAnalyze(code), asTokens([
-            .literal(value: .string(value: "Hello, Sailor!")),
-            .literal(value: .string(value: ""))
+            TokenLiteral(value: .string(value: "Hello, Sailor!")),
+            TokenLiteral(value: .string(value: ""))
         ]))
     }
     
@@ -123,11 +123,11 @@ Test
         let code = "id: Int #foreign #_internal"
         
         printResultCase(code, lexerAnalyze(code), asTokens([
-            .identifier(value: "id"),
-            .punctuator(value: ":"),
-            .identifier(value: "Int"),
-            .directive(value: "foreign"),
-            .directive(value: "_internal")
+            Identifier(value: "id"),
+            Punctuator(value: ":"),
+            Identifier(value: "Int"),
+            Directive(value: "foreign"),
+            Directive(value: "_internal")
         ]))
     }
     
@@ -146,19 +146,19 @@ bye
 """
         
         printResultCase(code, lexerAnalyze(code), asTokens([
-            .literal(value: .int(value: 1)),
-            .operator(value: "/"),
-            .literal(value: .int(value: 2)),
-            .identifier(value: "hello"),
-            .comment(value: "this is a comment"),
-            .identifier(value: "violin"),
-            .comment(value: "this is another comment"),
-            .identifier(value: "hello"),
-            .identifier(value: "maker"),
-            .comment(value: "this is a\n/* folded */\nmultiline comment"),
-            .comment(value: "1"),
-            .identifier(value: "goodbye"),
-            .comment(value: "bye"), // comment to the end of the file
+            TokenLiteral(value: .int(value: 1)),
+            Operator(value: "/"),
+            TokenLiteral(value: .int(value: 2)),
+            Identifier(value: "hello"),
+            Comment(value: "this is a comment"),
+            Identifier(value: "violin"),
+            Comment(value: "this is another comment"),
+            Identifier(value: "hello"),
+            Identifier(value: "maker"),
+            Comment(value: "this is a\n/* folded */\nmultiline comment"),
+            Comment(value: "1"),
+            Identifier(value: "goodbye"),
+            Comment(value: "bye"), // comment to the end of the file
         ]))
     }
     
@@ -172,19 +172,30 @@ bye
         printErrorCase(code, lexerAnalyze(code), LexerError(.unexpectedEInFloatLiteral))
     }
     
+    func testNumbersFail3() {
+        let code = "12-e23"
+        printErrorCase(code, lexerAnalyze(code), LexerError(.unexpectedMinusInNumberLiteral))
+    }
+    
+    func testNumbersFail4() {
+        let code = "12a23"
+        printErrorCase(code, lexerAnalyze(code), LexerError(.unexpectedMinusInNumberLiteral))
+    }
+    
     func testNumbers() {
-        let code = "1 -123 17.e2 1.1724 0 011 11. .11 -0"
+        let code = "1 -123 17.e2 1.1724 0 011 11. .11 -0 1e-23"
         
         printResultCase(code, lexerAnalyze(code), asTokens([
-            .literal(value: .int(value: 1)),
-            .literal(value: .int(value: -123)),
-            .literal(value: .float(value: Float("17.e2")!)),
-            .literal(value: .float(value: Float(1.1724))),
-            .literal(value: .int(value: 0)),
-            .literal(value: .int(value: 011)),
-            .literal(value: .float(value: Float(11))),
-            .literal(value: .float(value: Float(0.11))),
-            .literal(value: .int(value: Int(-0))),
+            TokenLiteral(value: .int(value: 1)),
+            TokenLiteral(value: .int(value: -123)),
+            TokenLiteral(value: .float(value: Float(17.0e2))),
+            TokenLiteral(value: .float(value: Float(1.1724))),
+            TokenLiteral(value: .int(value: 0)),
+            TokenLiteral(value: .int(value: 011)),
+            TokenLiteral(value: .float(value: Float(11))),
+            TokenLiteral(value: .float(value: Float(0.11))),
+            TokenLiteral(value: .int(value: Int(-0))),
+            TokenLiteral(value: .float(value: Float(1e-23))),
         ]))
     }
     
@@ -192,17 +203,17 @@ bye
         let code = "func main(string: String) -> Int32 { }"
         
         printResultCase(code, lexerAnalyze(code), asTokens([
-            .keyword(value: "func"),
-            .identifier(value: "main"),
-            .punctuator(value: "("),
-            .identifier(value: "string"),
-            .punctuator(value: ":"),
-            .identifier(value: "String"),
-            .punctuator(value: ")"),
-            .punctuator(value: "->"),
-            .identifier(value: "Int32"),
-            .punctuator(value: "{"),
-            .punctuator(value: "}"),
+            Keyword.func,
+            Identifier(value: "main"),
+            Punctuator(value: "("),
+            Identifier(value: "string"),
+            Punctuator(value: ":"),
+            Identifier(value: "String"),
+            Punctuator(value: ")"),
+            Punctuator(value: "->"),
+            Identifier(value: "Int32"),
+            Punctuator(value: "{"),
+            Punctuator(value: "}"),
         ]))
     }
     
@@ -210,15 +221,15 @@ bye
         let code = "I[aZ]a(saw)_d"
         
         printResultCase(code, lexerAnalyze(code), asTokens([
-            .identifier(value: "I"),
-            .punctuator(value: "["),
-            .identifier(value: "aZ"),
-            .punctuator(value: "]"),
-            .identifier(value: "a"),
-            .punctuator(value: "("),
-            .identifier(value: "saw"),
-            .punctuator(value: ")"),
-            .identifier(value: "_d")
+            Identifier(value: "I"),
+            Punctuator(value: "["),
+            Identifier(value: "aZ"),
+            Punctuator(value: "]"),
+            Identifier(value: "a"),
+            Punctuator(value: "("),
+            Identifier(value: "saw"),
+            Punctuator(value: ")"),
+            Identifier(value: "_d")
         ]))
     }
     
@@ -226,15 +237,15 @@ bye
         let code = "Int32, ..., .1234, A..z"
         
         printResultCase(code, lexerAnalyze(code), asTokens([
-            .identifier(value: "Int32"),
-            .separator(value: ","),
-            .punctuator(value: "..."),
-            .separator(value: ","),
-            .literal(value: .float(value: 0.1234)),
-            .separator(value: ","),
-            .identifier(value: "A"),
-            .operator(value: ".."),
-            .identifier(value: "z"),
+            Identifier(value: "Int32"),
+            Separator(value: ","),
+            Punctuator(value: "..."),
+            Separator(value: ","),
+            TokenLiteral(value: .float(value: 0.1234)),
+            Separator(value: ","),
+            Identifier(value: "A"),
+            Operator(value: ".."),
+            Identifier(value: "z"),
         ]))
     }
 }

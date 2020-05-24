@@ -30,7 +30,7 @@ struct VariableAssignment: Statement {
 
 struct BinaryOperator: Expression {
     
-    let name: Operator
+    let name: Instruction
     let operatorType: Type
     let expType: Type
     let arguments: (Expression, Expression)

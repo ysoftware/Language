@@ -17,14 +17,23 @@ class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
+        i.testFunctionDeclaration()
         
+        if i.failed != 0 {
+            print("❌ \(i.failed) parser test\(i.failed == 1 ? "" : "s") have failed!")
+        }
+        else {
+            print("All parser tests have passed.")
+        }
     }
     
     func printErrorCase() {
         
     }
     
-    func printResultCase() {
+    func printResultCase(caseName: String = #function,
+                         _ code: String,
+                         _ resultAST: Result<Scope, ParserError>, _ expect: Scope) {
         
     }
 }
