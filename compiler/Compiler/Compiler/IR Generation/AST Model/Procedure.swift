@@ -28,9 +28,15 @@ struct ProcedureDeclaration: Statement {
     let scope: Scope
 }
 
+struct Argument: Expression {
+    
+    let name: String
+    let expType: Type
+}
+
 struct ProcedureCall: Expression, Statement {
     
     let name: String
     let expType: Type
-    let arguments: [Argument]
+    let arguments: [Expression]
 }

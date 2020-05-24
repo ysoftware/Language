@@ -24,6 +24,7 @@
 		1FB8F7072477D391008CD1CD /* LexerTestCases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FB8F7062477D391008CD1CD /* LexerTestCases.swift */; };
 		1FEB7CA724794F6F0018B9B4 /* ParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FEB7CA624794F6F0018B9B4 /* ParserTest.swift */; };
 		1FEB7CA924794F770018B9B4 /* ParserTestCases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FEB7CA824794F770018B9B4 /* ParserTestCases.swift */; };
+		1FEB7CAB247A9E950018B9B4 /* ParserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FEB7CAA247A9E950018B9B4 /* ParserModel.swift */; };
 		1FFF349424711E3100389B0C /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF349324711E3100389B0C /* main.swift */; };
 		1FFF34A12471210700389B0C /* Literals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF34A02471210700389B0C /* Literals.swift */; };
 		1FFF34A52471216000389B0C /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF34A42471216000389B0C /* Expression.swift */; };
@@ -64,6 +65,7 @@
 		1FB8F7062477D391008CD1CD /* LexerTestCases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LexerTestCases.swift; sourceTree = "<group>"; };
 		1FEB7CA624794F6F0018B9B4 /* ParserTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParserTest.swift; sourceTree = "<group>"; };
 		1FEB7CA824794F770018B9B4 /* ParserTestCases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParserTestCases.swift; sourceTree = "<group>"; };
+		1FEB7CAA247A9E950018B9B4 /* ParserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParserModel.swift; sourceTree = "<group>"; };
 		1FFF349024711E3100389B0C /* Compiler */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Compiler; sourceTree = BUILT_PRODUCTS_DIR; };
 		1FFF349324711E3100389B0C /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		1FFF34A02471210700389B0C /* Literals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Literals.swift; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				1F9C966B2475AD0300BAEC04 /* Parser.swift */,
+				1FEB7CAA247A9E950018B9B4 /* ParserModel.swift */,
 				1FEB7CA524794F600018B9B4 /* Test */,
 			);
 			path = Parser;
@@ -175,7 +178,6 @@
 				1F9C96652475736100BAEC04 /* Lexer */,
 				1FFF34B024714A4400389B0C /* Compiler */,
 				1FFF34B124714A4900389B0C /* IR Generation */,
-				1FFF349D247120D200389B0C /* AST Model */,
 				1FB8F7032477CF71008CD1CD /* Utils */,
 				1FFF349324711E3100389B0C /* main.swift */,
 			);
@@ -210,6 +212,7 @@
 				1FFF34AC24713C1F00389B0C /* IRGen.swift */,
 				1FAA3E9A2472ECB80015C8BD /* ParseExpression.swift */,
 				1F286D9F2474503F0072120C /* Model */,
+				1FFF349D247120D200389B0C /* AST Model */,
 			);
 			path = "IR Generation";
 			sourceTree = "<group>";
@@ -284,6 +287,7 @@
 				1FEB7CA724794F6F0018B9B4 /* ParserTest.swift in Sources */,
 				1FB8F7052477CF7E008CD1CD /* Utils.swift in Sources */,
 				1FFF34A92471249100389B0C /* Procedure.swift in Sources */,
+				1FEB7CAB247A9E950018B9B4 /* ParserModel.swift in Sources */,
 				1FFF34A12471210700389B0C /* Literals.swift in Sources */,
 				1FFF34B324714AB900389B0C /* BaseAST.swift in Sources */,
 				1F286DA3247453B60072120C /* LoopBreakContinue.swift in Sources */,

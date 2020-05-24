@@ -8,10 +8,11 @@
 
 import Foundation
 
-enum Parser {
+func parse(filename: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserError> {
 
-    func parse(_ tokens: [Token]) -> Scope {
+    func parseExpression(_ expression: Expression) {
         
-        return .empty
     }
+
+    return .failure(ParserError(.notImplemented))
 }

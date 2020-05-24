@@ -8,13 +8,13 @@
 
 import Foundation
 
-struct StringLiteral: Expression {
+struct StringLiteral: Expression, Literal {
 
     let expType: Type = .string
     let value: String
 }
 
-struct IntLiteral: Expression {
+struct IntLiteral: Expression, Literal {
     
     let expType: Type = .int
     let value: Int32
@@ -26,7 +26,7 @@ struct IntLiteral: Expression {
 //    let value: Float32
 //}
 
-struct BoolLiteral: Expression {
+struct BoolLiteral: Expression, Literal {
     
     let expType: Type = .bool
     let value: Bool

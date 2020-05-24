@@ -46,38 +46,48 @@ internal extension IR {
             for arg in call.arguments {
                 code += "\(identation); argument \(arg.expType.name)\n"
 
+                // @Todo: don't load the same argument
+                // if passed twice, like a = add(a, a)
+                
                 // @Todo: dereference all arguments passed by value
                 // for now, doing that manually
                 
-                // is there even such a thing? passing something by value?
-                // in IR values are a completely different thing (SSA)
-                
-                if arg.expType == .string {
-                    
-                    // @Todo: make it work with dynamic strings somehow
-                    // I don't think we have to calculate its length before doing this?
-                    // there has to be another way!
-                    
-                    // @Todo: make it work with all other references
-                    // now this only works with references to constant string literals
-                    // by 'hacky' keeping a list of those while parsing AST
-                    
-                    // @Todo: should we emit a string literal here, not expect AST to do it for us?
-                    // if so, emit a new literal only if a literal with the same value does not exist yet
-                    guard let literal = stringLiterals[arg.name] else {
-                        report("Undefined symbol \(arg.name)")
+                if let arg = arg as? Argument {
+                    if arg.expType == .string {
+                        
+                        // @Todo: make it work with dynamic strings somehow
+                        // I don't think we have to calculate its length before doing this?
+                        // there has to be another way!
+                        
+                        // @Todo: make it work with all other references
+                        // now this only works with references to constant string literals
+                        // by 'hacky' keeping a list of those while parsing AST
+                        
+                        // @Todo: should we emit a string literal here, not expect AST to do it for us?
+                        // if so, emit a new literal only if a literal with the same value does not exist yet
+                        guard let literal = stringLiterals[arg.name] else {
+                            report("Undefined symbol \(arg.name)")
+                        }
+                        
+                        let argCount = count()
+                        let length = literal.value.count
+                        code += "\(identation)%\(argCount) = getelementptr [\(length) x i8], [\(length) x i8]* @\(arg.name), i32 0, i32 0"
+                        arguments.append("i8* %\(argCount)")
                     }
-                    
-                    let argCount = count()
-                    let length = literal.value.count
-                    code += "\(identation)%\(argCount) = getelementptr [\(length) x i8], [\(length) x i8]* @\(arg.name), i32 0, i32 0"
-                    arguments.append("i8* %\(argCount)")
+                    else {
+                        let argCount = count()
+                        let type = matchType(arg.expType.name)
+                        code += "\(identation)%\(argCount) = load \(type), \(type)* %\(arg.name)"
+                        arguments.append("\(type) %\(argCount)")
+                    }
                 }
                 else {
-                    let argCount = count()
-                    let type = matchType(arg.expType.name)
-                    code += "\(identation)%\(argCount) = load \(type), \(type)* %\(arg.name)"
-                    arguments.append("\(type) %\(argCount)")
+                    let (eCode, eValue) = getExpressionResult(arg, ident: ident)
+                    if let eCode = eCode {
+                        code += "\(identation); argument\n"
+                        code += "\(identation)\(eCode)"
+                    }
+                    arguments.append("\(matchType(arg.expType.name)) \(eValue)")
                 }
                 code += "\n"
             }

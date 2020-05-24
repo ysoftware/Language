@@ -8,6 +8,12 @@
 
 import Foundation
 
+struct StructDeclaration: Statement {
+    
+    let name: String
+    let members: [(name: String, type: String)]
+}
+
 struct Type: Equatable {
     
     let name: String

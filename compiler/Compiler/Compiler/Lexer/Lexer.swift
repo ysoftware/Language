@@ -19,7 +19,7 @@ fileprivate let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "
 fileprivate let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "Z"))
 fileprivate let numberRange = ClosedRange<Character>(uncheckedBounds: ("0", "9"))
 
-func lexerAnalyze(filename: String = "",
+func lexerAnalyze(fileName: String? = nil,
                   _ string: String) -> Result<[Token], LexerError> {
     
     // Variables
@@ -40,7 +40,7 @@ func lexerAnalyze(filename: String = "",
     
     /// returns the error set at the current point
     func error(_ error: LexerError.Message) -> Result<[Token], LexerError> {
-        .failure(LexerError(cursor: endCursor, error))
+        .failure(LexerError(fileName: fileName, cursor: endCursor, error))
     }
     
     /// advances the counter

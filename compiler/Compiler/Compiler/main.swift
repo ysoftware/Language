@@ -29,3 +29,4 @@ import Foundation
 
 
 LexerTest.run()
+ParserTest.run()

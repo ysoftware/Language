@@ -16,11 +16,7 @@ struct Scope {
     var isEmpty: Bool { code.isEmpty }
 }
 
-struct Argument: Expression {
-    
-    let name: String
-    let expType: Type
-}
+protocol Literal { }
 
 protocol Statement { }
 

@@ -102,40 +102,19 @@ struct LexerError: Error {
         case unexpectedCharacter = "Unexpected character"
     }
     
+    let fileName: String?
     let cursor: Cursor
     let message: Message
     
     init(_ message: Message) {
         self.cursor = Cursor()
         self.message = message
+        self.fileName = nil
     }
     
-    init(cursor: Cursor, _ message: Message) {
+    init(fileName: String? = nil, cursor: Cursor, _ message: Message) {
         self.message = message
         self.cursor = cursor
-    }
-}
-
-struct Cursor: Equatable {
-    
-    var lineNumber: Int
-    var character: Int
-    
-    init(lineNumber: Int = 1, character: Int = 0) {
-        self.lineNumber = lineNumber
-        self.character = character
-    }
-    
-    mutating func advanceCharacter(by count: Int = 1) {
-        character += count
-    }
-    
-    mutating func advanceLine() {
-        character = 0
-        lineNumber += 1
-    }
-    
-    static func ==(lhs: Cursor, rhs: Cursor) -> Bool {
-        lhs.lineNumber == rhs.lineNumber && lhs.character == rhs.character
+        self.fileName = fileName
     }
 }
