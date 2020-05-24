@@ -17,6 +17,9 @@ struct ParserError: Error {
         // procedure declaration
         case procExpectedBrace = "Expected an opening or closing parenthesis."
         case procExpectedArgumentType = "Expected a type of an argument after `:`."
+        case procUndeclaredDirective = "Undeclared procedure directive."
+        case procReturnTypeExpected = "Expected a return type after `->`."
+        case procExpectedName = "Expected procedure name after `func`."
     }
     
     let fileName: String?

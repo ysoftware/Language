@@ -48,13 +48,14 @@ enum Keyword: String, CaseIterable, Equatable, TokenValue {
     static let all = allCases.map(\.rawValue)
 }
 
-struct Identifier: TokenValue { let value: String }
-struct Punctuator: TokenValue { let value: String }
-struct Directive: TokenValue { let value: String }
-struct Operator: TokenValue { let value: String }
+protocol StringValueToken: TokenValue { var value: String { get }}
+struct Identifier: TokenValue, StringValueToken { let value: String }
+struct Punctuator: TokenValue, StringValueToken { let value: String }
+struct Directive: TokenValue, StringValueToken { let value: String }
+struct Operator: TokenValue, StringValueToken { let value: String }
+struct Comment: TokenValue, StringValueToken{ let value: String }
+struct Separator: TokenValue, StringValueToken { let value: String }
 struct TokenLiteral: TokenValue { let value: LiteralToken }
-struct Comment: TokenValue { let value: String }
-struct Separator: TokenValue { let value: String }
 
 struct Token: Equatable {
     
