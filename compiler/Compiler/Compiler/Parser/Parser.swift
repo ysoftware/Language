@@ -57,15 +57,6 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
         return nil
     }
     
-    func consumeNext<T: StringValueToken>(_ type: T.Type, matching value: String) -> Bool {
-        return consumeNext(where: { ($0 as? T)?.value == value }) != nil
-    }
-    
-    // consume identifier is not needed
-    // consume keyword is not needed
-    // consume directive is not needed
-    // consume operator is not needed
-    
     /// checks if `next char` exists and matches the predicate, then eats it if it does
     /// if not, does nothing and returns nil
     func consumeNext(where compare: (TokenValue)->Bool) -> Token? {
@@ -79,6 +70,87 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
         return nil
     }
     
+    /// checks if `next char` exists, is a string-value token, and matches the passed value, then eats it if it does
+    /// if not, does nothing and returns `false`
+    func consumeNext<T: StringValueToken>(_ type: T.Type, matching value: String) -> Bool {
+        return consumeNext(where: { ($0 as? T)?.value == value }) != nil
+    }
+    
+    func consumePunct(_ value: String) -> Bool { consumeNext(Punctuator.self, matching: value) }
+    func consumeSep(_ value: String) -> Bool { consumeNext(Separator.self, matching: value) }
+    func consumeIdent() -> (Token, Identifier)? { consumeNext(Identifier.self) }
+    
+    func parseProcedure() -> ParserError.Message? {
+        var arguments: [Type] = []
+        let returnType: Type
+        var flags = ProcedureDeclaration.Flags()
+        let scope: Scope = .empty // @Todo: for now
+        
+        guard let (_, procName) = consumeIdent() else { return .procExpectedName }
+        let name = procName.value
+        let id = "global_func_\(procName.value)"
+        
+        guard consumePunct("(") else { return .procExpectedBrace }
+        
+        // arguments
+        while tokens.count > i {
+            if consumePunct("...") {
+                if arguments.isEmpty { return .procExpectedArgumentBeforeVarargs }
+                flags.insert(.isVarargs)
+                break
+            }
+            else {
+                guard peekNext()?.value is Identifier else { return .procExpectedArgumentName }
+                
+                guard let (_, argName) = consumeIdent(), consumePunct(":"),
+                    let (_, argType) = consumeIdent()
+                    else { return .procExpectedArgumentType }
+                
+                // @Todo: change argument from Type to something
+                // that will also contain argument name and label
+                _ = argName
+                arguments.append(Type(name: argType.value))
+            }
+            if !consumeSep(",") { break }
+        }
+        
+        if !consumePunct(")") { return .procExpectedBrace }
+        
+        if consumePunct("->") {
+            if let (_, type) = consumeNext(Identifier.self) {
+                returnType = Type(name: type.value)
+            }
+            else { return .procReturnTypeExpected }
+        }
+        else { returnType = .void }
+        
+        // directives
+        if let (_, directive) = consumeNext(Directive.self) {
+            if directive.value == "foreign" {
+                flags.insert(.isForeign)
+            }
+            else {
+                return .procUndeclaredDirective
+            }
+        }
+        
+        // procedure body
+        if consumePunct("{") {
+            if flags.contains(.isForeign) { return .procForeignUnexpectedBody }
+            
+            // parse scope until matching "}"
+            
+        }
+        
+        statements.append(ProcedureDeclaration(
+            id: id, name: name, arguments: arguments,
+            returnType: returnType, flags: flags, scope: scope))
+        return nil
+    }
+    
+    
+    
+    
     
     // Cycle
     
@@ -87,77 +159,7 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
             
         case let keyword as Keyword:
             // PROCEDURE DECLARATION
-            
-            if keyword == .func {
-                let id: String
-                let name: String
-                var arguments: [Type] = []
-                let returnType: Type
-                var flags = ProcedureDeclaration.Flags()
-                let scope: Scope = .empty // @Todo: for now
-                
-                if let (_, nameIdentifier) = consumeNext(Identifier.self) {
-                    name = nameIdentifier.value
-                    id = "global_func_\(nameIdentifier.value)"
-                    
-                    guard consumeNext(Punctuator.self, matching: "(")
-                        else { return error(.procExpectedBrace) }
-                    
-                    while tokens.count > i { // parse arguments
-                        
-                        if consumeNext(Punctuator.self, matching: "...") {
-                            flags.insert(.isVarargs)
-                            break
-                        }
-                        else {
-                            guard let _ = peekNext()?.value as? Identifier else { break }
-                            guard let argumentName = consumeNext(Identifier.self),
-                                consumeNext(Punctuator.self, matching: ":"),
-                                let (_, argumentType) = consumeNext(Identifier.self)
-                                else { return error(.procExpectedArgumentType) }
-                            
-                            // @Todo: change argument from Type to something
-                            // that will also contain argument name and label
-                            arguments.append(Type(name: argumentType.value))
-                        }
-                        
-                        if !consumeNext(Separator.self, matching: ",") {
-                            break
-                        }
-                    }
-                    
-                    guard consumeNext(Punctuator.self, matching: ")")
-                        else { return error(.procExpectedBrace) }
-                    
-                    if consumeNext(Punctuator.self, matching: "->") {
-                        if let (_, type) = consumeNext(Identifier.self) {
-                            returnType = Type(name: type.value)
-                        }
-                        else {
-                            return error(.procReturnTypeExpected)
-                        }
-                    }
-                    else {
-                        returnType = .void
-                    }
-                    
-                    if let (_, directive) = consumeNext(Directive.self) {
-                        if directive.value == "foreign" {
-                            flags.insert(.isForeign)
-                        }
-                        else {
-                            return error(.procUndeclaredDirective)
-                        }
-                    }
-                    
-                    statements.append(ProcedureDeclaration(
-                        id: id, name: name, arguments: arguments,
-                        returnType: returnType, flags: flags,scope: scope))
-                }
-                else {
-                    return error(.procExpectedName)
-                }
-            }
+            if keyword == .func, let message = parseProcedure() { return error(message) }
             
         default:
             break

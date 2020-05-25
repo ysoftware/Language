@@ -68,14 +68,11 @@ func IfElseAST(_ value: Bool) -> Scope {
                         )
                     ), block: Scope(code: [
                         
-                        // @Todo: can't pass literal as argument
-                        
                         ProcedureCall(
                             name: "global_func_prinf", expType: .int8, arguments: [
                                 Argument(name: "global_string_literal_2", expType: .string),
                                 Argument(name: "global_func_main_variable_a", expType: .int),
                                 IntLiteral(value: 15),
-                                //Argument(name: "global_func_main_variable_b", expType: .int),
                         ]),
                         
                     ]), elseBlock: Scope(code: [

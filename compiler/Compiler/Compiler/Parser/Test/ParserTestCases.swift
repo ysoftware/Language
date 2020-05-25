@@ -11,7 +11,7 @@ import Foundation
 extension ParserTest {
     
     func testFunctionDeclaration() {
-        let code = "func printf(format: String, arguments: Int32, ...) #foreign"
+        let code = "func printf(format: String, arguments: Int32, ...) -> Void #foreign"
         let tokens = try! lexerAnalyze(code).get()
         
         printResultCase(code, parse(tokens), Scope(code: [

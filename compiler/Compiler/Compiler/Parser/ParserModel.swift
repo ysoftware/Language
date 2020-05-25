@@ -16,7 +16,10 @@ struct ParserError: Error {
         
         // procedure declaration
         case procExpectedBrace = "Expected an opening or closing parenthesis."
+        case procForeignUnexpectedBody = "Foreign procedure can not declare a body."
         case procExpectedArgumentType = "Expected a type of an argument after `:`."
+        case procExpectedArgumentName = "Expected argument name."
+        case procExpectedArgumentBeforeVarargs = "Variadic argument requires definition before `...`."
         case procUndeclaredDirective = "Undeclared procedure directive."
         case procReturnTypeExpected = "Expected a return type after `->`."
         case procExpectedName = "Expected procedure name after `func`."
