@@ -16,15 +16,16 @@ struct StringLiteral: Expression, Literal {
 
 struct IntLiteral: Expression, Literal {
     
+    // @Todo: make it choose the type appropriately depending on value
     let expType: Type = .int
-    let value: Int32
+    let value: Int
 }
 
-//struct FloatLiteral: Expression {
-//
-//    let expType: Type = .float
-//    let value: Float32
-//}
+struct FloatLiteral: Expression {
+
+    let expType: Type = .float
+    let value: Float32
+}
 
 struct BoolLiteral: Expression, Literal {
     

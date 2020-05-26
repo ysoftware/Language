@@ -19,7 +19,7 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
     // Methods
     
     /// returns the error set at the current point
-    func error(_ error: ParserError.Message) -> Result<Scope, ParserError> {
+    func error<T>(_ error: ParserError.Message) -> Result<T, ParserError> {
         .failure(ParserError(fileName: fileName, cursor: token.endCursor, error))
     }
     
@@ -49,7 +49,7 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
     func consumeNext<T: TokenValue>(_ value: T.Type) -> (Token, T)? {
         let nextIndex = i + 1
         guard tokens.count > nextIndex else { return nil }
-        let token = tokens[nextIndex]
+        token = tokens[nextIndex]
         if let value = token.value as? T {
             advance()
             return (token, value)
@@ -62,7 +62,7 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
     func consumeNext(where compare: (TokenValue)->Bool) -> Token? {
         let nextIndex = i + 1
         guard tokens.count > nextIndex else { return nil }
-        let token = tokens[nextIndex]
+        token = tokens[nextIndex]
         if compare(token.value) {
             advance()
             return token
@@ -76,90 +76,158 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
         return consumeNext(where: { ($0 as? T)?.value == value }) != nil
     }
     
+    func consumeKeyword(_ keyword: Keyword) -> Bool {
+        consumeNext(where: { ($0 as? Keyword) == .else }) != nil
+    }
+    
     func consumePunct(_ value: String) -> Bool { consumeNext(Punctuator.self, matching: value) }
     func consumeSep(_ value: String) -> Bool { consumeNext(Separator.self, matching: value) }
     func consumeIdent() -> (Token, Identifier)? { consumeNext(Identifier.self) }
     
-    func parseProcedure() -> ParserError.Message? {
-        var arguments: [Type] = []
-        let returnType: Type
-        var flags = ProcedureDeclaration.Flags()
-        let scope: Scope = .empty // @Todo: for now
+    func parseProcedure() -> Result<ProcedureDeclaration, ParserError> {
+        guard let (_, procName) = consumeIdent() else { return error(.procExpectedName) }
+        guard consumePunct("(") else { return error(.procExpectedBrackets) }
         
-        guard let (_, procName) = consumeIdent() else { return .procExpectedName }
+        let returnType: Type
         let name = procName.value
         let id = "global_func_\(procName.value)"
+        var arguments: [Type] = []
+        var flags = ProcedureDeclaration.Flags()
+        var scope: Scope = .empty
         
-        guard consumePunct("(") else { return .procExpectedBrace }
-        
-        // arguments
-        while tokens.count > i {
+        while tokens.count > i { // PROCEDURE ARGUMENTS
             if consumePunct("...") {
-                if arguments.isEmpty { return .procExpectedArgumentBeforeVarargs }
+                if arguments.isEmpty { return error(.procExpectedArgumentBeforeVarargs) }
                 flags.insert(.isVarargs)
                 break
             }
             else {
-                guard peekNext()?.value is Identifier else { return .procExpectedArgumentName }
+                guard peekNext()?.value is Identifier else { return error(.procExpectedArgumentName) }
                 
                 guard let (_, argName) = consumeIdent(), consumePunct(":"),
                     let (_, argType) = consumeIdent()
-                    else { return .procExpectedArgumentType }
+                    else { return error(.procExpectedArgumentType) }
                 
-                // @Todo: change argument from Type to something
-                // that will also contain argument name and label
-                _ = argName
+                _ = argName // @Todo: change argument from Type to something that will also contain argument name and label
                 arguments.append(Type(name: argType.value))
             }
             if !consumeSep(",") { break }
         }
         
-        if !consumePunct(")") { return .procExpectedBrace }
+        if !consumePunct(")") { return error(.procExpectedBrackets) }
         
         if consumePunct("->") {
-            if let (_, type) = consumeNext(Identifier.self) {
-                returnType = Type(name: type.value)
-            }
-            else { return .procReturnTypeExpected }
+            if let (_, type) = consumeNext(Identifier.self) { returnType = Type(name: type.value) }
+            else { return error(.procReturnTypeExpected) }
         }
         else { returnType = .void }
         
         // directives
         if let (_, directive) = consumeNext(Directive.self) {
-            if directive.value == "foreign" {
-                flags.insert(.isForeign)
-            }
-            else {
-                return .procUndeclaredDirective
-            }
+            if directive.value == "foreign" { flags.insert(.isForeign) }
+            else { return error(.procUndeclaredDirective) }
         }
         
         // procedure body
         if consumePunct("{") {
-            if flags.contains(.isForeign) { return .procForeignUnexpectedBody }
+            if flags.contains(.isForeign) { return error(.procForeignUnexpectedBody) }
             
             // parse scope until matching "}"
-            
+            if let error = parseStatements().then({ scope = Scope(code: $0) }) { return .failure(error) }
         }
-        
-        statements.append(ProcedureDeclaration(
+        return .success(ProcedureDeclaration(
             id: id, name: name, arguments: arguments,
             returnType: returnType, flags: flags, scope: scope))
-        return nil
     }
     
+    func parseIf() -> Result<Condition, ParserError> {
+        let hasParenthesis = consumePunct("(")
+        var condition: Expression!
+        var ifBody: [Statement] = []
+        var elseBody: [Statement] = []
+        
+        if hasParenthesis {
+            if let error = parseExpression().then({ condition = $0 }) { return .failure(error) }
+            if !consumePunct(")") { return error(.ifExpectedClosingParenthesis) }
+        }
+        
+        if !consumePunct("{") { return error(.ifExpectedBrackets) }
+        if let error = parseStatements().then({ ifBody = $0 }) { return .failure(error) }
+        
+        // else
+        if consumeKeyword(.else) {
+            if !consumePunct("{") { return error(.ifExpectedBrackets) }
+            if let error = parseStatements().then({ elseBody = $0 }) { return .failure(error) }
+        }
+        
+        return .success(Condition(condition: condition,
+                                  block: Scope(code: ifBody), elseBlock: Scope(code: elseBody)))
+    }
     
+    func parseExpression() -> Result<Expression, ParserError> {
+        while tokens.count > i {
+            switch token.value {
+                
+            case let literal as TokenLiteral:
+                switch literal.value {
+                case .int(let value): return .success(IntLiteral(value: value))
+                case .bool(let value): return .success(BoolLiteral(value: value))
+                case .float(let value): return .success(FloatLiteral(value: value))
+                case .string(let value): return .success(StringLiteral(value: value))
+                }
+            
+            case let identifier as Identifier:
+                
+                // @Todo: this is the first time we need some form of type checking
+                // we have to make sure this value is of type bool
+                return .success(Argument(name: identifier.value, expType: .bool))
+                
+            default:
+                break
+            }
+            nextToken()
+        }
+        return error(.notImplemented)
+    }
     
-    
+    // body of: procedure, if-else, loop
+    func parseStatements() -> Result<[Statement], ParserError> {
+        var statements: [Statement] = []
+        
+        while tokens.count > i {
+            switch token.value  {
+            
+            case let punct as Punctuator:
+                if punct.value == "}" { // done with the scope
+                    nextToken()
+                    return .success(statements)
+                }
+                
+            case let keyword as Keyword:
+                if keyword == .func { return error(.procNestedNotSupported) }
+                if keyword == .if {
+                    if let error = parseIf().then({ statements.append($0) }) { return .failure(error) }
+                }
+                
+            default:
+                break
+            }
+            nextToken()
+        }
+        return .success(statements)
+    }
     
     // Cycle
     
     while tokens.count > i {
         switch token.value  {
-            
+        
         case let keyword as Keyword:
             // PROCEDURE DECLARATION
-            if keyword == .func, let message = parseProcedure() { return error(message) }
+            if keyword == .func {
+                if let error = parseProcedure().then({ statements.append($0) }) { return .failure(error) }
+                
+            }
             
         default:
             break

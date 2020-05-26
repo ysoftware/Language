@@ -139,9 +139,7 @@ func lexerAnalyze(fileName: String? = nil,
                 }
                 
                 if isMultiline {
-                    if peekNext() == nil {
-                        return error(.unexpectedEndOfFile)
-                    }
+                    if peekNext() == nil { return error(.unexpectedEndOfFile) }
                     else if consume(string: "\"\"\"") {
                         return error(.newlineExpectedAfterMultilineStringLiteral)
                     }
@@ -160,9 +158,7 @@ func lexerAnalyze(fileName: String? = nil,
                         append(TokenLiteral(value: .string(value: value)))
                         break
                     }
-                    else if consume(string: "\n") {
-                        return error(.newLineInStringLiteral)
-                    }
+                    else if consume(string: "\n") { return error(.newLineInStringLiteral) }
                 }
                 
                 value.append(char)
@@ -178,42 +174,33 @@ func lexerAnalyze(fileName: String? = nil,
             append(Separator(value: String(char)))
             
         case lowercaseRange, uppercaseRange, "_", "#":
-            // KEYWORDS / IDENTIFIERS / DIRECTIVES
+            // KEYWORDS / IDENTIFIERS / DIRECTIVES / BOOL LITERALS
             
             let isDirective = consume(string: "#")
             if isDirective {
-                if !nextChar() {
-                    return error(.emptyDirectiveName)
-                }
-                else if char == " " {
-                    return error(.emptyDirectiveName)
-                }
-                else if !lowercaseRange.contains(char) && !uppercaseRange.contains(char) && char != "_" {
+                if !nextChar() { return error(.emptyDirectiveName) }
+                else if char == " " { return error(.emptyDirectiveName) }
+                else if !lowercaseRange.contains(char)
+                    && !uppercaseRange.contains(char) && char != "_" {
                     return error(.unexpectedDirectiveName)
                 }
             }
             
             var value = String(char)
             while let next = consumeNext(where: {
-                lowercaseRange.contains($0)
-                    || uppercaseRange.contains($0)
-                    || numberRange.contains($0)
-                    || $0 == "_" }) {
+                lowercaseRange.contains($0) || uppercaseRange.contains($0)
+                    || numberRange.contains($0) || $0 == "_" }) {
                         value.append(next)
             }
             
-            if isDirective {
-                if value.isEmpty {
-                    return error(.emptyDirectiveName)
-                }
+            if value == "true" { append(TokenLiteral(value: .bool(value: true))) }
+            else if value == "false" { append(TokenLiteral(value: .bool(value: false))) }
+            else if let keyword = Keyword(rawValue: value) { append(keyword) }
+            else if isDirective {
+                if value.isEmpty { return error(.emptyDirectiveName) }
                 append(Directive(value: value))
             }
-            else if let keyword = Keyword(rawValue: value) {
-                append(keyword)
-            }
-            else {
-                append(Identifier(value: value))
-            }
+            else { append(Identifier(value: value)) }
             
         case numberRange, ".", "-":
             // NUMBER LITERALS

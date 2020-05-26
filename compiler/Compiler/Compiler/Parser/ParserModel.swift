@@ -14,8 +14,13 @@ struct ParserError: Error {
         
         case notImplemented = "Not implemented"
         
+        // if
+        case ifExpectedClosingParenthesis = "Closing parenthesis is expected after condition expression."
+        case ifExpectedBrackets = "Expected brackets around if-else blocks."
+        
         // procedure declaration
-        case procExpectedBrace = "Expected an opening or closing parenthesis."
+        case procNestedNotSupported = "Nested procedure declarations are not supported."
+        case procExpectedBrackets = "Expected parenthesis around arguments declaration."
         case procForeignUnexpectedBody = "Foreign procedure can not declare a body."
         case procExpectedArgumentType = "Expected a type of an argument after `:`."
         case procExpectedArgumentName = "Expected argument name."

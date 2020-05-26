@@ -21,6 +21,7 @@ struct Type: Equatable {
 
 extension Type {
     
+    static let float = float32
     static let int = int32
     static let bool = int1
     
@@ -34,6 +35,10 @@ extension Type {
     static let uint16 = Type(name: "UInt16")
     static let uint32 = Type(name: "UInt32")
     static let uint64 = Type(name: "UInt64")
+    
+    static let float16 = Type(name: "Float16")
+    static let float32 = Type(name: "Float32")
+    static let float64 = Type(name: "Float64")
     
     static let string = Type(name: "String")
     static let void = Type(name: "Void")

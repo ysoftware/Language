@@ -14,3 +14,13 @@ extension String {
     func startIndex(offsetBy offset: Int) -> String.Index { index(startIndex, offsetBy: offset) }
     subscript(index: Int) -> Character { self[startIndex(offsetBy: index)] }
 }
+
+extension Result where Failure == ParserError {
+    
+    func then(_ block: (Success)->Void) -> ParserError? {
+        switch self {
+        case .success(let value): block(value); return nil
+        case .failure(let error): return error
+        }
+    }
+}

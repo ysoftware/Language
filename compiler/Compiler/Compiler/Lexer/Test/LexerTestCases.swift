@@ -10,6 +10,15 @@ import Foundation
 
 extension LexerTest {
     
+    func testBoolLiteral() {
+        let code = "true false"
+        
+        printResultCase(code, lexerAnalyze(code), asTokens([
+            TokenLiteral(value: .bool(value: true)),
+            TokenLiteral(value: .bool(value: false))
+        ]))
+    }
+    
     func testCursors() {
         let code = "hello, world\n1\n\n123"
         

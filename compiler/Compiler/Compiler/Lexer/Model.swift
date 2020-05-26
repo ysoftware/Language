@@ -15,6 +15,7 @@ enum LiteralToken: Equatable {
         case (.string(let v), .string(let v2)): return v == v2
         case (.float(let v), .float(let v2)): return v == v2
         case (.int(let v), .int(let v2)): return v == v2
+        case (.bool(let v), .bool(let v2)): return v == v2
         default: return false
         }
     }
@@ -22,6 +23,7 @@ enum LiteralToken: Equatable {
     case string(value: String)
     case float(value: Float)
     case int(value: Int)
+    case bool(value: Bool)
 }
 
 protocol TokenValue {
@@ -31,7 +33,18 @@ protocol TokenValue {
 extension TokenValue {
     
     func equals(to value: TokenValue) -> Bool {
-        return true
+        switch (self, value) {
+        case (let a as Identifier, let b as Identifier): return a.value == b.value
+        case (let a as Punctuator, let b as Punctuator): return a.value == b.value
+        case (let a as Directive, let b as Directive): return a.value == b.value
+        case (let a as Operator, let b as Operator): return a.value == b.value
+        case (let a as Comment, let b as Comment): return a.value == b.value
+        case (let a as Separator, let b as Separator): return a.value == b.value
+        case (let a as TokenLiteral, let b as TokenLiteral): return a.value == b.value
+        case (let a as Keyword, let b as Keyword): return a == b
+        default: break
+        }
+        return false
     }
 }
 
@@ -44,6 +57,10 @@ enum Keyword: String, CaseIterable, Equatable, TokenValue {
     case `enum`
     case `struct`
     case `defer`
+    case `if`
+    case `else`
+    case `switch`
+    case `case`
     
     static let all = allCases.map(\.rawValue)
 }

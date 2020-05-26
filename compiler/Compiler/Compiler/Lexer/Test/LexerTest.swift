@@ -18,6 +18,7 @@ class LexerTest {
         i.failed = 0
         
 //        i.testNumbersFail4() // @Todo: this test fails, maybe "while let ..." was a bad decision
+        i.testBoolLiteral()
         i.testNumbersFail3()
         i.testCursors()
         i.testMultilineStringLiteral()
@@ -102,7 +103,7 @@ class LexerTest {
                 else {
                     for i in 0..<result.count {
                         if expect[i] != result[i] {
-                            print("Mismatch in \(i):", result[i], "\nexpected", expect[i], "\n\n")
+                            print("Mismatch in \(i):\n", result[i], "\nExpected:\n", expect[i], "\n\n")
                         }
                     }
                 }
