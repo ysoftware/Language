@@ -107,14 +107,12 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
     func doProcDecl() -> Result<ProcedureDeclaration, ParserError> {
         guard let (_, procName) = consumeIdent() else { return error(.procExpectedName) }
         guard consumePunct("(") else { return error(.procExpectedBrackets) }
-        
         let returnType: Type
         let name = procName.value
         let id = "global_func_\(procName.value)"
         var arguments: [Type] = []
         var flags = ProcedureDeclaration.Flags()
         var scope: Scope = .empty
-        
         while tokens.count > i { // PROCEDURE ARGUMENTS
             if consumePunct("...") {
                 if arguments.isEmpty { return error(.procExpectedArgumentBeforeVarargs) }
@@ -123,36 +121,26 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
             }
             else {
                 guard peekNext()?.value is Identifier else { return error(.procExpectedArgumentName) }
-                
                 guard let (_, argName) = consumeIdent(), consumePunct(":"),
                     let (_, argType) = consumeIdent()
                     else { return error(.procExpectedArgumentType) }
-                
                 _ = argName // @Todo: change argument from Type to something that will also contain argument name and label
                 arguments.append(.type(name: argType.value))
             }
             if !consumeSep(",") { break }
         }
-        
         if !consumePunct(")") { return error(.procExpectedBrackets) }
-        
         if consumePunct("->") {
             if let (_, type) = consumeNext(Identifier.self) { returnType = .type(name: type.value) }
             else { return error(.procReturnTypeExpected) }
         }
         else { returnType = .void }
-        
-        // directives
         if let (_, directive) = consumeNext(Directive.self) {
             if directive.value == "foreign" { flags.insert(.isForeign) }
             else { return error(.procUndeclaredDirective) }
         }
-        
-        // procedure body
         if consumePunct("{") {
             if flags.contains(.isForeign) { return error(.procForeignUnexpectedBody) }
-            
-            // parse scope until matching "}"
             if let error = doStatements().then({ scope = Scope(code: $0) }) { return .failure(error) }
         }
         let procedure = ProcedureDeclaration(
@@ -167,20 +155,16 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
         var condition: Expression!
         var ifBody: [Statement] = []
         var elseBody: [Statement] = []
-        
         if hasParenthesis {
             if let error = doExpression().then({ condition = $0 }) { return .failure(error) }
             if !consumePunct(")") { return error(.ifExpectedClosingParenthesis) }
         }
-        
         if !consumePunct("{") { return error(.ifExpectedBrackets) }
         if let error = doStatements().then({ ifBody = $0 }) { return .failure(error) }
-        
         if consumeKeyword(.else) {
             if !consumePunct("{") { return error(.ifExpectedBrackets) }
             if let error = doStatements().then({ elseBody = $0 }) { return .failure(error) }
         }
-
         return .success(Condition(
             condition: condition, block: Scope(code: ifBody), elseBlock: Scope(code: elseBody)))
     }
@@ -236,7 +220,6 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
         var expr: Expression?
         var flags: VariableDeclaration.Flags = []
         let suppliedTypeName = consumeIdent()?.1.value
-        
         var expectingExpression = true
         if consumeOp("=") { /* not a constant */ }
         else if consumePunct(":") { flags.insert(.isConstant) }
@@ -247,9 +230,7 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
             if let declaredType = suppliedTypeName, let exprType = expr?.expType.name,
                 declaredType != exprType { return error(.varDeclTypeMismatch) }
         }
-        
         guard consumeSep(";") else { return error(.expectedSemicolon) }
-        
         let type: Type
         if let t = expr?.expType { type = t }
         else if let name = suppliedTypeName {
@@ -269,22 +250,13 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
     
     while tokens.count > i {
         switch token.value  {
-        
         case let keyword as Keyword:
-            
-            // PROCEDURE DECLARATION
             if keyword == .func,
                 let error = doProcDecl().then({ statements.append($0) }) { return .failure(error) }
-            
         case let identifier as Identifier:
-            
-            // VARIABLE DECLARATION
             if consumePunct(":"),
                 let error = doVarDecl(identifier).then({ statements.append($0) }) { return .failure(error) }
-            
-            
-        default:
-            break
+        default: break
         }
         nextToken()
     }
