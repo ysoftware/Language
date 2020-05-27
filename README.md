@@ -7,7 +7,7 @@
 - [x] use LLVM to parse manually-written IR
 - [x] generate IR from some manually written and pre-typed AST
 - [x] develop lexer (tokenizer)
-- [ ] parse code into AST
+- [ ] **parse code into AST**
 - [ ] type infer AST and hook it to IR generation
 
 
@@ -39,7 +39,7 @@ func printf(_ format: String, _ arguments: Int32, ...) #foreign;
  b : Float[3] = [0, 1, 2]
  c := [0, 1, 2]              // Int[3] 
  d := [0.1, 1, 2]            // Float[3]
- f := (Float[15])[1, 2, 3]
+ f := (Float[3])[1, 2, 3]
  ```
 
  
