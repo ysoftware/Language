@@ -14,6 +14,14 @@ struct ParserError: Error {
         
         case notImplemented = "Not implemented"
         
+        // common
+        case expectedSemicolon = "Expected ';'."
+        
+        // var decl
+        case varDeclExpectedEquals = "Expected '=' or ':' for the variable or constant declaration."
+        case varDeclTypeMismatch = "Type supplied does not match the type of expression."
+        case varDeclRequiresType = "Variable declaration without expression requires type to be specified."
+        
         // if
         case ifExpectedClosingParenthesis = "Closing parenthesis is expected after condition expression."
         case ifExpectedBrackets = "Expected brackets around if-else blocks."
@@ -22,12 +30,12 @@ struct ParserError: Error {
         case procNestedNotSupported = "Nested procedure declarations are not supported."
         case procExpectedBrackets = "Expected parenthesis around arguments declaration."
         case procForeignUnexpectedBody = "Foreign procedure can not declare a body."
-        case procExpectedArgumentType = "Expected a type of an argument after `:`."
+        case procExpectedArgumentType = "Expected a type of an argument after colon."
         case procExpectedArgumentName = "Expected argument name."
-        case procExpectedArgumentBeforeVarargs = "Variadic argument requires definition before `...`."
+        case procExpectedArgumentBeforeVarargs = "Variadic argument requires definition before '...'."
         case procUndeclaredDirective = "Undeclared procedure directive."
-        case procReturnTypeExpected = "Expected a return type after `->`."
-        case procExpectedName = "Expected procedure name after `func`."
+        case procReturnTypeExpected = "Expected a return type after '->'."
+        case procExpectedName = "Expected procedure name after 'func'."
     }
     
     let fileName: String?

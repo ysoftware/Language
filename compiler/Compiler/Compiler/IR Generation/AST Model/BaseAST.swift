@@ -20,6 +20,17 @@ class Scope {
     }
 }
 
+class Value: Expression {
+    
+    var name: String
+    var expType: Type
+    
+    internal init(name: String, expType: Type) {
+        self.name = name
+        self.expType = expType
+    }
+}
+
 protocol Ast: class { }
 
 protocol Literal { }

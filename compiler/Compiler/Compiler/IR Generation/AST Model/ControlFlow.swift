@@ -53,3 +53,12 @@ class Continue: Statement {
         self.userLabel = userLabel
     }
 }
+
+class Return: Statement {
+    
+    let value: Expression
+    
+    internal init(value: Expression) {
+        self.value = value
+    }
+}

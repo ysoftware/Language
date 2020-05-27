@@ -159,13 +159,13 @@ final class IR {
                 if let literal = variable.expression as? StringLiteral {
                     guard let value = getCString(from: literal.value) else {
                         // @Todo: make sure we have to assert here
-                        report("Unsupported character in string literal. Only supporting ascii for now.")
+                        fatalError("Unsupported character in string literal. Only supporting ascii for now.")
                     }
                     stringLiterals[variable.id] = literal
                     emitGlobal("@\(variable.id) = private unnamed_addr constant [\(literal.value.count) x i8] c\"\(value)\"")
                 }
                 else {
-                    let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
+                    let (expCode, expVal) = getExpressionResult(variable.expression!, ident: ident)
                     emitLocal(expCode)
                     // @Todo: support constant variables
                     // do it at ast building?
@@ -186,7 +186,7 @@ final class IR {
                 emitLocal("ret \(matchType(ret.value.expType.name)) \(expVal)")
                 
             default:
-                report("Undefined expression:\n\(expression)")
+                fatalError("Undefined expression:\n\(expression)")
             }
         }
         
@@ -205,13 +205,13 @@ final class IR {
         if let userLabel = userLabel {
             guard let loopContext = contexts.last(where:
                 { userLabel == ($0 as? LoopContext)?.userLabel }) as? LoopContext
-                else { report("Undefined break label \(userLabel)") }
+                else { fatalError("Undefined break label \(userLabel)") }
             return loopContext
         }
         else {
             guard let loopContext = contexts.last(where:
                 { $0 is LoopContext }) as? LoopContext
-                else { report("Can not break outside of loop context") }
+                else { fatalError("Can not break outside of loop context") }
             return loopContext
         }
     }

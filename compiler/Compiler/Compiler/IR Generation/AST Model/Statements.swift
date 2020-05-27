@@ -1,8 +1,8 @@
 //
-//  Procedure.swift
+//  Statements.swift
 //  Compiler
 //
-//  Created by Ерохин Ярослав Игоревич on 17.05.2020.
+//  Created by Ерохин Ярослав Игоревич on 27.05.2020.
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 
@@ -38,26 +38,45 @@ class ProcedureDeclaration: Statement {
     }
 }
 
-class Value: Expression {
+class StructDeclaration: Statement {
     
-    var name: String
-    var expType: Type
+    let name: String
+    let members: [Value]
     
-    internal init(name: String, expType: Type) {
+    internal init(name: String, members: [Value]) {
         self.name = name
-        self.expType = expType
+        self.members = members
     }
 }
 
-class ProcedureCall: Expression, Statement {
+class VariableDeclaration: Statement {
     
-    var name: String
-    var expType: Type
-    var arguments: [Expression]
+    struct Flags: OptionSet {
+        let rawValue: Int
+        
+        static let isConstant  = Flags(rawValue: 1 << 0)
+    }
     
-    internal init(name: String, expType: Type, arguments: [Expression]) {
-        self.name = name
+    let id: String
+    let expType: Type
+    let flags: Flags
+    let expression: Expression?
+    
+    internal init(id: String, expType: Type, flags: VariableDeclaration.Flags, expression: Expression?) {
+        self.id = id
         self.expType = expType
-        self.arguments = arguments
+        self.flags = flags
+        self.expression = expression
+    }
+}
+
+class VariableAssignment: Statement {
+    
+    let receiverId: String
+    let expression: Expression
+    
+    internal init(receiverId: String, expression: Expression) {
+        self.receiverId = receiverId
+        self.expression = expression
     }
 }

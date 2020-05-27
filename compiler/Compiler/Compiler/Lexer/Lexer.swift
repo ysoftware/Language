@@ -32,7 +32,7 @@ func lexerAnalyze(fileName: String? = nil,
     
     /// add this token to the return
     func append(_ value: TokenValue) {
-        tokens.append(Token(value, start: startCursor, end: endCursor)) // @Todo fix
+        tokens.append(Token(value, start: startCursor, end: endCursor))
         startCursor = endCursor
     }
     

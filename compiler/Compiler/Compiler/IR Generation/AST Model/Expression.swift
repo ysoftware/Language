@@ -8,38 +8,6 @@
 
 import Foundation
 
-class VariableDeclaration: Statement {
-    
-    struct Flags: OptionSet {
-        let rawValue: Int
-        
-        static let isConstant  = Flags(rawValue: 1 << 0)
-    }
-    
-    let id: String
-    let expType: Type
-    let flags: Flags
-    let expression: Expression
-    
-    internal init(id: String, expType: Type, flags: VariableDeclaration.Flags, expression: Expression) {
-        self.id = id
-        self.expType = expType
-        self.flags = flags
-        self.expression = expression
-    }
-}
-
-class VariableAssignment: Statement {
-    
-    let receiverId: String
-    let expression: Expression
-    
-    internal init(receiverId: String, expression: Expression) {
-        self.receiverId = receiverId
-        self.expression = expression
-    }
-}
-
 class BinaryOperator: Expression {
     
     let name: Instruction
@@ -55,11 +23,56 @@ class BinaryOperator: Expression {
     }
 }
 
-class Return: Statement {
+class ProcedureCall: Expression, Statement {
     
-    let value: Expression
+    var name: String
+    var expType: Type
+    var arguments: [Expression]
     
-    internal init(value: Expression) {
+    internal init(name: String, expType: Type, arguments: [Expression]) {
+        self.name = name
+        self.expType = expType
+        self.arguments = arguments
+    }
+}
+
+class StringLiteral: Expression, Literal {
+    
+    internal init(value: String) {
         self.value = value
     }
+
+    let expType: Type = .string
+    let value: String
+}
+
+class IntLiteral: Expression, Literal {
+    
+    internal init(value: Int) {
+        self.value = value
+    }
+
+    // @Todo: make it choose the type appropriately depending on value
+    let expType: Type = .int
+    let value: Int
+}
+
+class FloatLiteral: Expression {
+    
+    internal init(value: Float32) {
+        self.value = value
+    }
+    
+    let expType: Type = .float
+    let value: Float32
+}
+
+class BoolLiteral: Expression, Literal {
+    
+    internal init(value: Bool) {
+        self.value = value
+    }
+    
+    let expType: Type = .bool
+    let value: Bool
 }

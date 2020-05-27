@@ -14,11 +14,15 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
     
     var unresolved: [String: [Ast]] = [:] /// all with type unresolved
     var global_declarations: [String: Ast] = [:] /// all declarations in global scope
+    var struct_declarations: [String: StructDeclaration] = [:] /// all structs declared
     var i = 0
     var token = tokens[i]
     var statements: [Statement] = []
     
     // Methods
+    
+    // @Todo: add append method the same as in Lexer
+    // to auto-include the Cursor in the Ast
     
     func dependOnGlobal(_ dependency: String, _ statement: Ast) {
         if unresolved[dependency] == nil { unresolved[dependency] = [] }
@@ -97,9 +101,10 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
     
     func consumePunct(_ value: String) -> Bool { consumeNext(Punctuator.self, matching: value) }
     func consumeSep(_ value: String) -> Bool { consumeNext(Separator.self, matching: value) }
+    func consumeOp(_ value: String) -> Bool { consumeNext(Operator.self, matching: value) }
     func consumeIdent() -> (Token, Identifier)? { consumeNext(Identifier.self) }
-    
-    func doProcedureDeclaration() -> Result<ProcedureDeclaration, ParserError> {
+
+    func doProcDecl() -> Result<ProcedureDeclaration, ParserError> {
         guard let (_, procName) = consumeIdent() else { return error(.procExpectedName) }
         guard consumePunct("(") else { return error(.procExpectedBrackets) }
         
@@ -171,20 +176,18 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
         if !consumePunct("{") { return error(.ifExpectedBrackets) }
         if let error = doStatements().then({ ifBody = $0 }) { return .failure(error) }
         
-        // else
         if consumeKeyword(.else) {
             if !consumePunct("{") { return error(.ifExpectedBrackets) }
             if let error = doStatements().then({ elseBody = $0 }) { return .failure(error) }
         }
-        
-        return .success(Condition(condition: condition,
-                                  block: Scope(code: ifBody), elseBlock: Scope(code: elseBody)))
+
+        return .success(Condition(
+            condition: condition, block: Scope(code: ifBody), elseBlock: Scope(code: elseBody)))
     }
     
     func doExpression() -> Result<Expression, ParserError> {
         while tokens.count > i {
             switch token.value {
-                
             case let literal as TokenLiteral:
                 switch literal.value {
                 case .int(let value): return .success(IntLiteral(value: value))
@@ -192,14 +195,12 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
                 case .float(let value): return .success(FloatLiteral(value: value))
                 case .string(let value): return .success(StringLiteral(value: value))
                 }
-            
             case let identifier as Identifier:
                 let value = Value(name: identifier.value, expType: .predicted(.bool))
                 dependOnGlobal(identifier.value, value)
                 return .success(value)
-                
-            default:
-                break
+            // @Todo: more expressions
+            default: break
             }
             nextToken()
         }
@@ -209,28 +210,59 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
     // body of: procedure, if-else, loop
     func doStatements() -> Result<[Statement], ParserError> {
         var statements: [Statement] = []
-        
         while tokens.count > i {
             switch token.value  {
-            
             case let punct as Punctuator:
                 if punct.value == "}" { // done with the scope
                     nextToken()
                     return .success(statements)
                 }
-                
-            case let keyword as Keyword:
+            case let keyword as Keyword: // @Clean: this is a copy from the main loop
                 if keyword == .func { return error(.procNestedNotSupported) }
                 if keyword == .if {
                     if let error = doIf().then({ statements.append($0) }) { return .failure(error) }
                 }
-                
-            default:
-                break
+            case let identifier as Identifier: // @Clean: this is a copy from the main loop
+                if consumePunct(":"),
+                    let error = doVarDecl(identifier).then({ statements.append($0) }) { return .failure(error) }
+            default: break
             }
             nextToken()
         }
         return .success(statements)
+    }
+    
+    func doVarDecl(_ identifier: Identifier) -> Result<VariableDeclaration, ParserError> {
+        var expr: Expression?
+        var flags: VariableDeclaration.Flags = []
+        let suppliedTypeName = consumeIdent()?.1.value
+        
+        var expectingExpression = true
+        if consumeOp("=") { /* not a constant */ }
+        else if consumePunct(":") { flags.insert(.isConstant) }
+        else { expectingExpression = false }
+        
+        if expectingExpression {
+            if let error = doExpression().then({ expr = $0 }) { return .failure(error) }
+            if let declaredType = suppliedTypeName, let exprType = expr?.expType.name,
+                declaredType != exprType { return error(.varDeclTypeMismatch) }
+        }
+        
+        guard consumeSep(";") else { return error(.expectedSemicolon) }
+        
+        let type: Type
+        if let t = expr?.expType { type = t }
+        else if let name = suppliedTypeName {
+            if Type.isPrimitive(name) { type = .type(name: name) }
+            else { type = .unresolved(name: name) }
+        }
+        else { return error(.varDeclRequiresType) }
+        
+        let varDecl = VariableDeclaration(
+            id: identifier.value, expType: type, flags: flags, expression: expr)
+        if case .resolved = type { dependOnGlobal(type.name, varDecl) }
+        // @Todo: add this var decl to local or global scope
+        return .success(varDecl)
     }
     
     // Cycle
@@ -239,9 +271,17 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
         switch token.value  {
         
         case let keyword as Keyword:
+            
             // PROCEDURE DECLARATION
             if keyword == .func,
-                let error = doProcedureDeclaration().then({ statements.append($0) }) { return .failure(error) }
+                let error = doProcDecl().then({ statements.append($0) }) { return .failure(error) }
+            
+        case let identifier as Identifier:
+            
+            // VARIABLE DECLARATION
+            if consumePunct(":"),
+                let error = doVarDecl(identifier).then({ statements.append($0) }) { return .failure(error) }
+            
             
         default:
             break
@@ -249,15 +289,4 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
         nextToken()
     }
     return .success(Scope(code: statements))
-}
-
-func parseExpression(_ expression: Expression) {
-    
-}
-
-func parseStatement(_ statement: Statement) {
-    
-    
-    // FUNCTION
-    
 }
