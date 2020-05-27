@@ -8,35 +8,58 @@
 
 import Foundation
 
-struct VariableDeclaration: Statement {
+class VariableDeclaration: Statement {
     
     struct Flags: OptionSet {
         let rawValue: Int
         
-        static let isConstant    = Flags(rawValue: 1 << 0)
+        static let isConstant  = Flags(rawValue: 1 << 0)
     }
     
     let id: String
     let expType: Type
     let flags: Flags
     let expression: Expression
+    
+    internal init(id: String, expType: Type, flags: VariableDeclaration.Flags, expression: Expression) {
+        self.id = id
+        self.expType = expType
+        self.flags = flags
+        self.expression = expression
+    }
 }
 
-struct VariableAssignment: Statement {
+class VariableAssignment: Statement {
     
     let receiverId: String
     let expression: Expression
+    
+    internal init(receiverId: String, expression: Expression) {
+        self.receiverId = receiverId
+        self.expression = expression
+    }
 }
 
-struct BinaryOperator: Expression {
+class BinaryOperator: Expression {
     
     let name: Instruction
     let operatorType: Type
     let expType: Type
     let arguments: (Expression, Expression)
+
+    internal init(name: Instruction, operatorType: Type, expType: Type, arguments: (Expression, Expression)) {
+        self.name = name
+        self.operatorType = operatorType
+        self.expType = expType
+        self.arguments = arguments
+    }
 }
 
-struct Return: Statement {
+class Return: Statement {
     
     let value: Expression
+    
+    internal init(value: Expression) {
+        self.value = value
+    }
 }

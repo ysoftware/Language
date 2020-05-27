@@ -12,11 +12,26 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
     
     // Variables
     
+    var unresolved: [String: [Ast]] = [:] /// all with type unresolved
+    var global_declarations: [String: Ast] = [:] /// all declarations in global scope
     var i = 0
     var token = tokens[i]
     var statements: [Statement] = []
     
     // Methods
+    
+    func dependOnGlobal(_ dependency: String, _ statement: Ast) {
+        if unresolved[dependency] == nil { unresolved[dependency] = [] }
+        unresolved[dependency]!.append(statement)
+    }
+    
+    func declareGlobal(_ declaration: Ast) {
+        let name: String
+        if let proc = declaration as? ProcedureDeclaration { name = proc.name }
+        else if let variable = declaration as? VariableDeclaration { name = variable.id }
+        else { fatalError("Only variables and procedures can be declared at global scope") }
+        global_declarations[name] = declaration
+    }
     
     /// returns the error set at the current point
     func error<T>(_ error: ParserError.Message) -> Result<T, ParserError> {
@@ -84,7 +99,7 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
     func consumeSep(_ value: String) -> Bool { consumeNext(Separator.self, matching: value) }
     func consumeIdent() -> (Token, Identifier)? { consumeNext(Identifier.self) }
     
-    func parseProcedure() -> Result<ProcedureDeclaration, ParserError> {
+    func doProcedureDeclaration() -> Result<ProcedureDeclaration, ParserError> {
         guard let (_, procName) = consumeIdent() else { return error(.procExpectedName) }
         guard consumePunct("(") else { return error(.procExpectedBrackets) }
         
@@ -109,7 +124,7 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
                     else { return error(.procExpectedArgumentType) }
                 
                 _ = argName // @Todo: change argument from Type to something that will also contain argument name and label
-                arguments.append(Type(name: argType.value))
+                arguments.append(.type(name: argType.value))
             }
             if !consumeSep(",") { break }
         }
@@ -117,7 +132,7 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
         if !consumePunct(")") { return error(.procExpectedBrackets) }
         
         if consumePunct("->") {
-            if let (_, type) = consumeNext(Identifier.self) { returnType = Type(name: type.value) }
+            if let (_, type) = consumeNext(Identifier.self) { returnType = .type(name: type.value) }
             else { return error(.procReturnTypeExpected) }
         }
         else { returnType = .void }
@@ -133,38 +148,40 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
             if flags.contains(.isForeign) { return error(.procForeignUnexpectedBody) }
             
             // parse scope until matching "}"
-            if let error = parseStatements().then({ scope = Scope(code: $0) }) { return .failure(error) }
+            if let error = doStatements().then({ scope = Scope(code: $0) }) { return .failure(error) }
         }
-        return .success(ProcedureDeclaration(
+        let procedure = ProcedureDeclaration(
             id: id, name: name, arguments: arguments,
-            returnType: returnType, flags: flags, scope: scope))
+            returnType: returnType, flags: flags, scope: scope)
+        declareGlobal(procedure)
+        return .success(procedure)
     }
     
-    func parseIf() -> Result<Condition, ParserError> {
+    func doIf() -> Result<Condition, ParserError> {
         let hasParenthesis = consumePunct("(")
         var condition: Expression!
         var ifBody: [Statement] = []
         var elseBody: [Statement] = []
         
         if hasParenthesis {
-            if let error = parseExpression().then({ condition = $0 }) { return .failure(error) }
+            if let error = doExpression().then({ condition = $0 }) { return .failure(error) }
             if !consumePunct(")") { return error(.ifExpectedClosingParenthesis) }
         }
         
         if !consumePunct("{") { return error(.ifExpectedBrackets) }
-        if let error = parseStatements().then({ ifBody = $0 }) { return .failure(error) }
+        if let error = doStatements().then({ ifBody = $0 }) { return .failure(error) }
         
         // else
         if consumeKeyword(.else) {
             if !consumePunct("{") { return error(.ifExpectedBrackets) }
-            if let error = parseStatements().then({ elseBody = $0 }) { return .failure(error) }
+            if let error = doStatements().then({ elseBody = $0 }) { return .failure(error) }
         }
         
         return .success(Condition(condition: condition,
                                   block: Scope(code: ifBody), elseBlock: Scope(code: elseBody)))
     }
     
-    func parseExpression() -> Result<Expression, ParserError> {
+    func doExpression() -> Result<Expression, ParserError> {
         while tokens.count > i {
             switch token.value {
                 
@@ -177,10 +194,9 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
                 }
             
             case let identifier as Identifier:
-                
-                // @Todo: this is the first time we need some form of type checking
-                // we have to make sure this value is of type bool
-                return .success(Argument(name: identifier.value, expType: .bool))
+                let value = Value(name: identifier.value, expType: .predicted(.bool))
+                dependOnGlobal(identifier.value, value)
+                return .success(value)
                 
             default:
                 break
@@ -191,7 +207,7 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
     }
     
     // body of: procedure, if-else, loop
-    func parseStatements() -> Result<[Statement], ParserError> {
+    func doStatements() -> Result<[Statement], ParserError> {
         var statements: [Statement] = []
         
         while tokens.count > i {
@@ -206,7 +222,7 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
             case let keyword as Keyword:
                 if keyword == .func { return error(.procNestedNotSupported) }
                 if keyword == .if {
-                    if let error = parseIf().then({ statements.append($0) }) { return .failure(error) }
+                    if let error = doIf().then({ statements.append($0) }) { return .failure(error) }
                 }
                 
             default:
@@ -224,10 +240,8 @@ func parse(fileName: String? = nil, _ tokens: [Token]) -> Result<Scope, ParserEr
         
         case let keyword as Keyword:
             // PROCEDURE DECLARATION
-            if keyword == .func {
-                if let error = parseProcedure().then({ statements.append($0) }) { return .failure(error) }
-                
-            }
+            if keyword == .func,
+                let error = doProcedureDeclaration().then({ statements.append($0) }) { return .failure(error) }
             
         default:
             break

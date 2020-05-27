@@ -8,28 +8,48 @@
 
 import Foundation
 
-struct Condition: Statement {
+class Condition: Statement {
     
     let condition: Expression
     let block: Scope
     let elseBlock: Scope
+    
+    internal init(condition: Expression, block: Scope, elseBlock: Scope) {
+        self.condition = condition
+        self.block = block
+        self.elseBlock = elseBlock
+    }
 }
 
-struct WhileLoop: Statement {
-
+class WhileLoop: Statement {
+    
     let userLabel: String?
     let condition: Expression
     let block: Scope
+
+    internal init(userLabel: String?, condition: Expression, block: Scope) {
+        self.userLabel = userLabel
+        self.condition = condition
+        self.block = block
+    }
 }
 
-struct Break: Statement {
+class Break: Statement {
     
     /// label set in the code
     let userLabel: String?
+    
+    internal init(userLabel: String?) {
+        self.userLabel = userLabel
+    }
 }
 
-struct Continue: Statement {
+class Continue: Statement {
     
     /// label set in the code
     let userLabel: String?
+    
+    internal init(userLabel: String?) {
+        self.userLabel = userLabel
+    }
 }

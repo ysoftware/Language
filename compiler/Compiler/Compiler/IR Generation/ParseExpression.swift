@@ -29,7 +29,7 @@ internal extension IR {
         case let literal as IntLiteral:
             return (nil, "\(literal.value)")
             
-        case let variable as Argument:
+        case let variable as Value:
             return (nil, "%\(variable.name)")
             
         case let literal as BoolLiteral:
@@ -52,7 +52,7 @@ internal extension IR {
                 // @Todo: dereference all arguments passed by value
                 // for now, doing that manually
                 
-                if let arg = arg as? Argument {
+                if let arg = arg as? Value {
                     if arg.expType == .string {
                         
                         // @Todo: make it work with dynamic strings somehow

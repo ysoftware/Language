@@ -1,0 +1,60 @@
+TYPING
+
+- if variable is unresolved, we only look for it in the global scope
+- procedures only live in the global scope
+
+depending_on_procedures = [string: [*Ast]]
+depending_on_vars = [string: [*Ast]]
+
+// we also have these for local scopes
+declarations = [string: ProcDecl]
+
+UNRESOLVED (procedure("proc_a"))
+a := proc_a()
+    << no way to know
+    ~ declaration depends on resolving procedure proc_a
+    /// depending_on_procedures["proc_a"] += *a
+
+PREDICTED (Bool, variable("b"))
+if (b) { ... }
+    << predicted as Bool
+    ~ if statement depends on resolving variable a
+    + after resolving a, we make sure it's a Bool
+    /// depending_on_vars["b"] += *if
+
+c : Int = proc_c()
+
+/// declare: func proc_b() -> Bool { ... }
+/// resolved_procedures["proc_b"] = *proc_b
+/// trying to resolve depending_on_procedures["proc_b"] - nothing found
+
+RESOLVED
+b := proc_b()
+    ~ look [-> Bool]
+    << resolved as Bool
+    /// resolved "b", trying to resolve depending_on_vars["b"]
+    /// found if, resolving if-cond to Bool, matching b to Bool, success, removing if from unresolved
+
+/// declare: func proc_a() -> Int { ... }
+/// resolved_procedures["proc_a"] = *proc_a
+/// trying to resolve depending_on_procedures["proc_a"]
+/// found var a, resolving a to Int, removing it from unresolved
+
+-- in the end, check if all unresolved containers are empty
+
+code snippet:
+
+    func main() -> Int32 
+        a := proc_a();
+        if (b) { }
+        d : Int = proc_c();
+        return 0;
+    }
+
+    b := proc_a();
+    c := proc_b(proc_c());
+
+    func proc_c() -> Int { return 1; }
+    func proc_a() -> Float { return 1.0; }
+    func proc_b(val: Int) -> Bool { return true; }
+

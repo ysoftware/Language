@@ -54,8 +54,8 @@ func IfElseAST(_ value: Bool) -> Scope {
                     receiverId: "global_func_main_variable_b", expression:
                     BinaryOperator(
                         name: instruction, operatorType: .int, expType: .int, arguments: (
-                            Argument(name: "global_func_main_variable_a", expType: .int),
-                            Argument(name: "global_func_main_variable_b", expType: .int)
+                            Value(name: "global_func_main_variable_a", expType: .int),
+                            Value(name: "global_func_main_variable_b", expType: .int)
                     ))
                 ),
                 
@@ -63,15 +63,15 @@ func IfElseAST(_ value: Bool) -> Scope {
                     condition: BinaryOperator(
                         name: .equal, operatorType: .int, expType: .int,
                         arguments: (
-                            Argument(name: "global_func_main_variable_b", expType: .int),
+                            Value(name: "global_func_main_variable_b", expType: .int),
                             IntLiteral(value: 4)
                         )
                     ), block: Scope(code: [
                         
                         ProcedureCall(
                             name: "global_func_prinf", expType: .int8, arguments: [
-                                Argument(name: "global_string_literal_2", expType: .string),
-                                Argument(name: "global_func_main_variable_a", expType: .int),
+                                Value(name: "global_string_literal_2", expType: .string),
+                                Value(name: "global_func_main_variable_a", expType: .int),
                                 IntLiteral(value: 15),
                         ]),
                         
@@ -79,9 +79,9 @@ func IfElseAST(_ value: Bool) -> Scope {
                         
                         ProcedureCall(
                             name: "global_func_prinf", expType: .int8, arguments: [
-                                Argument(name: "global_string_literal_3", expType: .string),
-                                Argument(name: "global_func_main_variable_a", expType: .int),
-                                Argument(name: "global_func_main_variable_b", expType: .int),
+                                Value(name: "global_string_literal_3", expType: .string),
+                                Value(name: "global_func_main_variable_a", expType: .int),
+                                Value(name: "global_func_main_variable_b", expType: .int),
                         ]),
                     ])),
                 
@@ -89,8 +89,8 @@ func IfElseAST(_ value: Bool) -> Scope {
                 
                 ProcedureCall(
                     name: "global_func_prinf", expType: .int8, arguments: [
-                        Argument(name: "global_string_literal_1", expType: .string),
-                        Argument(name: "global_func_main_variable_b", expType: .int),
+                        Value(name: "global_string_literal_1", expType: .string),
+                        Value(name: "global_func_main_variable_b", expType: .int),
                 ]),
                 
                 Return(value: IntLiteral(value: 0))

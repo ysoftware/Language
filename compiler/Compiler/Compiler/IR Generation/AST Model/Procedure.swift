@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct ProcedureDeclaration: Statement {
+class ProcedureDeclaration: Statement {
     
     struct Flags: OptionSet {
         let rawValue: Int
@@ -20,23 +20,44 @@ struct ProcedureDeclaration: Statement {
         static let isForeign    = Flags(rawValue: 1 << 1)
     }
     
-    let id: String
-    let name: String
-    let arguments: [Type]
-    let returnType: Type
-    let flags: Flags
-    let scope: Scope
+    var id: String
+    var name: String
+    var arguments: [Type]
+    var returnType: Type
+    var flags: Flags
+    var scope: Scope
+    
+    internal init(id: String, name: String, arguments: [Type],
+                  returnType: Type, flags: ProcedureDeclaration.Flags, scope: Scope) {
+        self.id = id
+        self.name = name
+        self.arguments = arguments
+        self.returnType = returnType
+        self.flags = flags
+        self.scope = scope
+    }
 }
 
-struct Argument: Expression {
+class Value: Expression {
     
-    let name: String
-    let expType: Type
+    var name: String
+    var expType: Type
+    
+    internal init(name: String, expType: Type) {
+        self.name = name
+        self.expType = expType
+    }
 }
 
-struct ProcedureCall: Expression, Statement {
+class ProcedureCall: Expression, Statement {
     
-    let name: String
-    let expType: Type
-    let arguments: [Expression]
+    var name: String
+    var expType: Type
+    var arguments: [Expression]
+    
+    internal init(name: String, expType: Type, arguments: [Expression]) {
+        self.name = name
+        self.expType = expType
+        self.arguments = arguments
+    }
 }

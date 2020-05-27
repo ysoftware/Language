@@ -39,7 +39,7 @@ let WhileLoopAST = Scope(code: [
                 condition: BinaryOperator(
                     name: .notEqual, operatorType: .int, expType: .bool,
                     arguments: (
-                        Argument(name: "global_func_main_variable_a", expType: .int),
+                        Value(name: "global_func_main_variable_a", expType: .int),
                         IntLiteral(value: 0)
                 )),
                 block: Scope(code: [
@@ -47,13 +47,13 @@ let WhileLoopAST = Scope(code: [
                     // printf(string1, a)
                     ProcedureCall(
                         name: "global_func_prinf", expType: .int8, arguments: [
-                            Argument(name: "global_string_literal_1", expType: .string),
-                            Argument(name: "global_func_main_variable_a", expType: .int)
+                            Value(name: "global_string_literal_1", expType: .string),
+                            Value(name: "global_func_main_variable_a", expType: .int)
                     ]),
                     
                     VariableAssignment(receiverId: "global_func_main_variable_a", expression:
                         BinaryOperator(name: .sub, operatorType: .int, expType: .int, arguments: (
-                            Argument(name: "global_func_main_variable_a", expType: .int),
+                            Value(name: "global_func_main_variable_a", expType: .int),
                             IntLiteral(value: 1)
                         ))
                     )
@@ -63,8 +63,8 @@ let WhileLoopAST = Scope(code: [
             // printf(string2, a)
             ProcedureCall(
                 name: "global_func_prinf", expType: .int8, arguments: [
-                    Argument(name: "global_string_literal_2", expType: .string),
-                    Argument(name: "global_func_main_variable_a", expType: .int32)
+                    Value(name: "global_string_literal_2", expType: .string),
+                    Value(name: "global_func_main_variable_a", expType: .int32)
             ]),
             
             Return(value: IntLiteral(value: 0))

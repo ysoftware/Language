@@ -65,7 +65,7 @@ let LoopBreakContinueAST = Scope(code: [
                             // a = a + 1
                             VariableAssignment(receiverId: "global_func_main_variable_a", expression:
                                 BinaryOperator(name: .add, operatorType: .int, expType: .int, arguments: (
-                                    Argument(name: "global_func_main_variable_a", expType: .int),
+                                    Value(name: "global_func_main_variable_a", expType: .int),
                                     IntLiteral(value: 1)
                                 ))
                             ),
@@ -77,7 +77,7 @@ let LoopBreakContinueAST = Scope(code: [
                                     operatorType: .int,
                                     expType: .bool,
                                     arguments: (
-                                        Argument(name: "global_func_main_variable_a", expType: .int),
+                                        Value(name: "global_func_main_variable_a", expType: .int),
                                         IntLiteral(value: 500)
                                 )), block: Scope(code: [
                                     Break(userLabel: "outerLoop")
@@ -90,7 +90,7 @@ let LoopBreakContinueAST = Scope(code: [
                                     operatorType: .int,
                                     expType: .bool,
                                     arguments: (
-                                        Argument(name: "global_func_main_variable_a", expType: .int),
+                                        Value(name: "global_func_main_variable_a", expType: .int),
                                         IntLiteral(value: 100)
                                 )), block: Scope(code: [
                                     Break(userLabel: nil)
@@ -104,7 +104,7 @@ let LoopBreakContinueAST = Scope(code: [
                                     operatorType: .int,
                                     expType: .bool,
                                     arguments: (
-                                        Argument(name: "global_func_main_variable_a", expType: .int),
+                                        Value(name: "global_func_main_variable_a", expType: .int),
                                         IntLiteral(value: 1)
                                 )), block: Scope(code: [
                                     Continue(userLabel: nil)
@@ -112,8 +112,8 @@ let LoopBreakContinueAST = Scope(code: [
                                     
                                     ProcedureCall(
                                         name: "global_func_prinf", expType: .int8, arguments: [
-                                            Argument(name: "global_string_literal_1", expType: .string),
-                                            Argument(name: "global_func_main_variable_a", expType: .int32)
+                                            Value(name: "global_string_literal_1", expType: .string),
+                                            Value(name: "global_func_main_variable_a", expType: .int32)
                                     ]),
                                 ])),
                             
@@ -124,8 +124,8 @@ let LoopBreakContinueAST = Scope(code: [
                     // printf(string2, a)
                     ProcedureCall(
                         name: "global_func_prinf", expType: .int8, arguments: [
-                            Argument(name: "global_string_literal_2", expType: .string),
-                            Argument(name: "global_func_main_variable_a", expType: .int32)
+                            Value(name: "global_string_literal_2", expType: .string),
+                            Value(name: "global_func_main_variable_a", expType: .int32)
                     ]),
                 ])
             ),
@@ -133,8 +133,8 @@ let LoopBreakContinueAST = Scope(code: [
             // printf(string3, a)
             ProcedureCall(
                 name: "global_func_prinf", expType: .int8, arguments: [
-                    Argument(name: "global_string_literal_3", expType: .string),
-                    Argument(name: "global_func_main_variable_a", expType: .int32)
+                    Value(name: "global_string_literal_3", expType: .string),
+                    Value(name: "global_func_main_variable_a", expType: .int32)
             ]),
             
             Return(value: IntLiteral(value: 0))

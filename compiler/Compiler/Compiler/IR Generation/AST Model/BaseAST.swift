@@ -8,19 +8,25 @@
 
 import Foundation
 
-struct Scope {
+class Scope {
     
-    let code: [Statement]
+    var code: [Statement]
     
     static let empty = Scope(code: [])
     var isEmpty: Bool { code.isEmpty }
+    
+    internal init(code: [Statement]) {
+        self.code = code
+    }
 }
+
+protocol Ast: class { }
 
 protocol Literal { }
 
-protocol Statement { }
+protocol Statement: Ast { }
 
-protocol Expression {
+protocol Expression: Ast {
     
     var expType: Type { get }
 }
