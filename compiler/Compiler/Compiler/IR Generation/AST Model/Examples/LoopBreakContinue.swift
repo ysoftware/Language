@@ -23,11 +23,11 @@ import Foundation
  
 let LoopBreakContinueAST = Scope(code: [
     
-    VariableDeclaration(id: "global_string_literal_1", expType: .string, flags: .isConstant,
+    VariableDeclaration(name: "global_string_literal_1", expType: .string, flags: .isConstant,
                         expression: StringLiteral(value: "Did not continue! a is %d\n\0")),
-    VariableDeclaration(id: "global_string_literal_2", expType: .string, flags: .isConstant,
+    VariableDeclaration(name: "global_string_literal_2", expType: .string, flags: .isConstant,
                         expression: StringLiteral(value: "Broke out of loop 1, a is %d\n\0")),
-    VariableDeclaration(id: "global_string_literal_3", expType: .string, flags: .isConstant,
+    VariableDeclaration(name: "global_string_literal_3", expType: .string, flags: .isConstant,
                         expression: StringLiteral(value: "Broke out of loop 2, a is %d\n\0")),
     
     // func printf(_ format: String, _ arguments: Int32...) -> Int32 #foreign
@@ -46,7 +46,7 @@ let LoopBreakContinueAST = Scope(code: [
         scope: Scope(code: [
             
             // a: Int = 0
-            VariableDeclaration(id: "global_func_main_variable_a",
+            VariableDeclaration(name: "global_func_main_variable_a",
                                 expType: .int,
                                 flags: [], expression: IntLiteral(value: 0)),
             

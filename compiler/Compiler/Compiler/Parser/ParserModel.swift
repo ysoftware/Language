@@ -16,6 +16,7 @@ struct ParserError: Error {
         
         // common
         case expectedSemicolon = "Expected ';'."
+        case declarationConflict = "Declaration conflicts with another declaration with the same name."
         
         // var decl
         case varDeclExpectedEquals = "Expected '=' or ':' for the variable or constant declaration."
@@ -28,7 +29,7 @@ struct ParserError: Error {
         
         // procedure declaration
         case procNestedNotSupported = "Nested procedure declarations are not supported."
-        case procExpectedBrackets = "Expected parenthesis around arguments declaration."
+        case procArgumentParenthesis = "Expected parenthesis around arguments declaration."
         case procForeignUnexpectedBody = "Foreign procedure can not declare a body."
         case procExpectedArgumentType = "Expected a type of an argument after colon."
         case procExpectedArgumentName = "Expected argument name."
@@ -36,6 +37,11 @@ struct ParserError: Error {
         case procUndeclaredDirective = "Undeclared procedure directive."
         case procReturnTypeExpected = "Expected a return type after '->'."
         case procExpectedName = "Expected procedure name after 'func'."
+        
+        // struct declaration
+        case structExpectedName = "Expected struct name after 'struct'."
+        case structExpectedBrackets = "Expected brackets for structure declaration."
+        case structExpectedBracketsEnd = "Expected brackets after structure members."
     }
     
     let fileName: String?

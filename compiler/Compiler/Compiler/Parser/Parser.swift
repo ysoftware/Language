@@ -10,6 +10,12 @@
 
 extension Parser {
     
+    //
+    // @Todo: DEAL WITH TOKENS
+    // Every parsing procedure should consume all tokens that belong to it
+    // and leave the 'token' with the next value
+    //
+    
     // MARK: - VARIABLE DECLARATION -
     
     func doVarDecl(_ identifier: Identifier) -> Result<VariableDeclaration, ParserError> {
@@ -17,9 +23,8 @@ extension Parser {
         var flags: VariableDeclaration.Flags = []
         let suppliedTypeName = consumeIdent()?.1.value
         var expectingExpression = true
-        if consumeOp("=") { /* not a constant */ }
-        else if consumePunct(":") { flags.insert(.isConstant) }
-        else { expectingExpression = false }
+        if consumePunct(":") { flags.insert(.isConstant) }
+        else if !consumeOp("=") { expectingExpression = false }
         
         if expectingExpression {
             if let error = doExpression().then({ expr = $0 }) { return .failure(error) }
@@ -27,6 +32,7 @@ extension Parser {
                 declaredType != exprType { return error(.varDeclTypeMismatch) }
         }
         guard consumeSep(";") else { return error(.expectedSemicolon) }
+        // variable type inference
         let type: Type
         if let t = expr?.expType { type = t }
         else if let name = suppliedTypeName {
@@ -36,17 +42,47 @@ extension Parser {
         else { return error(.varDeclRequiresType) }
         
         let varDecl = VariableDeclaration(
-            id: identifier.value, expType: type, flags: flags, expression: expr)
+            name: identifier.value, expType: type, flags: flags, expression: expr)
         if case .resolved = type { dependOnGlobal(type.name, varDecl) }
+        if let e = verifyNameConflict(varDecl) { return error(e) }
         // @Todo: add this var decl to local or global scope
         return .success(varDecl)
+    }
+    
+    // MARK: - STRUCT DECLARATION -
+    
+    func doStructDecl() -> Result<StructDeclaration, ParserError> {
+        guard let name = consumeIdent()?.value else { return error(.structExpectedName) }
+        guard consumePunct("{") else { return error(.structExpectedBrackets) }
+        var members: [VariableDeclaration] = []
+        nextToken()
+        while tokens.count > i {
+            var member: VariableDeclaration?
+            if let identifier = token.value as? Identifier,
+                let error = doVarDecl(identifier).then({ member = $0 }) { return .failure(error) }
+            if let member = member {
+                members.append(member)
+            }
+            
+            // @Todo: this is a mess
+            if consumePunct("}") { break }
+            else if peekNext()?.value is Identifier {
+                nextToken()
+            }
+            else { return error(.structExpectedBracketsEnd) }
+        }
+        
+        let structDecl = StructDeclaration(name: name.value, members: members)
+        if let e = verifyNameConflict(structDecl) { return error(e) }
+        declareGlobal(structDecl)
+        return .success(structDecl)
     }
     
     // MARK: - PROCEDURE DECLARATION -
     
     func doProcDecl() -> Result<ProcedureDeclaration, ParserError> {
         guard let procName = consumeIdent()?.value else { return error(.procExpectedName) }
-        guard consumePunct("(") else { return error(.procExpectedBrackets) }
+        guard consumePunct("(") else { return error(.procArgumentParenthesis) }
         let returnType: Type
         let name = procName.value
         let id = "global_func_\(procName.value)" // @Todo: don't change the name of 'main'? or create a #main directive
@@ -69,7 +105,7 @@ extension Parser {
             }
             if !consumeSep(",") { break }
         }
-        if !consumePunct(")") { return error(.procExpectedBrackets) }
+        if !consumePunct(")") { return error(.procArgumentParenthesis) }
         if consumePunct("->") {
             if let type = consumeNext(Identifier.self)?.value { returnType = .type(name: type.value) }
             else { return error(.procReturnTypeExpected) }
@@ -86,6 +122,7 @@ extension Parser {
         let procedure = ProcedureDeclaration(
             id: id, name: name, arguments: arguments,
             returnType: returnType, flags: flags, scope: scope)
+        if let e = verifyNameConflict(procedure) { return error(e) }
         declareGlobal(procedure)
         return .success(procedure)
     }
@@ -157,7 +194,7 @@ extension Parser {
                     let error = doVarDecl(identifier).then({ statements.append($0) }) { return .failure(error) }
             default: break
             }
-            nextToken()
+            if !nextToken() { break }
         }
         return .success(statements)
     }
@@ -194,12 +231,16 @@ class Parser {
             case let keyword as Keyword:
                 if keyword == .func,
                     let error = doProcDecl().then({ statements.append($0) }) { return .failure(error) }
+                else if keyword == .struct,
+                    let error = doStructDecl().then({ statements.append($0) }) { return .failure(error)}
+                
             case let identifier as Identifier:
                 if consumePunct(":"),
                     let error = doVarDecl(identifier).then({ statements.append($0) }) { return .failure(error) }
-            default: break
+            default:
+                nextToken()
+                
             }
-            nextToken()
         }
         return .success(Scope(code: statements))
     }

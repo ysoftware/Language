@@ -8,9 +8,9 @@
 
 let WhileLoopAST = Scope(code: [
     
-    VariableDeclaration(id: "global_string_literal_1", expType: .string, flags: .isConstant,
+    VariableDeclaration(name: "global_string_literal_1", expType: .string, flags: .isConstant,
                         expression: StringLiteral(value: "a == %d\n\0")),
-    VariableDeclaration(id: "global_string_literal_2", expType: .string, flags: .isConstant,
+    VariableDeclaration(name: "global_string_literal_2", expType: .string, flags: .isConstant,
                         expression: StringLiteral(value: "Left the loop, a == %d\n\0")),
     
     // func printf(_ format: String, _ arguments: Int32...) -> Int32 #foreign
@@ -29,7 +29,7 @@ let WhileLoopAST = Scope(code: [
         scope: Scope(code: [
             
             // a: Int = 10
-            VariableDeclaration(id: "global_func_main_variable_a",
+            VariableDeclaration(name: "global_func_main_variable_a",
                                 expType: .int,
                                 flags: [], expression: IntLiteral(value: 10)),
             

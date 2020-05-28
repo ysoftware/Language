@@ -35,5 +35,17 @@ class ParserTest {
                          _ code: String,
                          _ resultAST: Result<Scope, ParserError>, _ expect: Scope) {
         
+        switch resultAST {
+        case .failure(let error):
+            failed += 1
+            print("\n❌ \(caseName)\nUnexpected error on line \(error.cursor.lineNumber):",
+                error.message.rawValue, "\n")
+            let line = code.split(separator: "\n")[error.cursor.lineNumber-1]
+            print("\"\(line)\"")
+            print("\(String(repeating: "_", count: error.cursor.character + 1))^")
+            print("\n\n")
+        default:
+            break
+        }
     }
 }

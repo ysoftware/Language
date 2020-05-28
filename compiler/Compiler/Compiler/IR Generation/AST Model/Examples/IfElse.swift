@@ -13,11 +13,11 @@ func IfElseAST(_ value: Bool) -> Scope {
     return Scope(code: [
         
         // "%d\n"
-        VariableDeclaration(id: "global_string_literal_1", expType: .string, flags: .isConstant,
+        VariableDeclaration(name: "global_string_literal_1", expType: .string, flags: .isConstant,
                             expression: StringLiteral(value: "%d\n\0")),
-        VariableDeclaration(id: "global_string_literal_2", expType: .string, flags: .isConstant,
+        VariableDeclaration(name: "global_string_literal_2", expType: .string, flags: .isConstant,
                             expression: StringLiteral(value: "we hit if! %d %d\n\0")),
-        VariableDeclaration(id: "global_string_literal_3", expType: .string, flags: .isConstant,
+        VariableDeclaration(name: "global_string_literal_3", expType: .string, flags: .isConstant,
                             expression: StringLiteral(value: "we hit else %d %d\n\0")),
         
         // func printf(_ format: String, _ arguments: Int32...) -> Int32 #foreign
@@ -38,13 +38,13 @@ func IfElseAST(_ value: Bool) -> Scope {
             scope: Scope(code: [
                 
                 // a : Int32 : 3
-                VariableDeclaration(id: "global_func_main_variable_a",
+                VariableDeclaration(name: "global_func_main_variable_a",
                                     expType: .int,
                                     flags: .isConstant,
                                     expression: IntLiteral(value: 3)),
                 
                 // b : Int32 = 1
-                VariableDeclaration(id: "global_func_main_variable_b",
+                VariableDeclaration(name: "global_func_main_variable_b",
                                     expType: .int,
                                     flags: [],
                                     expression: IntLiteral(value: 1)),

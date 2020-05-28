@@ -13,17 +13,21 @@ extension Parser {
     // @Todo: add append method the same as in Lexer
     // to auto-include the Cursor in the Ast
     
+    func verifyNameConflict(_ declaration: Declaration) -> ParserError.Message? {
+        if let _ = global_declarations[declaration.name] {
+            // @Todo: improve error message
+            return .declarationConflict
+        }
+        return nil
+    }
+    
     func dependOnGlobal(_ dependency: String, _ statement: Ast) {
         if unresolved[dependency] == nil { unresolved[dependency] = [] }
         unresolved[dependency]!.append(statement)
     }
     
-    func declareGlobal(_ declaration: Ast) {
-        let name: String
-        if let proc = declaration as? ProcedureDeclaration { name = proc.name }
-        else if let variable = declaration as? VariableDeclaration { name = variable.id }
-        else { fatalError("Only variables and procedures can be declared at global scope") }
-        global_declarations[name] = declaration
+    func declareGlobal(_ declaration: Declaration) {
+        global_declarations[declaration.name] = declaration
     }
     
     /// returns the error set at the current point

@@ -161,8 +161,8 @@ final class IR {
                         // @Todo: make sure we have to assert here
                         fatalError("Unsupported character in string literal. Only supporting ascii for now.")
                     }
-                    stringLiterals[variable.id] = literal
-                    emitGlobal("@\(variable.id) = private unnamed_addr constant [\(literal.value.count) x i8] c\"\(value)\"")
+                    stringLiterals[variable.name] = literal
+                    emitGlobal("@\(variable.name) = private unnamed_addr constant [\(literal.value.count) x i8] c\"\(value)\"")
                 }
                 else {
                     let (expCode, expVal) = getExpressionResult(variable.expression!, ident: ident)
@@ -170,8 +170,8 @@ final class IR {
                     // @Todo: support constant variables
                     // do it at ast building?
                     let type = matchType(variable.expType.name)
-                    emitLocal("%\(variable.id) = alloca \(type)")
-                    emitLocal("store \(type) \(expVal), \(type)* %\(variable.id)")
+                    emitLocal("%\(variable.name) = alloca \(type)")
+                    emitLocal("store \(type) \(expVal), \(type)* %\(variable.name)")
                 }
                 
             case let variable as VariableAssignment:

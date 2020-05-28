@@ -11,7 +11,17 @@ import Foundation
 extension ParserTest {
     
     func testFunctionDeclaration() {
-        let code = "func printf(format: String, arguments: Int32, ...) { a: String; b :: 1; }"
+        let code = """
+func printf(format: String, arguments: Int32, ...) {
+
+}
+
+struct c {
+    a: String;
+    b :: 1;
+}
+"""
+        
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         

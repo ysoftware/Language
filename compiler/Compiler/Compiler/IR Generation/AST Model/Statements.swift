@@ -8,7 +8,7 @@
 
 import Foundation
 
-class ProcedureDeclaration: Statement {
+class ProcedureDeclaration: Statement, Declaration {
     
     struct Flags: OptionSet {
         let rawValue: Int
@@ -38,18 +38,18 @@ class ProcedureDeclaration: Statement {
     }
 }
 
-class StructDeclaration: Statement {
+class StructDeclaration: Statement, Declaration {
     
     let name: String
-    let members: [Value]
+    let members: [VariableDeclaration]
     
-    internal init(name: String, members: [Value]) {
+    internal init(name: String, members: [VariableDeclaration]) {
         self.name = name
         self.members = members
     }
 }
 
-class VariableDeclaration: Statement {
+class VariableDeclaration: Statement, Declaration {
     
     struct Flags: OptionSet {
         let rawValue: Int
@@ -57,13 +57,13 @@ class VariableDeclaration: Statement {
         static let isConstant  = Flags(rawValue: 1 << 0)
     }
     
-    let id: String
+    let name: String
     let expType: Type
     let flags: Flags
     let expression: Expression?
     
-    internal init(id: String, expType: Type, flags: VariableDeclaration.Flags, expression: Expression?) {
-        self.id = id
+    internal init(name: String, expType: Type, flags: VariableDeclaration.Flags, expression: Expression?) {
+        self.name = name
         self.expType = expType
         self.flags = flags
         self.expression = expression

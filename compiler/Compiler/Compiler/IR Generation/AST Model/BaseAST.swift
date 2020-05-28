@@ -33,11 +33,14 @@ class Value: Expression {
 
 protocol Ast: class { }
 
-protocol Literal { }
+protocol Literal: Ast { }
 
 protocol Statement: Ast { }
 
 protocol Expression: Ast {
-    
     var expType: Type { get }
+}
+
+protocol Declaration: Ast {
+    var name: String { get }
 }
