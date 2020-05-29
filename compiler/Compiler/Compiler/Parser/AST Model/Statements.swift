@@ -12,11 +12,11 @@ class ProcedureDeclaration: Statement, Declaration {
     
     var debugDescription: String {
         var string = "[Procedure] \(name) -> \(returnType) " // @Todo print flags
-        if flags.contains(.isForeign) { string.append("foreign ") }
         string.append("; args: ")
-        arguments.forEach { string.append("\($0) ") }
+        string.append(arguments.map { "\($0)" }.joined(separator: ", "))
         if flags.contains(.isVarargs) { string.append("... ") }
-        if scope.isEmpty { string.append(" (no body) ") }
+        if flags.contains(.isForeign) { string.append("#foreign") }
+        else if scope.isEmpty { string.append(" (empty body) ") }
         else { string.append("\n\(scope)\n") }
         return string
     }
@@ -71,8 +71,7 @@ class VariableDeclaration: Statement, Declaration {
     var debugDescription: String {
         var string = "[Variable] \(name): \(expType) "
         if flags.contains(.isConstant) { string.append("(constant) ") }
-        string.append("= ")
-        if let exp = expression { string.append("\(exp)") }
+        if let exp = expression { string.append("= \(exp)") }
         return string
     }
     

@@ -23,6 +23,7 @@ extension Parser {
         var flags: VariableDeclaration.Flags = []
         let suppliedTypeName = consumeIdent()?.1.value
         var expectingExpression = true
+        
         if consumePunct(":") { flags.insert(.isConstant) }
         else if !consumeOp("=") { expectingExpression = false }
         
@@ -32,7 +33,6 @@ extension Parser {
                 declaredType != exprType { return error(.varDeclTypeMismatch) }
         }
         guard consumeSep(";") else { return error(.expectedSemicolon) }
-//        nextToken()
         // variable type inference
         let type: Type
         if let t = expr?.expType { type = t }
@@ -59,6 +59,7 @@ extension Parser {
         while tokens.count > i {
             var member: VariableDeclaration?
             if let identifier = token.value as? Identifier,
+                consumePunct(":"),
                 let error = doVarDecl(identifier).then({ member = $0 }) { return .failure(error) }
             if let member = member {
                 members.append(member)
@@ -115,9 +116,12 @@ extension Parser {
             if directive.value == "foreign" { flags.insert(.isForeign) }
             else { return error(.procUndeclaredDirective) }
         }
-        if consumePunct("{") {
+        else if consumePunct("{") {
             if flags.contains(.isForeign) { return error(.procForeignUnexpectedBody) }
             if let error = doStatements().then({ scope = Scope(code: $0) }) { return .failure(error) }
+        }
+        else {
+            return error(.procExpectedBody)
         }
         let procedure = ProcedureDeclaration(
             id: id, name: name, arguments: arguments,
@@ -194,7 +198,7 @@ extension Parser {
                     let error = doVarDecl(identifier).then({ statements.append($0) }) { return .failure(error) }
             default: break
             }
-            if !nextToken() { break }
+            nextToken()
         }
         return .success(statements)
     }

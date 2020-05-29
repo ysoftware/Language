@@ -31,7 +31,7 @@ class Scope: Ast {
 class Value: Expression {
     
     var debugDescription: String {
-        "[Value] \(name) of type \(expType)"
+        "[Value] \(name): \(expType)"
     }
     
     var name: String

@@ -28,5 +28,5 @@ import Foundation
 
 
 
-LexerTest.run()
+//LexerTest.run()
 ParserTest.run()

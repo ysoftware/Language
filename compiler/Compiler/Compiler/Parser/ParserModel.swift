@@ -31,6 +31,7 @@ struct ParserError: Error {
         case procNestedNotSupported = "Nested procedure declarations are not supported."
         case procArgumentParenthesis = "Expected parenthesis around arguments declaration."
         case procForeignUnexpectedBody = "Foreign procedure can not declare a body."
+        case procExpectedBody = "Procedure is expected to have a body."
         case procExpectedArgumentType = "Expected a type of an argument after colon."
         case procExpectedArgumentName = "Expected argument name."
         case procExpectedArgumentBeforeVarargs = "Variadic argument requires definition before '...'."
