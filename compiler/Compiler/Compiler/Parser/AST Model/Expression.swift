@@ -10,6 +10,10 @@ import Foundation
 
 class BinaryOperator: Expression {
     
+    var debugDescription: String {
+        "[Operation] \(arguments.0)\n\t\(name.rawValue)\n\t\(arguments.1)"
+    }
+    
     let name: Instruction
     let operatorType: Type
     let expType: Type
@@ -25,6 +29,12 @@ class BinaryOperator: Expression {
 
 class ProcedureCall: Expression, Statement {
     
+    var debugDescription: String {
+        var string = "[Call] to \(name) -> \(expType)"
+        arguments.forEach { string.append("\n\t\($0)") }
+        return string
+    }
+    
     var name: String
     var expType: Type
     var arguments: [Expression]
@@ -38,6 +48,10 @@ class ProcedureCall: Expression, Statement {
 
 class StringLiteral: Expression, Literal {
     
+    var debugDescription: String {
+        "[String Literal] \(value)"
+    }
+    
     internal init(value: String) {
         self.value = value
     }
@@ -47,6 +61,10 @@ class StringLiteral: Expression, Literal {
 }
 
 class IntLiteral: Expression, Literal {
+    
+    var debugDescription: String {
+        "[Int Literal] \(value)"
+    }
     
     internal init(value: Int) {
         self.value = value
@@ -59,6 +77,10 @@ class IntLiteral: Expression, Literal {
 
 class FloatLiteral: Expression {
     
+    var debugDescription: String {
+        "[Float Literal] \(value)"
+    }
+    
     internal init(value: Float32) {
         self.value = value
     }
@@ -68,6 +90,10 @@ class FloatLiteral: Expression {
 }
 
 class BoolLiteral: Expression, Literal {
+    
+    var debugDescription: String {
+        "[Float Literal] \(value)"
+    }
     
     internal init(value: Bool) {
         self.value = value

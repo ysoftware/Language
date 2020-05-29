@@ -32,6 +32,7 @@ extension Parser {
                 declaredType != exprType { return error(.varDeclTypeMismatch) }
         }
         guard consumeSep(";") else { return error(.expectedSemicolon) }
+//        nextToken()
         // variable type inference
         let type: Type
         if let t = expr?.expType { type = t }
@@ -55,7 +56,6 @@ extension Parser {
         guard let name = consumeIdent()?.value else { return error(.structExpectedName) }
         guard consumePunct("{") else { return error(.structExpectedBrackets) }
         var members: [VariableDeclaration] = []
-        nextToken()
         while tokens.count > i {
             var member: VariableDeclaration?
             if let identifier = token.value as? Identifier,
@@ -167,7 +167,7 @@ extension Parser {
             // @Todo: more expressions
             default: break
             }
-            nextToken()
+            if !nextToken() { break }
         }
         return error(.notImplemented)
     }
@@ -226,20 +226,26 @@ class Parser {
         
         // Cycle
         
-        while tokens.count > i {
+        loop: while tokens.count > i {
             switch token.value  {
             case let keyword as Keyword:
-                if keyword == .func,
-                    let error = doProcDecl().then({ statements.append($0) }) { return .failure(error) }
-                else if keyword == .struct,
-                    let error = doStructDecl().then({ statements.append($0) }) { return .failure(error)}
+                if keyword == .func {
+                    if let error = doProcDecl().then({ statements.append($0) }) { return .failure(error) }
+                    break
+                }
+                    
+                if keyword == .struct {
+                    if let error = doStructDecl().then({ statements.append($0) }) { return .failure(error)}
+                    break
+                }
                 
             case let identifier as Identifier:
-                if consumePunct(":"),
-                    let error = doVarDecl(identifier).then({ statements.append($0) }) { return .failure(error) }
-            default:
-                nextToken()
+                if consumePunct(":") {
+                    if let error = doVarDecl(identifier).then({ statements.append($0) }) { return .failure(error) }
+                    break
+                }
                 
+            default: if !nextToken() { break loop }
             }
         }
         return .success(Scope(code: statements))

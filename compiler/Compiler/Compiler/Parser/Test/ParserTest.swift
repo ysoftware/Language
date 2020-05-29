@@ -44,8 +44,8 @@ class ParserTest {
             print("\"\(line)\"")
             print("\(String(repeating: "_", count: error.cursor.character + 1))^")
             print("\n\n")
-        default:
-            break
+        case .success(let scope):
+            print(scope)
         }
     }
 }

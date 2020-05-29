@@ -74,7 +74,25 @@ struct Comment: TokenValue, StringValueToken{ let value: String }
 struct Separator: TokenValue, StringValueToken { let value: String }
 struct TokenLiteral: TokenValue { let value: LiteralToken }
 
-struct Token: Equatable {
+class Token: Equatable, CustomDebugStringConvertible {
+    
+    var debugDescription: String {
+        if let string = value as? StringValueToken {
+            return "Token [\(string.self)] \(string.value)"
+        }
+        else if let literal = value as? TokenLiteral {
+            switch literal.value {
+            case .string(let value): return "Token [Literal] '\(value)'"
+            case .float(let value): return "Token [Literal] '\(value)'"
+            case .int(let value): return "Token [Literal] '\(value)'"
+            case .bool(let value): return "Token [Literal] '\(value)'"
+            }
+        }
+        else if let keyword = value as? Keyword {
+            return "Token [Keyword] '\(keyword.rawValue)'"
+        }
+        else { return "Token \(value)" }
+    }
     
     let startCursor: Cursor
     let endCursor: Cursor

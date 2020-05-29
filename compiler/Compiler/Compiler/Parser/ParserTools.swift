@@ -43,8 +43,8 @@ extension Parser {
     /// advances the counter and sets `token` to the next in the array
     @discardableResult
     func nextToken() -> Bool {
+        guard tokens.count > i+1 else { return false }
         advance()
-        guard tokens.count > i else { return false }
         token = tokens[i]
         return true
     }
@@ -61,28 +61,30 @@ extension Parser {
     func consumeNext<T: TokenValue>(_ value: T.Type) -> (token: Token, value: T)? {
         let nextIndex = i + 1
         guard tokens.count > nextIndex else { return nil }
-        token = tokens[nextIndex]
-        if let value = token.value as? T {
+        let nextToken = tokens[nextIndex]
+        if let value = nextToken.value as? T {
+            token = nextToken
             advance()
             return (token, value)
         }
         return nil
     }
     
-    /// checks if `next char` exists and matches the predicate, then eats it if it does
+    /// checks if `next token` exists and matches the predicate, then eats it if it does
     /// if not, does nothing and returns nil
     func consumeNext(where compare: (TokenValue)->Bool) -> Token? {
         let nextIndex = i + 1
         guard tokens.count > nextIndex else { return nil }
-        token = tokens[nextIndex]
-        if compare(token.value) {
+        let nextToken = tokens[nextIndex]
+        if compare(nextToken.value) {
+            token = nextToken
             advance()
             return token
         }
         return nil
     }
     
-    /// checks if `next char` exists, is a string-value token, and matches the passed value, then eats it if it does
+    /// checks if `next token` exists, is a string-value token, and matches the passed value, then eats it if it does
     /// if not, does nothing and returns `false`
     func consumeNext<T: StringValueToken>(_ type: T.Type, matching value: String) -> Bool {
         return consumeNext(where: { ($0 as? T)?.value == value }) != nil

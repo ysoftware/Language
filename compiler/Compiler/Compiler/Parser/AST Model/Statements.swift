@@ -10,6 +10,17 @@ import Foundation
 
 class ProcedureDeclaration: Statement, Declaration {
     
+    var debugDescription: String {
+        var string = "[Procedure] \(name) -> \(returnType) " // @Todo print flags
+        if flags.contains(.isForeign) { string.append("foreign ") }
+        string.append("; args: ")
+        arguments.forEach { string.append("\($0) ") }
+        if flags.contains(.isVarargs) { string.append("... ") }
+        if scope.isEmpty { string.append(" (no body) ") }
+        else { string.append("\n\(scope)\n") }
+        return string
+    }
+    
     struct Flags: OptionSet {
         let rawValue: Int
         
@@ -40,6 +51,12 @@ class ProcedureDeclaration: Statement, Declaration {
 
 class StructDeclaration: Statement, Declaration {
     
+    var debugDescription: String {
+        var string = "[Struct] \(name) "
+        members.forEach { string.append("\n\t\t\($0) ") }
+        return string
+    }
+    
     let name: String
     let members: [VariableDeclaration]
     
@@ -50,6 +67,14 @@ class StructDeclaration: Statement, Declaration {
 }
 
 class VariableDeclaration: Statement, Declaration {
+    
+    var debugDescription: String {
+        var string = "[Variable] \(name): \(expType) "
+        if flags.contains(.isConstant) { string.append("(constant) ") }
+        string.append("= ")
+        if let exp = expression { string.append("\(exp)") }
+        return string
+    }
     
     struct Flags: OptionSet {
         let rawValue: Int
@@ -71,6 +96,10 @@ class VariableDeclaration: Statement, Declaration {
 }
 
 class VariableAssignment: Statement {
+    
+    var debugDescription: String {
+        "[Assign] \(receiverId) = \(expression)"
+    }
     
     let receiverId: String
     let expression: Expression

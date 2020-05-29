@@ -8,7 +8,15 @@
 
 import Foundation
 
-class Scope {
+class Scope: Ast {
+    
+    var debugDescription: String {
+        var string = "[Scope] \(code.count) statement(s)"
+        for statement in code {
+            string.append("\n\t\(statement.debugDescription)")
+        }
+        return string
+    }
     
     var code: [Statement]
     
@@ -22,6 +30,10 @@ class Scope {
 
 class Value: Expression {
     
+    var debugDescription: String {
+        "[Value] \(name) of type \(expType)"
+    }
+    
     var name: String
     var expType: Type
     
@@ -31,7 +43,7 @@ class Value: Expression {
     }
 }
 
-protocol Ast: class { }
+protocol Ast: class, CustomDebugStringConvertible { }
 
 protocol Literal: Ast { }
 

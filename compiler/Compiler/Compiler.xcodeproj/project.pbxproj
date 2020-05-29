@@ -118,6 +118,7 @@
 				1F9C966B2475AD0300BAEC04 /* Parser.swift */,
 				1F0A3BDA247F8924005C91F0 /* ParserTools.swift */,
 				1FEB7CAA247A9E950018B9B4 /* ParserModel.swift */,
+				1FFF349D247120D200389B0C /* AST Model */,
 				1FEB7CA524794F600018B9B4 /* Test */,
 			);
 			path = Parser;
@@ -207,7 +208,6 @@
 				1FFF34AC24713C1F00389B0C /* IRGen.swift */,
 				1FAA3E9A2472ECB80015C8BD /* ParseExpression.swift */,
 				1F286D9F2474503F0072120C /* Model */,
-				1FFF349D247120D200389B0C /* AST Model */,
 			);
 			path = "IR Generation";
 			sourceTree = "<group>";

@@ -6,7 +6,7 @@
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 
-enum Instruction {
+enum Instruction: String {
     
     case assign
     

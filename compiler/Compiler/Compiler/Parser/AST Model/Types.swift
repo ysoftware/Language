@@ -8,7 +8,15 @@
 
 import Foundation
 
-indirect enum Type: Equatable {
+indirect enum Type: Equatable, CustomDebugStringConvertible {
+    
+    var debugDescription: String {
+        switch self {
+        case .resolved(let name): return "\(name)"
+        case .predicted(let type): return "\(type) [!]"
+        case .unresolved(let name): return name.map { "\($0) [?]" } ?? "unresolved"
+        }
+    }
     
     case resolved(name: String)
     case unresolved(name: String?)

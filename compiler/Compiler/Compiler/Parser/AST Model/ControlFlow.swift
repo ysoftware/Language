@@ -10,6 +10,12 @@ import Foundation
 
 class Condition: Statement {
     
+    var debugDescription: String {
+        var string = "[If] \(condition)\n\tThen: \(block)"
+        if !elseBlock.isEmpty { string.append("\n\tElse: \(elseBlock)") }
+        return string
+    }
+    
     let condition: Expression
     let block: Scope
     let elseBlock: Scope
@@ -22,6 +28,13 @@ class Condition: Statement {
 }
 
 class WhileLoop: Statement {
+    
+    var debugDescription: String {
+        var string = "[While] "
+        if let label = userLabel { string.append("(\(label)) ") }
+        string.append("\(condition) \(block)")
+        return string
+    }
     
     let userLabel: String?
     let condition: Expression
@@ -36,6 +49,12 @@ class WhileLoop: Statement {
 
 class Break: Statement {
     
+    var debugDescription: String {
+        var string = "[Break]"
+        if let label = userLabel { string.append("(\(label)) ") }
+        return string
+    }
+    
     /// label set in the code
     let userLabel: String?
     
@@ -46,6 +65,12 @@ class Break: Statement {
 
 class Continue: Statement {
     
+    var debugDescription: String {
+        var string = "[Continue]"
+        if let label = userLabel { string.append("(\(label)) ") }
+        return string
+    }
+    
     /// label set in the code
     let userLabel: String?
     
@@ -55,6 +80,10 @@ class Continue: Statement {
 }
 
 class Return: Statement {
+    
+    var debugDescription: String {
+        "Return \(value)"
+    }
     
     let value: Expression
     

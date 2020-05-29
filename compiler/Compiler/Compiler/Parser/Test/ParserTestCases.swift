@@ -12,14 +12,9 @@ extension ParserTest {
     
     func testFunctionDeclaration() {
         let code = """
-func printf(format: String, arguments: Int32, ...) {
-
-}
-
-struct c {
-    a: String;
-    b :: 1;
-}
+func printf(format: String, arguments: Int32, ...) { }
+struct c { a: String; b :: 1; }
+a :: 1;
 """
         
         let tokens = try! Lexer(code).analyze().get()
@@ -31,7 +26,13 @@ struct c {
                 name: "printf",
                 arguments: [.string, .int],
                 returnType: .void, flags: [.isVarargs, .isForeign],
-                scope: .empty)
+                scope: .empty),
+            StructDeclaration(name: "c", members: [
+                VariableDeclaration(name: "a", expType: .resolved(name: "String"),
+                                    flags: [], expression: nil),
+                VariableDeclaration(name: "b", expType: .resolved(name: "Int"),
+                                    flags: .isConstant, expression: IntLiteral(value: 1))
+            ])
         ]))
     }
 }
