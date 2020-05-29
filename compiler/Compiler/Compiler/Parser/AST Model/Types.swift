@@ -23,7 +23,12 @@ indirect enum Type: Equatable, CustomDebugStringConvertible {
     case predicted(Type)
     
     static func == (lhs: Type, rhs: Type) -> Bool {
-        return false // @Todo implement this for testing
+        switch (lhs, rhs) {
+        case (.resolved(let v1), .resolved(let v2)): return v1 == v2
+        case (.unresolved(let v1), .unresolved(let v2)): return v1 == v2
+        case (.predicted(let v1), .predicted(let v2)): return v1 == v2
+        default: return false
+        }
     }
     
     var name: String {
@@ -37,8 +42,8 @@ indirect enum Type: Equatable, CustomDebugStringConvertible {
 extension Type {
     
     static let primitives = [
-        "Int1", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
-        "UInt32", "UInt64", "Float16", "Float32", "Float64", "String", "Void"
+        "Int", "Int1", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
+        "UInt32", "UInt64", "Float", "Float16", "Float32", "Float64", "String", "Void"
     ]
     
     static func isPrimitive(_ name: String) -> Bool {

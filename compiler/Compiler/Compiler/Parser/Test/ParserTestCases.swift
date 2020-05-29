@@ -12,10 +12,8 @@ extension ParserTest {
     
     func testFunctionDeclaration() {
         let code = """
-func printf(format: String, arguments: Int32, ...) {
-     if (x) { a: = 1; }
- }
- struct c { a: String; b :: 1; }
+func printf(format: String, arguments: Int32, ...) #foreign
+struct c { a: String; b :: 1; }
 """
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
@@ -28,9 +26,9 @@ func printf(format: String, arguments: Int32, ...) {
                 returnType: .void, flags: [.isVarargs, .isForeign],
                 scope: .empty),
             StructDeclaration(name: "c", members: [
-                VariableDeclaration(name: "a", expType: .resolved(name: "String"),
+                VariableDeclaration(name: "a", expType: .string,
                                     flags: [], expression: nil),
-                VariableDeclaration(name: "b", expType: .resolved(name: "Int"),
+                VariableDeclaration(name: "b", expType: .int,
                                     flags: .isConstant, expression: IntLiteral(value: 1))
             ])
         ]))

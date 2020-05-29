@@ -42,6 +42,8 @@ extension Parser {
         let type: Type
         if let t = expr?.expType { type = t }
         else if let name = suppliedTypeName {
+            // @Todo: refactor to "getType(...) -> Type"
+            // that will resolve type depending on the currently known set of types
             if Type.isPrimitive(name) { type = .type(name: name) }
             else { type = .unresolved(name: name) }
         }

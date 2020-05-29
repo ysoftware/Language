@@ -8,7 +8,11 @@
 
 import Foundation
 
-class Scope: Ast {
+class Scope: Ast, Equatable {
+    
+    static func == (lhs: Scope, rhs: Scope) -> Bool {
+        lhs.code.elementsEqual(rhs.code) { $0.equals(to: $1) }
+    }
     
     var debugDescription: String {
         var string = "[Scope] \(code.count) statement(s)"
@@ -28,7 +32,12 @@ class Scope: Ast {
     }
 }
 
-class Value: Expression {
+class Value: Expression, Equatable {
+    
+    static func == (lhs: Value, rhs: Value) -> Bool {
+        lhs.name == rhs.name
+            && lhs.expType == rhs.expType
+    }
     
     var debugDescription: String {
         "[Value] \(name): \(expType)"
@@ -50,9 +59,11 @@ protocol Literal: Ast { }
 protocol Statement: Ast { }
 
 protocol Expression: Ast {
+    
     var expType: Type { get }
 }
 
 protocol Declaration: Ast {
     var name: String { get }
 }
+

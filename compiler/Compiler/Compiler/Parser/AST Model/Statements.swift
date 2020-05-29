@@ -8,7 +8,16 @@
 
 import Foundation
 
-class ProcedureDeclaration: Statement, Declaration {
+class ProcedureDeclaration: Statement, Declaration, Equatable {
+
+    static func == (lhs: ProcedureDeclaration, rhs: ProcedureDeclaration) -> Bool {
+        lhs.id == rhs.id
+            && lhs.name == rhs.name
+            && lhs.arguments == rhs.arguments
+            && lhs.returnType == rhs.returnType
+            && lhs.flags == rhs.flags
+            && lhs.scope.equals(to: rhs.scope)
+    }
     
     var debugDescription: String {
         var string = "[Procedure] \(name) -> \(returnType) "
@@ -49,7 +58,12 @@ class ProcedureDeclaration: Statement, Declaration {
     }
 }
 
-class StructDeclaration: Statement, Declaration {
+class StructDeclaration: Statement, Declaration, Equatable {
+    
+    static func == (lhs: StructDeclaration, rhs: StructDeclaration) -> Bool {
+        lhs.name == rhs.name
+            && lhs.members.elementsEqual(rhs.members) { $0.equals(to: $1) }
+    }
     
     var debugDescription: String {
         var string = "[Struct] \(name) "
@@ -66,7 +80,14 @@ class StructDeclaration: Statement, Declaration {
     }
 }
 
-class VariableDeclaration: Statement, Declaration {
+class VariableDeclaration: Statement, Declaration, Equatable {
+    
+    static func == (lhs: VariableDeclaration, rhs: VariableDeclaration) -> Bool {
+        lhs.name == rhs.name
+            && lhs.expType == rhs.expType
+            && lhs.flags == rhs.flags
+            && ((lhs.expression == nil && rhs.expression == nil) || (lhs.expression?.equals(to: rhs.expression) ?? false))
+    }
     
     var debugDescription: String {
         var string = "[Variable] \(name): \(expType) "
@@ -95,7 +116,12 @@ class VariableDeclaration: Statement, Declaration {
     }
 }
 
-class VariableAssignment: Statement {
+class VariableAssignment: Statement, Equatable {
+    
+    static func == (lhs: VariableAssignment, rhs: VariableAssignment) -> Bool {
+        lhs.receiverId == rhs.receiverId
+            && lhs.expression.equals(to: rhs.expression)
+    }
     
     var debugDescription: String {
         "[Assign] \(receiverId) = \(expression)"

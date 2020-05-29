@@ -8,7 +8,12 @@
 
 import Foundation
 
-class Condition: Statement {
+class Condition: Statement, Equatable {
+    
+    static func == (lhs: Condition, rhs: Condition) -> Bool {
+        true // @Todo
+    }
+    
     
     var debugDescription: String {
         var string = "[If] \(condition)\n\tThen: \(block)"
@@ -22,12 +27,17 @@ class Condition: Statement {
     
     internal init(condition: Expression, block: Scope, elseBlock: Scope) {
         self.condition = condition
+        
         self.block = block
         self.elseBlock = elseBlock
     }
 }
 
-class WhileLoop: Statement {
+class WhileLoop: Statement, Equatable {
+
+    static func == (lhs: WhileLoop, rhs: WhileLoop) -> Bool {
+        true // @Todo
+    }
     
     var debugDescription: String {
         var string = "[While] "
@@ -40,14 +50,20 @@ class WhileLoop: Statement {
     let condition: Expression
     let block: Scope
 
-    internal init(userLabel: String?, condition: Expression, block: Scope) {
+    internal init(userLabel:
+    
+    String?, condition: Expression, block: Scope) {
         self.userLabel = userLabel
         self.condition = condition
         self.block = block
     }
 }
 
-class Break: Statement {
+class Break: Statement, Equatable {
+    
+    static func == (lhs: Break, rhs: Break) -> Bool {
+        true // @Todo
+    }
     
     var debugDescription: String {
         var string = "[Break]"
@@ -63,7 +79,11 @@ class Break: Statement {
     }
 }
 
-class Continue: Statement {
+class Continue: Statement, Equatable {
+    
+    static func == (lhs: Continue, rhs: Continue) -> Bool {
+        lhs.userLabel == rhs.userLabel
+    }
     
     var debugDescription: String {
         var string = "[Continue]"
@@ -79,7 +99,11 @@ class Continue: Statement {
     }
 }
 
-class Return: Statement {
+class Return: Statement, Equatable {
+    
+    static func == (lhs: Return, rhs: Return) -> Bool {
+        lhs.value.equals(to: rhs.value)
+    }
     
     var debugDescription: String {
         "Return \(value)"

@@ -10,6 +10,8 @@ import Foundation
 
 func matchType(_ typeName: String) -> String {
     switch typeName {
+    case "Int": return matchType(Type.int.name)
+    case "Float": return matchType(Type.float.name)
     case "Int1": return "i1"
     case "Int8": return "i8"
     case "Int16": return "i16"

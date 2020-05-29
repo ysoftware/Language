@@ -35,20 +35,40 @@ class ParserTest {
                          _ code: String,
                          _ resultAST: Result<Scope, ParserError>, _ expect: Scope) {
         
-        print("CODE:\n", code, "\n\n")
-        
         switch resultAST {
         case .failure(let error):
             failed += 1
             print("\n❌ \(caseName)\nUnexpected error on line \(error.cursor.lineNumber):",
                 error.message.rawValue, "\n")
+            
             // @Todo: print 3 lines (before, current and after)
             let line = code.split(separator: "\n")[error.cursor.lineNumber-1]
-            print("\"\(line)\"")
+            print("\"\(line)\"\n")
             print("\(String(repeating: "_", count: error.cursor.character + 1))^")
             print("\n\n")
-        case .success(let scope):
-            print(scope)
+        case .success(let result):
+            if !result.equals(to: expect) {
+                failed += 1
+                print("\n❌ \(caseName)")
+                print("\"\(code)\"\n")
+                if result.code.count != expect.code.count {
+                    print("Counts don't match", result.code.count, "vs expected", expect.code.count, "\n===")
+                    print(result)
+                    print("===\n\n")
+                }
+                else {
+                    for i in 0..<result.code.count {
+                        if !expect.equals(to: result) {
+                            print("Mismatch in:\n", result.code[i], "\nExpected:\n", expect.code[i], "\n\n")
+                        }
+                    }
+                }
+            }
+            else {
+                guard PRINT_PASSES else { return }
+                let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
+                print("OK \(name)")
+            }
         }
     }
 }

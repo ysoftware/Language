@@ -8,7 +8,15 @@
 
 import Foundation
 
-class BinaryOperator: Expression {
+class BinaryOperator: Expression, Equatable {
+    
+    static func == (lhs: BinaryOperator, rhs: BinaryOperator) -> Bool {
+        lhs.name == rhs.name
+            && lhs.operatorType == rhs.operatorType
+            && lhs.expType == rhs.expType
+            && lhs.arguments.0.equals(to: rhs.arguments.0)
+            && lhs.arguments.1.equals(to: rhs.arguments.1)
+    }
     
     var debugDescription: String {
         "[Operation] \(arguments.0)\n\t\(name.rawValue)\n\t\(arguments.1)"
@@ -27,7 +35,13 @@ class BinaryOperator: Expression {
     }
 }
 
-class ProcedureCall: Expression, Statement {
+class ProcedureCall: Expression, Statement, Equatable {
+    
+    static func == (lhs: ProcedureCall, rhs: ProcedureCall) -> Bool {
+        lhs.name == rhs.name
+            && lhs.expType == rhs.expType
+            && lhs.arguments.elementsEqual(rhs.arguments) { $0.equals(to: $1) }
+    }
     
     var debugDescription: String {
         var string = "[Call] to \(name) -> \(expType)"
@@ -46,7 +60,11 @@ class ProcedureCall: Expression, Statement {
     }
 }
 
-class StringLiteral: Expression, Literal {
+class StringLiteral: Expression, Literal, Equatable {
+    
+    static func == (lhs: StringLiteral, rhs: StringLiteral) -> Bool {
+        lhs.value == rhs.value
+    }
     
     var debugDescription: String {
         "[String Literal] \(value)"
@@ -60,7 +78,11 @@ class StringLiteral: Expression, Literal {
     let value: String
 }
 
-class IntLiteral: Expression, Literal {
+class IntLiteral: Expression, Literal, Equatable {
+    
+    static func == (lhs: IntLiteral, rhs: IntLiteral) -> Bool {
+        lhs.value == rhs.value
+    }
     
     var debugDescription: String {
         "[Int Literal] \(value)"
@@ -75,7 +97,11 @@ class IntLiteral: Expression, Literal {
     let value: Int
 }
 
-class FloatLiteral: Expression {
+class FloatLiteral: Expression, Equatable {
+    
+    static func == (lhs: FloatLiteral, rhs: FloatLiteral) -> Bool {
+        lhs.value == rhs.value
+    }
     
     var debugDescription: String {
         "[Float Literal] \(value)"
@@ -89,7 +115,11 @@ class FloatLiteral: Expression {
     let value: Float32
 }
 
-class BoolLiteral: Expression, Literal {
+class BoolLiteral: Expression, Literal, Equatable {
+    
+    static func == (lhs: BoolLiteral, rhs: BoolLiteral) -> Bool {
+        lhs.value == rhs.value
+    }
     
     var debugDescription: String {
         "[Float Literal] \(value)"
