@@ -41,12 +41,8 @@ class LexerTest {
         i.testFunctionDeclaration()
         i.testNumbers()
         
-        if i.failed != 0 {
-            print("❌ \(i.failed) lexer test\(i.failed == 1 ? "" : "s") have failed!")
-        }
-        else {
-            print("All lexer tests have passed.")
-        }
+        if i.failed != 0 { print("❌ \(i.failed) lexer test\(i.failed == 1 ? "" : "s") have failed!") }
+        else { print("All lexer tests have passed.") }
     }
     
     func printErrorCase(caseName: String = #function, _ code: String,

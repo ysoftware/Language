@@ -47,7 +47,7 @@ extension Ast {
         case (let l as IntLiteral, let r as IntLiteral): return l == r
         case (let l as FloatLiteral, let r as FloatLiteral): return l == r
         case (let l as BoolLiteral, let r as BoolLiteral): return l == r
-        default: fatalError("not implemented")
+        default: return false
         }
     }
 }

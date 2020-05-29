@@ -90,11 +90,12 @@ extension Parser {
         guard consumePunct("(") else { return error(.procArgumentParenthesis) }
         let returnType: Type
         let name = procName.value
-        let id = "global_func_\(procName.value)" // @Todo: don't change the name of 'main'? or create a #main directive
+        let id = "__global_func_\(procName.value)" // @Todo: don't change the name of 'main'? or create a #main directive
         var arguments: [Type] = []
         var flags = ProcedureDeclaration.Flags()
         var scope: Scope = .empty
         while tokens.count > i { // PROCEDURE ARGUMENTS
+            if (token.value as? Punctuator)?.value == ")" { break }
             if consumePunct("...") {
                 if arguments.isEmpty { return error(.procExpectedArgumentBeforeVarargs) }
                 flags.insert(.isVarargs)
@@ -177,6 +178,7 @@ extension Parser {
             return .success(value)
         default: break
         }
+        print("Expression unknown \(token)")
         return error(.notImplemented)
     }
     
@@ -212,6 +214,7 @@ extension Parser {
                     print("(statements loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
                     return error(.notImplemented)
                 }
+            case is Comment: nextToken()
             default:
                 print("(statements loop) Unexpected token\n\(token)\n")
                 return error(.notImplemented)

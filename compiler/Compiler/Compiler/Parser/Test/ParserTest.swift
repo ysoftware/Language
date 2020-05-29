@@ -18,13 +18,11 @@ class ParserTest {
         i.failed = 0
         
         i.testFunctionDeclaration()
+        i.testStructDeclaration()
+        i.testVariableDeclaration()
         
-        if i.failed != 0 {
-            print("❌ \(i.failed) parser test\(i.failed == 1 ? "" : "s") have failed!")
-        }
-        else {
-            print("All parser tests have passed.")
-        }
+        if i.failed != 0 { print("❌ \(i.failed) parser test\(i.failed == 1 ? "" : "s") have failed!") }
+        else { print("All parser tests have passed.") }
     }
     
     func printErrorCase() {
