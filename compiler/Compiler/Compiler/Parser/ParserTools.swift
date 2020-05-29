@@ -50,8 +50,8 @@ extension Parser {
     }
     
     /// Peeks at the `next` token
-    func peekNext() -> Token? {
-        let nextIndex = i + 1
+    func peekNext(index: Int = 1) -> Token? {
+        let nextIndex = i + index
         guard tokens.count > nextIndex else { return nil }
         return tokens[nextIndex]
     }

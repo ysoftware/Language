@@ -10,15 +10,21 @@
 
 extension Parser {
     
-    //
-    // @Todo: DEAL WITH TOKENS
-    // Every parsing procedure should consume all tokens that belong to it
-    // and leave the 'token' with the next value
-    //
+    // @Todo: we still have A MESS with tokens
     
     // MARK: - VARIABLE DECLARATION -
     
-    func doVarDecl(_ identifier: Identifier) -> Result<VariableDeclaration, ParserError> {
+    func matchVarDecl() -> Bool {
+        (peekNext()?.value as? Punctuator)?.value == ":"
+        && (peekNext(index: 2)?.value is Identifier
+            || (peekNext(index: 2)?.value as? Punctuator)?.value == "="
+            || (peekNext(index: 2)?.value as? Punctuator)?.value == ":")
+    }
+    
+    func doVarDecl() -> Result<VariableDeclaration, ParserError> {
+        guard let identifier = token.value as? Identifier else { assert(false) }
+        assert(consumePunct(":"))
+        
         var expr: Expression?
         var flags: VariableDeclaration.Flags = []
         let suppliedTypeName = consumeIdent()?.1.value
@@ -56,21 +62,19 @@ extension Parser {
         guard let name = consumeIdent()?.value else { return error(.structExpectedName) }
         guard consumePunct("{") else { return error(.structExpectedBrackets) }
         var members: [VariableDeclaration] = []
+        nextToken()
         while tokens.count > i {
             var member: VariableDeclaration?
-            if let identifier = token.value as? Identifier,
-                consumePunct(":"),
-                let error = doVarDecl(identifier).then({ member = $0 }) { return .failure(error) }
-            if let member = member {
-                members.append(member)
+            if matchVarDecl() {
+                if let error = doVarDecl().then({ member = $0 }) { return .failure(error) }
+                members.append(member!)
+                // @Todo: this is still A MESS
+                if !((peekNext()?.value as? Punctuator)?.value == "}") { nextToken() }
             }
-            
-            // @Todo: this is a mess
-            if consumePunct("}") { break }
-            else if peekNext()?.value is Identifier {
-                nextToken()
+            else {
+                if consumePunct("}") { break }
+                else { return error(.structExpectedBracketsEnd) }
             }
-            else { return error(.structExpectedBracketsEnd) }
         }
         
         let structDecl = StructDeclaration(name: name.value, members: members)
@@ -189,16 +193,26 @@ extension Parser {
                     return .success(statements)
                 }
             case let keyword as Keyword: // @Clean: this is a copy from the main loop
-                if keyword == .func { return error(.procNestedNotSupported) }
-                if keyword == .if {
-                    if let error = doIf().then({ statements.append($0) }) { return .failure(error) }
+                if keyword == .func {
+                    return error(.procNestedNotSupported)
                 }
-            case let identifier as Identifier: // @Clean: this is a copy from the main loop
-                if consumePunct(":"),
-                    let error = doVarDecl(identifier).then({ statements.append($0) }) { return .failure(error) }
-            default: break
+                else if keyword == .if {
+                    if let error = doIf().then({ statements.append($0) }) { return .failure(error) }
+                    break
+                }
+                else {
+                    print(keyword)
+                    return error(.notImplemented)
+                }
+            case is Identifier: // @Clean: this is a copy from the main loop
+                if matchVarDecl() {
+                    if let error = doVarDecl().then({ statements.append($0) }) { return .failure(error) }
+                    break
+                }
+            default:
+                return error(.notImplemented)
             }
-            nextToken()
+            if !nextToken() { break }
         }
         return .success(statements)
     }
@@ -249,9 +263,9 @@ class Parser {
                 }
                     
                     
-            case let identifier as Identifier:
-                if consumePunct(":") {
-                    if let error = doVarDecl(identifier).then({ statements.append($0) }) { return .failure(error) }
+            case is Identifier:
+                if matchVarDecl() {
+                    if let error = doVarDecl().then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
                     

@@ -14,7 +14,6 @@ extension ParserTest {
         let code = """
                     func printf(format: String, arguments: Int32, ...) {}
                     struct c { a: String; b :: 1; }
-                    a := 1.242;
 """
         
         let tokens = try! Lexer(code).analyze().get()
