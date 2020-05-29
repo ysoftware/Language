@@ -238,11 +238,22 @@ class Parser {
                     if let error = doStructDecl().then({ statements.append($0) }) { return .failure(error)}
                     break
                 }
-                
+                    
+                else {
+                    print("Keyword \(keyword.rawValue) is not YET implemented.")
+                    return error(.notImplemented)
+                }
+                    
+                    
             case let identifier as Identifier:
                 if consumePunct(":") {
                     if let error = doVarDecl(identifier).then({ statements.append($0) }) { return .failure(error) }
                     break
+                }
+                    
+                else {
+                    print("Unexpected identifier: feature might not have YET been implemented.")
+                    return error(.notImplemented)
                 }
                 
             default: if !nextToken() { break loop }
