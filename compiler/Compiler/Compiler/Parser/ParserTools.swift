@@ -58,27 +58,19 @@ extension Parser {
     
     /// checks if `next token's value` is of the type passed, then eats if if it does
     /// if not, does nothing and returns nil
-    func consumeNext<T: TokenValue>(_ value: T.Type) -> (token: Token, value: T)? {
-        let nextIndex = i + 1
-        guard tokens.count > nextIndex else { return nil }
-        let nextToken = tokens[nextIndex]
-        if let value = nextToken.value as? T {
-            token = nextToken
-            advance()
-            return (token, value)
+    func consume<T: TokenValue>(_ value: T.Type) -> (token: Token, value: T)? {
+        if let value = token.value as? T {
+            defer { nextToken() }
+            return (token: token, value: value)
         }
         return nil
     }
     
     /// checks if `next token` exists and matches the predicate, then eats it if it does
     /// if not, does nothing and returns nil
-    func consumeNext(where compare: (TokenValue)->Bool) -> Token? {
-        let nextIndex = i + 1
-        guard tokens.count > nextIndex else { return nil }
-        let nextToken = tokens[nextIndex]
-        if compare(nextToken.value) {
-            token = nextToken
-            advance()
+    func consume(where compare: (TokenValue)->Bool) -> Token? {
+        if (compare(token.value)) {
+            defer { nextToken() }
             return token
         }
         return nil
@@ -86,27 +78,27 @@ extension Parser {
     
     /// checks if `next token` exists, is a string-value token, and matches the passed value, then eats it if it does
     /// if not, does nothing and returns `false`
-    func consumeNext<T: StringValueToken>(_ type: T.Type, matching value: String) -> Bool {
-        return consumeNext(where: { ($0 as? T)?.value == value }) != nil
+    func consume<T: StringValueToken>(_ type: T.Type, matching value: String) -> Bool {
+        return consume(where: { ($0 as? T)?.value == value }) != nil
     }
     
     func consumeKeyword(_ keyword: Keyword) -> Bool {
-        consumeNext(where: { ($0 as? Keyword) == .else }) != nil
+        consume(where: { ($0 as? Keyword) == keyword }) != nil
     }
     
     func consumePunct(_ value: String) -> Bool {
-        consumeNext(Punctuator.self, matching: value)
+        consume(Punctuator.self, matching: value)
     }
     
     func consumeSep(_ value: String) -> Bool {
-        consumeNext(Separator.self, matching: value)
+        consume(Separator.self, matching: value)
     }
     
     func consumeOp(_ value: String) -> Bool {
-        consumeNext(Operator.self, matching: value)
+        consume(Operator.self, matching: value)
     }
     
     func consumeIdent() -> (token: Token, value: Identifier)? {
-        consumeNext(Identifier.self)
+        consume(Identifier.self)
     }
 }

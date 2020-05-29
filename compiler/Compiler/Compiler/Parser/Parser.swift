@@ -10,19 +10,18 @@
 
 extension Parser {
     
-    // @Todo: we still have A MESS with tokens
-    
     // MARK: - VARIABLE DECLARATION -
     
     func matchVarDecl() -> Bool {
-        (peekNext()?.value as? Punctuator)?.value == ":"
-        && (peekNext(index: 2)?.value is Identifier
-            || (peekNext(index: 2)?.value as? Punctuator)?.value == "="
-            || (peekNext(index: 2)?.value as? Punctuator)?.value == ":")
+        token.value is Identifier
+            && (peekNext()?.value as? Punctuator)?.value == ":"
+            && (peekNext()?.value is Identifier
+                || (peekNext()?.value as? Punctuator)?.value == "="
+                || (peekNext()?.value as? Punctuator)?.value == ":")
     }
     
     func doVarDecl() -> Result<VariableDeclaration, ParserError> {
-        guard let identifier = token.value as? Identifier else { assert(false) }
+        guard let identifier = consumeIdent() else { assert(false) }
         assert(consumePunct(":"))
         
         var expr: Expression?
@@ -49,7 +48,7 @@ extension Parser {
         else { return error(.varDeclRequiresType) }
         
         let varDecl = VariableDeclaration(
-            name: identifier.value, expType: type, flags: flags, expression: expr)
+            name: identifier.value.value, expType: type, flags: flags, expression: expr)
         if case .resolved = type { dependOnGlobal(type.name, varDecl) }
         if let e = verifyNameConflict(varDecl) { return error(e) }
         // @Todo: add this var decl to local or global scope
@@ -59,17 +58,15 @@ extension Parser {
     // MARK: - STRUCT DECLARATION -
     
     func doStructDecl() -> Result<StructDeclaration, ParserError> {
+        assert(consumeKeyword(.struct))
         guard let name = consumeIdent()?.value else { return error(.structExpectedName) }
         guard consumePunct("{") else { return error(.structExpectedBrackets) }
         var members: [VariableDeclaration] = []
-        nextToken()
         while tokens.count > i {
             var member: VariableDeclaration?
             if matchVarDecl() {
                 if let error = doVarDecl().then({ member = $0 }) { return .failure(error) }
                 members.append(member!)
-                // @Todo: this is still A MESS
-                if !((peekNext()?.value as? Punctuator)?.value == "}") { nextToken() }
             }
             else {
                 if consumePunct("}") { break }
@@ -86,6 +83,7 @@ extension Parser {
     // MARK: - PROCEDURE DECLARATION -
     
     func doProcDecl() -> Result<ProcedureDeclaration, ParserError> {
+        assert(consumeKeyword(.func))
         guard let procName = consumeIdent()?.value else { return error(.procExpectedName) }
         guard consumePunct("(") else { return error(.procArgumentParenthesis) }
         let returnType: Type
@@ -101,7 +99,7 @@ extension Parser {
                 break
             }
             else {
-                guard peekNext()?.value is Identifier else { return error(.procExpectedArgumentName) }
+                guard token.value is Identifier else { return error(.procExpectedArgumentName) }
                 guard let _ = consumeIdent()?.value, consumePunct(":"),
                     let argType = consumeIdent()?.value
                     else { return error(.procExpectedArgumentType) }
@@ -112,11 +110,11 @@ extension Parser {
         }
         if !consumePunct(")") { return error(.procArgumentParenthesis) }
         if consumePunct("->") {
-            if let type = consumeNext(Identifier.self)?.value { returnType = .type(name: type.value) }
+            if let type = consume(Identifier.self)?.value { returnType = .type(name: type.value) }
             else { return error(.procReturnTypeExpected) }
         }
         else { returnType = .void }
-        if let directive = consumeNext(Directive.self)?.value {
+        if let directive = consume(Directive.self)?.value {
             if directive.value == "foreign" { flags.insert(.isForeign) }
             else { return error(.procUndeclaredDirective) }
         }
@@ -138,6 +136,7 @@ extension Parser {
     // MARK: - IF-ELSE -
     
     func doIf() -> Result<Condition, ParserError> {
+        assert(consumeKeyword(.if))
         let hasParenthesis = consumePunct("(")
         var condition: Expression!
         var ifBody: [Statement] = []
@@ -148,9 +147,11 @@ extension Parser {
         }
         if !consumePunct("{") { return error(.ifExpectedBrackets) }
         if let error = doStatements().then({ ifBody = $0 }) { return .failure(error) }
+        guard consumePunct("}") else { return error(.ifExpectedBrackets) }
         if consumeKeyword(.else) {
             if !consumePunct("{") { return error(.ifExpectedBrackets) }
             if let error = doStatements().then({ elseBody = $0 }) { return .failure(error) }
+            guard consumePunct("}") else { return error(.ifExpectedBrackets) }
         }
         return .success(Condition(
             condition: condition, block: Scope(code: ifBody), elseBlock: Scope(code: elseBody)))
@@ -159,23 +160,20 @@ extension Parser {
     // MARK: - EXPRESSIONS -
     
     func doExpression() -> Result<Expression, ParserError> {
-        while tokens.count > i {
-            switch token.value {
-            case let literal as TokenLiteral:
-                switch literal.value {
-                case .int(let value): return .success(IntLiteral(value: value))
-                case .bool(let value): return .success(BoolLiteral(value: value))
-                case .float(let value): return .success(FloatLiteral(value: value))
-                case .string(let value): return .success(StringLiteral(value: value))
-                }
-            case let identifier as Identifier:
-                let value = Value(name: identifier.value, expType: .predicted(.bool))
-                dependOnGlobal(identifier.value, value)
-                return .success(value)
-            // @Todo: more expressions
-            default: break
+        defer { nextToken() }
+        switch token.value {
+        case let literal as TokenLiteral:
+            switch literal.value {
+            case .int(let value): return .success(IntLiteral(value: value))
+            case .bool(let value): return .success(BoolLiteral(value: value))
+            case .float(let value): return .success(FloatLiteral(value: value))
+            case .string(let value): return .success(StringLiteral(value: value))
             }
-            if !nextToken() { break }
+        case let identifier as Identifier:
+            let value = Value(name: identifier.value, expType: .predicted(.bool))
+            dependOnGlobal(identifier.value, value)
+            return .success(value)
+        default: break
         }
         return error(.notImplemented)
     }
@@ -189,7 +187,6 @@ extension Parser {
             switch token.value  {
             case let punct as Punctuator:
                 if punct.value == "}" { // done with the scope
-                    nextToken()
                     return .success(statements)
                 }
             case let keyword as Keyword: // @Clean: this is a copy from the main loop
@@ -201,7 +198,7 @@ extension Parser {
                     break
                 }
                 else {
-                    print(keyword)
+                    print("Unexpected keyword: \(keyword.rawValue)")
                     return error(.notImplemented)
                 }
             case is Identifier: // @Clean: this is a copy from the main loop
@@ -209,10 +206,14 @@ extension Parser {
                     if let error = doVarDecl().then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
+                else {
+                    print("(statements loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
+                    return error(.notImplemented)
+                }
             default:
+                print("(statements loop) Unexpected token\n\(token)\n")
                 return error(.notImplemented)
             }
-            if !nextToken() { break }
         }
         return .success(statements)
     }
@@ -270,7 +271,7 @@ class Parser {
                 }
                     
                 else {
-                    print("Unexpected identifier: feature might not have YET been implemented.")
+                    print("(main loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
                     return error(.notImplemented)
                 }
                 

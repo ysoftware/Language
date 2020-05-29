@@ -11,7 +11,7 @@ import Foundation
 class ProcedureDeclaration: Statement, Declaration {
     
     var debugDescription: String {
-        var string = "[Procedure] \(name) -> \(returnType) " // @Todo print flags
+        var string = "[Procedure] \(name) -> \(returnType) "
         string.append("; args: ")
         string.append(arguments.map { "\($0)" }.joined(separator: ", "))
         if flags.contains(.isVarargs) { string.append("... ") }
@@ -71,7 +71,8 @@ class VariableDeclaration: Statement, Declaration {
     var debugDescription: String {
         var string = "[Variable] \(name): \(expType) "
         if flags.contains(.isConstant) { string.append("(constant) ") }
-        if let exp = expression { string.append("= \(exp)") }
+        if let exp = expression { string.append("= \(exp) ") }
+        else { string.append("[uninitialized] ") }
         return string
     }
     
