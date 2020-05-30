@@ -32,7 +32,7 @@ extension Ast {
     func equals(to ast: Ast?) -> Bool {
         guard let ast = ast else { return false }
         switch (self, ast) {
-        case (let l as Scope, let r as Scope): return l == r
+        case (let l as Code, let r as Code): return l == r
         case (let l as Value, let r as Value): return l == r
         case (let l as ProcedureDeclaration, let r as ProcedureDeclaration): return l == r
         case (let l as StructDeclaration, let r as StructDeclaration): return l == r

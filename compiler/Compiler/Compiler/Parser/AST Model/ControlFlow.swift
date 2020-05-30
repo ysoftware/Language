@@ -22,10 +22,10 @@ class Condition: Statement, Equatable {
     }
     
     let condition: Expression
-    let block: Scope
-    let elseBlock: Scope
+    let block: Code
+    let elseBlock: Code
     
-    internal init(condition: Expression, block: Scope, elseBlock: Scope) {
+    internal init(condition: Expression, block: Code, elseBlock: Code) {
         self.condition = condition
         
         self.block = block
@@ -48,11 +48,11 @@ class WhileLoop: Statement, Equatable {
     
     let userLabel: String?
     let condition: Expression
-    let block: Scope
+    let block: Code
 
     internal init(userLabel:
     
-    String?, condition: Expression, block: Scope) {
+    String?, condition: Expression, block: Code) {
         self.userLabel = userLabel
         self.condition = condition
         self.block = block

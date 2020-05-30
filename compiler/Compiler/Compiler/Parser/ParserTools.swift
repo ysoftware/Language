@@ -18,18 +18,15 @@ extension Parser {
         unresolved[dependency]!.append(statement)
     }
     
-//    func resolveType(_ name: String) -> 
-    
-    func verifyNameConflict(_ declaration: Declaration) -> ParserError.Message? {
-        if let _ = globalDeclarations[declaration.name] {
-            // @Todo: improve error message
-            return .declarationConflict
-        }
+    func verifyNameConflict(_ declaration: Declaration, in scope: Scope? = nil) -> ParserError.Message? {
+        if let _ = globalScope.declarations[declaration.name] { return .declarationConflict }
+        if let _ = scope?.declarations[declaration.name] { return .declarationConflict }
+        // @Todo: improve error message
         return nil
     }
     
-    func declareGlobal(_ declaration: Declaration) {
-        globalDeclarations[declaration.name] = declaration
+    func appendDeclaration(_ declaration: Declaration, to scope: Scope? = nil) {
+        (scope ?? globalScope).declarations[declaration.name] = declaration
     }
     
     /// returns the error set at the current point

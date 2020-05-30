@@ -8,27 +8,27 @@
 
 import Foundation
 
-class Scope: Ast, Equatable {
+class Code: Ast, Equatable {
     
-    static func == (lhs: Scope, rhs: Scope) -> Bool {
-        lhs.code.elementsEqual(rhs.code) { $0.equals(to: $1) }
+    static func == (lhs: Code, rhs: Code) -> Bool {
+        lhs.statements.elementsEqual(rhs.statements) { $0.equals(to: $1) }
     }
     
     var debugDescription: String {
-        var string = "[Scope] \(code.count) statement(s)"
-        for statement in code {
+        var string = "[Scope] \(statements.count) statement(s)"
+        for statement in statements {
             string.append("\n\t\(statement.debugDescription)")
         }
         return string
     }
     
-    var code: [Statement]
+    var statements: [Statement]
     
-    static let empty = Scope(code: [])
-    var isEmpty: Bool { code.isEmpty }
+    static let empty = Code(code: [])
+    var isEmpty: Bool { statements.isEmpty }
     
     internal init(code: [Statement]) {
-        self.code = code
+        self.statements = code
     }
 }
 

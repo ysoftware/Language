@@ -6,11 +6,11 @@
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 
-func IfElseAST(_ value: Bool) -> Scope {
+func IfElseAST(_ value: Bool) -> Code {
     
     let instruction: Instruction = value ? .sub : .add
     
-    return Scope(code: [
+    return Code(code: [
         
         // "%d\n"
         VariableDeclaration(name: "global_string_literal_1", exprType: .string, flags: .isConstant,
@@ -35,7 +35,7 @@ func IfElseAST(_ value: Bool) -> Scope {
             arguments: [],
             returnType: .int,
             flags: [],
-            scope: Scope(code: [
+            scope: Code(code: [
                 
                 // a : Int32 : 3
                 VariableDeclaration(name: "global_func_main_variable_a",
@@ -66,7 +66,7 @@ func IfElseAST(_ value: Bool) -> Scope {
                             Value(name: "global_func_main_variable_b", exprType: .int),
                             IntLiteral(value: 4)
                         )
-                    ), block: Scope(code: [
+                    ), block: Code(code: [
                         
                         ProcedureCall(
                             name: "global_func_prinf", exprType: .int8, arguments: [
@@ -75,7 +75,7 @@ func IfElseAST(_ value: Bool) -> Scope {
                                 IntLiteral(value: 15),
                         ]),
                         
-                    ]), elseBlock: Scope(code: [
+                    ]), elseBlock: Code(code: [
                         
                         ProcedureCall(
                             name: "global_func_prinf", exprType: .int8, arguments: [

@@ -21,7 +21,7 @@ import Foundation
 // }
 // printf("Broke out of loop 2, a is %d\n\", a)
  
-let LoopBreakContinueAST = Scope(code: [
+let LoopBreakContinueAST = Code(code: [
     
     VariableDeclaration(name: "global_string_literal_1", exprType: .string, flags: .isConstant,
                         expression: StringLiteral(value: "Did not continue! a is %d\n\0")),
@@ -43,7 +43,7 @@ let LoopBreakContinueAST = Scope(code: [
         arguments: [],
         returnType: .int32,
         flags: [],
-        scope: Scope(code: [
+        scope: Code(code: [
             
             // a: Int = 0
             VariableDeclaration(name: "global_func_main_variable_a",
@@ -54,13 +54,13 @@ let LoopBreakContinueAST = Scope(code: [
             WhileLoop(
                 userLabel: "outerLoop",
                 condition: BoolLiteral(value: true),
-                block: Scope(code: [
+                block: Code(code: [
                     
                     // while true {
                     WhileLoop(
                         userLabel: nil,
                         condition: BoolLiteral(value: true),
-                        block: Scope(code: [
+                        block: Code(code: [
                             
                             // a = a + 1
                             VariableAssignment(receiverId: "global_func_main_variable_a", expression:
@@ -79,7 +79,7 @@ let LoopBreakContinueAST = Scope(code: [
                                     arguments: (
                                         Value(name: "global_func_main_variable_a", exprType: .int),
                                         IntLiteral(value: 500)
-                                )), block: Scope(code: [
+                                )), block: Code(code: [
                                     Break(userLabel: "outerLoop")
                                 ]), elseBlock: .empty),
                             
@@ -92,7 +92,7 @@ let LoopBreakContinueAST = Scope(code: [
                                     arguments: (
                                         Value(name: "global_func_main_variable_a", exprType: .int),
                                         IntLiteral(value: 100)
-                                )), block: Scope(code: [
+                                )), block: Code(code: [
                                     Break(userLabel: nil)
                                 ]), elseBlock: .empty),
                             
@@ -106,9 +106,9 @@ let LoopBreakContinueAST = Scope(code: [
                                     arguments: (
                                         Value(name: "global_func_main_variable_a", exprType: .int),
                                         IntLiteral(value: 1)
-                                )), block: Scope(code: [
+                                )), block: Code(code: [
                                     Continue(userLabel: nil)
-                                ]), elseBlock: Scope(code: [
+                                ]), elseBlock: Code(code: [
                                     
                                     ProcedureCall(
                                         name: "global_func_prinf", exprType: .int8, arguments: [

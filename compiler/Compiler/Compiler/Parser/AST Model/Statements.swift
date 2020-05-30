@@ -45,10 +45,10 @@ class ProcedureDeclaration: Statement, Declaration, Equatable {
     var arguments: [Type]
     var returnType: Type
     var flags: Flags
-    var scope: Scope
+    var scope: Code
     
     internal init(id: String, name: String, arguments: [Type],
-                  returnType: Type, flags: ProcedureDeclaration.Flags, scope: Scope) {
+                  returnType: Type, flags: ProcedureDeclaration.Flags, scope: Code) {
         self.id = id
         self.name = name
         self.arguments = arguments

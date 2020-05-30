@@ -73,3 +73,8 @@ struct ParserError: Error {
         self.fileName = fileName
     }
 }
+
+class Scope {
+    
+    var declarations: [String: Ast] = [:]
+}

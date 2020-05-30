@@ -33,7 +33,7 @@ class ParserTest {
     
     func printResultCase(caseName: String = #function,
                          _ code: String,
-                         _ resultAST: Result<Scope, ParserError>, _ expect: Scope) {
+                         _ resultAST: Result<Code, ParserError>, _ expect: Code) {
         
         switch resultAST {
         case .failure(let error):
@@ -63,15 +63,15 @@ class ParserTest {
                 failed += 1
                 print("\n❌ \(caseName)")
                 print("\"\(code)\"\n")
-                if result.code.count != expect.code.count {
-                    print("Counts don't match", result.code.count, "vs expected", expect.code.count, "\n===")
+                if result.statements.count != expect.statements.count {
+                    print("Counts don't match", result.statements.count, "vs expected", expect.statements.count, "\n===")
                     print(result)
                     print("===\n\n")
                 }
                 else {
-                    for i in 0..<result.code.count {
+                    for i in 0..<result.statements.count {
                         if !expect.equals(to: result) {
-                            print("Mismatch in:\n", result.code[i], "\nExpected:\n", expect.code[i], "\n\n")
+                            print("Mismatch in:\n", result.statements[i], "\nExpected:\n", expect.statements[i], "\n\n")
                         }
                     }
                 }

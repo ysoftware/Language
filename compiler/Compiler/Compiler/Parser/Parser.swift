@@ -20,7 +20,7 @@ extension Parser {
                 || (peekNext()?.value as? Punctuator)?.value == ":")
     }
     
-    func doVarDecl() -> Result<VariableDeclaration, ParserError> {
+    func doVarDecl(in scope: Scope) -> Result<VariableDeclaration, ParserError> {
         startCursor = token.startCursor
         defer { endCursor = token.endCursor }
         guard let identifier = consumeIdent() else { assert(false) }
@@ -35,7 +35,7 @@ extension Parser {
         else if !consumeOp("=") { expectingExpression = false }
         
         if expectingExpression {
-            if let error = doExpression().then({ expr = $0 }) { return .failure(error) }
+            if let error = doExpression(in: scope).then({ expr = $0 }) { return .failure(error) }
             if let declaredType = suppliedTypeName, let exprType = expr?.exprType.name {
                 if let literal = expr as? LiteralExpr, literal.isCompliable(with: declaredType) {
                     literal.exprType = .resolved(name: declaredType)
@@ -59,8 +59,8 @@ extension Parser {
         let varDecl = VariableDeclaration(
             name: identifier.value.value, exprType: type, flags: flags, expression: expr)
         if case .resolved = type { dependOnGlobal(type.name, varDecl) }
-        if let e = verifyNameConflict(varDecl) { return error(e) }
-        // @Todo: add this var decl to local or global scope
+        if let e = verifyNameConflict(varDecl, in: scope) { return error(e) }
+        appendDeclaration(varDecl, to: scope)
         return .success(varDecl)
     }
     
@@ -76,7 +76,7 @@ extension Parser {
         while tokens.count > i {
             var member: VariableDeclaration?
             if matchVarDecl() {
-                if let error = doVarDecl().then({ member = $0 }) { return .failure(error) }
+                if let error = doVarDecl(in: globalScope).then({ member = $0 }) { return .failure(error) }
                 members.append(member!)
             }
             else {
@@ -84,10 +84,9 @@ extension Parser {
                 else { return error(.structExpectedBracketsEnd) }
             }
         }
-        
         let structDecl = StructDeclaration(name: name.value, members: members)
         if let e = verifyNameConflict(structDecl) { return error(e) }
-        declareGlobal(structDecl)
+        appendDeclaration(structDecl)
         return .success(structDecl)
     }
     
@@ -97,7 +96,7 @@ extension Parser {
         token.value is Identifier && (peekNext()?.value as? Punctuator)?.value == "("
     }
     
-    func doProcedureCall() -> Result<ProcedureCall, ParserError> {
+    func doProcedureCall(in scope: Scope) -> Result<ProcedureCall, ParserError> {
         startCursor = token.startCursor
         defer { endCursor = token.endCursor }
         guard let name = consumeIdent()?.value, consumePunct("(")
@@ -105,12 +104,12 @@ extension Parser {
         var arguments: [Expression] = []
         while tokens.count > i { // PROCEDURE CALL ARGUMENTS
             if (token.value as? Punctuator)?.value == ")" { break }
-            if let error = doExpression().then({ arguments.append($0) }) { return .failure(error) }
+            if let error = doExpression(in: scope).then({ arguments.append($0) }) { return .failure(error) }
             if !consumeSep(",") { break }
         }
         guard consumePunct(")") else { return error(.ifExpectedClosingParenthesis) }
         var returnType: Type = .unresolved(name: nil)
-        if let statement = globalDeclarations[name.value] { // else - proceed
+        if let statement = scope.declarations[name.value] { // else - proceed
             if let procDecl = statement as? ProcedureDeclaration {
                 if case .resolved = procDecl.returnType { returnType = procDecl.returnType }
                 guard arguments.count >= procDecl.arguments.count else { return error(.callArgumentsCount) }
@@ -140,7 +139,7 @@ extension Parser {
     
     // MARK: - PROCEDURE DECLARATION -
     
-    func doProcDecl() -> Result<ProcedureDeclaration, ParserError> {
+    func doProcDecl(in scope: Scope) -> Result<ProcedureDeclaration, ParserError> {
         startCursor = token.startCursor
         defer { endCursor = token.endCursor }
         assert(consumeKeyword(.func))
@@ -151,7 +150,7 @@ extension Parser {
         let id = "__global_func_\(procName.value)" // @Todo: don't change the name of 'main'? or create a #main directive
         var arguments: [Type] = []
         var flags = ProcedureDeclaration.Flags()
-        var scope: Scope = .empty
+        var scope: Code = .empty
         while tokens.count > i { // PROCEDURE ARGUMENTS DECLARATION
             if (token.value as? Punctuator)?.value == ")" { break }
             if consumePunct("...") {
@@ -181,7 +180,7 @@ extension Parser {
         }
         else if consumePunct("{") {
             if flags.contains(.isForeign) { return error(.procForeignUnexpectedBody) }
-            if let error = doStatements().then({ scope = Scope(code: $0) }) { return .failure(error) }
+            if let error = doStatements(in: globalScope).then({ scope = Code(code: $0) }) { return .failure(error) }
         }
         else {
             return error(.procExpectedBody)
@@ -190,13 +189,13 @@ extension Parser {
             id: id, name: name, arguments: arguments,
             returnType: returnType, flags: flags, scope: scope)
         if let e = verifyNameConflict(procedure) { return error(e) }
-        declareGlobal(procedure)
+        appendDeclaration(procedure)
         return .success(procedure)
     }
     
     // MARK: - IF-ELSE -
     
-    func doIf() -> Result<Condition, ParserError> {
+    func doIf(in scope: Scope) -> Result<Condition, ParserError> {
         startCursor = token.startCursor
         defer { endCursor = token.endCursor }
         assert(consumeKeyword(.if))
@@ -205,24 +204,24 @@ extension Parser {
         var ifBody: [Statement] = []
         var elseBody: [Statement] = []
         if hasParenthesis {
-            if let error = doExpression().then({ condition = $0 }) { return .failure(error) }
+            if let error = doExpression(in: scope).then({ condition = $0 }) { return .failure(error) }
             if !consumePunct(")") { return error(.ifExpectedClosingParenthesis) }
         }
         if !consumePunct("{") { return error(.ifExpectedBrackets) }
-        if let error = doStatements().then({ ifBody = $0 }) { return .failure(error) }
+        if let error = doStatements(in: scope).then({ ifBody = $0 }) { return .failure(error) }
         guard consumePunct("}") else { return error(.ifExpectedBrackets) }
         if consumeKeyword(.else) {
             if !consumePunct("{") { return error(.ifExpectedBrackets) }
-            if let error = doStatements().then({ elseBody = $0 }) { return .failure(error) }
+            if let error = doStatements(in: scope).then({ elseBody = $0 }) { return .failure(error) }
             guard consumePunct("}") else { return error(.ifExpectedBrackets) }
         }
         return .success(Condition(
-            condition: condition, block: Scope(code: ifBody), elseBlock: Scope(code: elseBody)))
+            condition: condition, block: Code(code: ifBody), elseBlock: Code(code: elseBody)))
     }
     
     // MARK: - EXPRESSIONS -
     
-    func doExpression() -> Result<Expression, ParserError> {
+    func doExpression(in scope: Scope) -> Result<Expression, ParserError> {
         startCursor = token.startCursor
         defer { endCursor = token.endCursor }
         let expression: Expression
@@ -238,13 +237,13 @@ extension Parser {
         case let identifier as Identifier:
             if matchProcedureCall() {
                 var ex: Expression!
-                if let error = doProcedureCall().then({ ex = $0 }) { return .failure(error) }
+                if let error = doProcedureCall(in: scope).then({ ex = $0 }) { return .failure(error) }
                 expression = ex
             }
             else {
                 expression = Value(name: identifier.value, exprType: .unresolved(name: nil))
                 
-                if let statement = globalDeclarations[identifier.value] {
+                if let statement = globalScope.declarations[identifier.value] {
                     if let variable = statement as? VariableDeclaration {
                         expression.exprType = variable.exprType
                         switch variable.exprType {
@@ -267,7 +266,7 @@ extension Parser {
     
     // MARK: - STATEMENTS -
     
-    func doStatements() -> Result<[Statement], ParserError> {
+    func doStatements(in scope: Scope) -> Result<[Statement], ParserError> {
         // body of: procedure, if-else, loop
         var statements: [Statement] = []
         while tokens.count > i {
@@ -281,12 +280,12 @@ extension Parser {
                     return error(.procNestedNotSupported)
                 }
                 else if keyword == .if {
-                    if let error = doIf().then({ statements.append($0) }) { return .failure(error) }
+                    if let error = doIf(in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
                 else if consumeKeyword(.return) {
                     var returnExpression: Expression?
-                    if let error = doExpression().then({ returnExpression = $0 }) { return .failure(error) }
+                    if let error = doExpression(in: scope).then({ returnExpression = $0 }) { return .failure(error) }
                     let returnStatement = Return(value: returnExpression ?? VoidLiteral())
                     statements.append(returnStatement)
                 }
@@ -296,7 +295,7 @@ extension Parser {
                 }
             case is Identifier: // @Clean: this is a copy from the main loop
                 if matchVarDecl() {
-                    if let error = doVarDecl().then({ statements.append($0) }) { return .failure(error) }
+                    if let error = doVarDecl(in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
                 else {
@@ -333,12 +332,12 @@ class Parser {
     var endCursor = Cursor()
     
     var unresolved: [String: [Ast]] = [:] /// all with type unresolved
-    var globalDeclarations: [String: Ast] = [:] /// all declarations in global scope
+    var globalScope = Scope() /// all declarations in global scope
     var i = 0
     var token: Token
     var statements: [Statement] = []
     
-    func parse() -> Result<Scope, ParserError> {
+    func parse() -> Result<Code, ParserError> {
         
         // Cycle
         
@@ -346,10 +345,10 @@ class Parser {
             switch token.value  {
             case let keyword as Keyword:
                 if keyword == .func {
-                    if let error = doProcDecl().then({ statements.append($0) }) { return .failure(error) }
+                    if let error = doProcDecl(in: globalScope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
-                    
+                
                 if keyword == .struct {
                     if let error = doStructDecl().then({ statements.append($0) }) { return .failure(error)}
                     break
@@ -363,7 +362,7 @@ class Parser {
                     
             case is Identifier:
                 if matchVarDecl() {
-                    if let error = doVarDecl().then({ statements.append($0) }) { return .failure(error) }
+                    if let error = doVarDecl(in: globalScope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
                     
@@ -375,6 +374,6 @@ class Parser {
             default: if !nextToken() { break loop }
             }
         }
-        return .success(Scope(code: statements))
+        return .success(Code(code: statements))
     }
 }

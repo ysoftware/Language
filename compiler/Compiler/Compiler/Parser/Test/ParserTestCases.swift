@@ -10,28 +10,6 @@ import Foundation
 
 extension ParserTest {
     
-    func testTypeInferenceLocal() { // @Todo: local scope, nested scopes
-        let code = """
-func main() {
-    a := 1;
-    b := a;
-}
-"""
-        let tokens = try! Lexer(code).analyze().get()
-        let result = Parser(tokens).parse()
-        
-        printResultCase(
-            code, result, Scope(code: [
-                ProcedureDeclaration(
-                    id: "__global_func_main", name: "main", arguments: [],
-                    returnType: .void, flags: [], scope: Scope(code: [
-            VariableDeclaration(name: "a", exprType: .int, flags: [], expression: IntLiteral(value: 1)),
-            VariableDeclaration(name: "b", exprType: .int, flags: [], expression:
-                Value(name: "a", exprType: .int)),
-                    ])),
-            ]))
-    }
-    
     func testVariableDeclaration() {
         let code = """
 func main() {
@@ -49,10 +27,10 @@ func main() {
         let result = Parser(tokens).parse()
         
         printResultCase(
-            code, result, Scope(code: [
+            code, result, Code(code: [
             ProcedureDeclaration(
                 id: "__global_func_main", name: "main", arguments: [],
-                returnType: .void, flags: [], scope: Scope(code: [
+                returnType: .void, flags: [], scope: Code(code: [
     VariableDeclaration(name: "a", exprType: .string, flags: [], expression: nil),
     VariableDeclaration(name: "b", exprType: .int, flags: [], expression: IntLiteral(value: 1)),
     VariableDeclaration(name: "c", exprType: .string, flags: [.isConstant], expression: StringLiteral(value: "hello")),
@@ -74,7 +52,7 @@ func print3() { x :: 1; }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        printResultCase(code, result, Scope(code: [
+        printResultCase(code, result, Code(code: [
             ProcedureDeclaration(
                 id: "__global_func_print1", name: "print1", arguments: [.string, .int32],
                 returnType: .void, flags: [.isVarargs, .isForeign], scope: .empty),
@@ -83,8 +61,8 @@ func print3() { x :: 1; }
                 returnType: .void, flags: [], scope: .empty),
             ProcedureDeclaration(
                 id: "__global_func_print3", name: "print3", arguments: [],
-                returnType: .void, flags: [], scope: Scope(code: [
-                    VariableDeclaration(name: "x", exprType: .int, flags: [.isConstant], expression: IntLiteral(value: 1))
+                returnType: .void, flags: [], scope: Code(code: [
+    VariableDeclaration(name: "x", exprType: .int, flags: [.isConstant], expression: IntLiteral(value: 1))
                 ])),
         ]))
     }
@@ -96,10 +74,10 @@ func print3() { x :: 1; }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        printResultCase(code, result, Scope(code: [
+        printResultCase(code, result, Code(code: [
             StructDeclaration(name: "c", members: [
-        VariableDeclaration(name: "a", exprType: .string, flags: [], expression: nil),
-        VariableDeclaration(name: "b", exprType: .int, flags: .isConstant, expression: IntLiteral(value: 1))
+    VariableDeclaration(name: "a", exprType: .string, flags: [], expression: nil),
+    VariableDeclaration(name: "b", exprType: .int, flags: .isConstant, expression: IntLiteral(value: 1))
             ])
         ]))
     }
@@ -114,13 +92,13 @@ struct Value { a := getInt(); b := getString(); }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        printResultCase(code, result, Scope(code: [
+        printResultCase(code, result, Code(code: [
             ProcedureDeclaration(
                 id: "__global_func_getInt", name: "getInt", arguments: [],
-                returnType: .int, flags: [], scope: Scope(code: [Return(value: IntLiteral(value: 1))])),
+                returnType: .int, flags: [], scope: Code(code: [Return(value: IntLiteral(value: 1))])),
             ProcedureDeclaration(
                 id: "__global_func_getString", name: "getString", arguments: [],
-                returnType: .string, flags: [], scope: Scope(code: [
+                returnType: .string, flags: [], scope: Code(code: [
                     Return(value: StringLiteral(value: "hello"))
                 ])),
             StructDeclaration(name: "Value", members: [
@@ -131,4 +109,28 @@ struct Value { a := getInt(); b := getString(); }
             ])
         ]))
     }
+    
+    func testTypeInferenceLocal() {
+        let code = """
+    c:= 1;
+    func main() {
+        a := c;
+        b := a;
+    }
+    """
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+        
+        printResultCase(
+            code, result, Code(code: [
+                VariableDeclaration(name: "c", exprType: .int, flags: [], expression: IntLiteral(value: 1)),
+                ProcedureDeclaration(
+                    id: "__global_func_main", name: "main", arguments: [],
+                    returnType: .void, flags: [], scope: Code(code: [
+        VariableDeclaration(name: "a", exprType: .int, flags: [], expression: Value(name: "c", exprType: .int)),
+        VariableDeclaration(name: "b", exprType: .int, flags: [], expression: Value(name: "a", exprType: .int)),
+                    ])),
+            ]))
+    }
+    
 }

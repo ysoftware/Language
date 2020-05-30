@@ -22,8 +22,8 @@ final class IR {
     internal var globalScope = ""
     
     /// Use this to generate LLVM IR code
-    func generateIR(globalScope ast: Scope) -> String {
-        let code = processStatements(ast.code, ident: 0, contexts: [])
+    func generateIR(globalScope ast: Code) -> String {
+        let code = processStatements(ast.statements, ident: 0, contexts: [])
         return globalScope + "\n" + code
     }
     
@@ -72,7 +72,7 @@ final class IR {
                 emitLocal(expCode)
                 emitLocal("br i1 \(expVal), label %\(bodyLabel), label %\(continueLabel)")
                 
-                let loopBody = processStatements(loop.block.code,
+                let loopBody = processStatements(loop.block.statements,
                                                  ident: ident + 1,
                                                  contexts: contexts + [context])
                 emitLocal()
@@ -111,7 +111,7 @@ final class IR {
                 emitLocal(expCode)
                 emitLocal("br i1 \(expVal), label %\(counter), label %\(elseLabel)")
                 
-                let ifBody = processStatements(condition.block.code,
+                let ifBody = processStatements(condition.block.statements,
                                                ident: ident + 1,
                                                contexts: contexts)
                 emitLocal()
@@ -120,7 +120,7 @@ final class IR {
                 emitLocal("br label %\(continueLabel)")
                 
                 if hasElse {
-                    let elseBody = processStatements(condition.elseBlock.code,
+                    let elseBody = processStatements(condition.elseBlock.statements,
                                                      ident: ident + 1,
                                                      contexts: contexts)
                     emitLocal()
@@ -143,7 +143,7 @@ final class IR {
                 else {
                     emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
                     _ = count() // implicit entry block takes the next name
-                    let body = processStatements(procedure.scope.code,
+                    let body = processStatements(procedure.scope.statements,
                                                  ident: ident + 1,
                                                  contexts: contexts)
                     emitLocal(body)

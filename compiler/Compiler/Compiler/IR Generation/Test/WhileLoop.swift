@@ -6,7 +6,7 @@
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 
-let WhileLoopAST = Scope(code: [
+let WhileLoopAST = Code(code: [
     
     VariableDeclaration(name: "global_string_literal_1", exprType: .string, flags: .isConstant,
                         expression: StringLiteral(value: "a == %d\n\0")),
@@ -26,7 +26,7 @@ let WhileLoopAST = Scope(code: [
         arguments: [],
         returnType: .int32,
         flags: [],
-        scope: Scope(code: [
+        scope: Code(code: [
             
             // a: Int = 10
             VariableDeclaration(name: "global_func_main_variable_a",
@@ -42,7 +42,7 @@ let WhileLoopAST = Scope(code: [
                         Value(name: "global_func_main_variable_a", exprType: .int),
                         IntLiteral(value: 0)
                 )),
-                block: Scope(code: [
+                block: Code(code: [
                     
                     // printf(string1, a)
                     ProcedureCall(
