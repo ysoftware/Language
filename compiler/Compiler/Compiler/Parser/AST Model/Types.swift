@@ -41,10 +41,11 @@ indirect enum Type: Equatable, CustomDebugStringConvertible {
 
 extension Type {
     
-    static let primitives = [
-        "Int", "Int1", "Int8", "Int16", "Int32", "Int64", "UInt8", "UInt16",
-        "UInt32", "UInt64", "Float", "Float16", "Float32", "Float64", "String", "Void"
-    ]
+    static let signedIntegers = ["Int", "Int8", "Int16", "Int32", "Int64"]
+    static let unsignedIntegers = ["UInt", "UInt8", "UInt16", "UInt32", "UInt64"]
+    static let floats = ["Float", "Float16", "Float32", "Float64"]
+    static let integers = signedIntegers + unsignedIntegers
+    static let primitives = ["String", "Void"] + integers + floats
     
     static func isPrimitive(_ name: String) -> Bool {
         primitives.contains(name)
@@ -58,10 +59,9 @@ extension Type {
         return .predicted(type)
     }
     
-    static let float = float32
-    static let int = int32
-    static let bool = int1
-    static let int1 = type(name: "Int1")
+    static let float = type(name: "Float")
+    static let int = type(name: "Int")
+    static let bool = type(name: "Bool")
     static let int8 = type(name: "Int8")
     static let int16 = type(name: "Int16")
     static let int32 = type(name: "Int32")

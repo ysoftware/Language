@@ -36,34 +36,34 @@ class Value: Expression, Equatable {
     
     static func == (lhs: Value, rhs: Value) -> Bool {
         lhs.name == rhs.name
-            && lhs.expType == rhs.expType
+            && lhs.exprType == rhs.exprType
     }
     
     var debugDescription: String {
-        "[Value] \(name): \(expType)"
+        "[Value] \(name): \(exprType)"
     }
     
     var name: String
-    var expType: Type
+    var exprType: Type
     
-    internal init(name: String, expType: Type) {
+    internal init(name: String, exprType: Type) {
         self.name = name
-        self.expType = expType
+        self.exprType = exprType
     }
 }
 
 protocol Ast: class, CustomDebugStringConvertible { }
 
-protocol Literal: Ast { }
 
 protocol Statement: Ast { }
 
 protocol Expression: Ast {
     
-    var expType: Type { get }
+    var exprType: Type { get set }
 }
 
 protocol Declaration: Ast {
     var name: String { get }
 }
 
+protocol LiteralExpr: Expression { }

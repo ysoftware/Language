@@ -84,13 +84,13 @@ class VariableDeclaration: Statement, Declaration, Equatable {
     
     static func == (lhs: VariableDeclaration, rhs: VariableDeclaration) -> Bool {
         lhs.name == rhs.name
-            && lhs.expType == rhs.expType
+            && lhs.exprType == rhs.exprType
             && lhs.flags == rhs.flags
             && ((lhs.expression == nil && rhs.expression == nil) || (lhs.expression?.equals(to: rhs.expression) ?? false))
     }
     
     var debugDescription: String {
-        var string = "[Variable] \(name): \(expType) "
+        var string = "[Variable] \(name): \(exprType) "
         if flags.contains(.isConstant) { string.append("(constant) ") }
         if let exp = expression { string.append("= \(exp) ") }
         else { string.append("[uninitialized] ") }
@@ -104,13 +104,13 @@ class VariableDeclaration: Statement, Declaration, Equatable {
     }
     
     let name: String
-    let expType: Type
+    let exprType: Type
     let flags: Flags
     let expression: Expression?
     
-    internal init(name: String, expType: Type, flags: VariableDeclaration.Flags, expression: Expression?) {
+    internal init(name: String, exprType: Type, flags: VariableDeclaration.Flags, expression: Expression?) {
         self.name = name
-        self.expType = expType
+        self.exprType = exprType
         self.flags = flags
         self.expression = expression
     }

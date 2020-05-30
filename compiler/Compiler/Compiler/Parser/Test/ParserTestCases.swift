@@ -16,8 +16,8 @@ func main() {
     a : String;
     b := 1;
     c :: "hello";
-    // d : Int = 1; // @Todo: this fails: Type supplied does not match the type of expression
-    // e : Bool : true; // @Todo: this fails: Not implemented
+    d : Int = 1;
+    e : Bool : true;
     f := 1.0;
     g :: false;
 }
@@ -30,13 +30,13 @@ func main() {
             ProcedureDeclaration(
                 id: "__global_func_main", name: "main", arguments: [],
                 returnType: .void, flags: [], scope: Scope(code: [
-    VariableDeclaration(name: "a", expType: .string, flags: [], expression: nil),
-    VariableDeclaration(name: "b", expType: .int, flags: [], expression: IntLiteral(value: 1)),
-    VariableDeclaration(name: "c", expType: .string, flags: [.isConstant], expression: StringLiteral(value: "hello")),
-//    VariableDeclaration(name: "d", expType: .int, flags: [], expression: IntLiteral(value: 1)),
-//    VariableDeclaration(name: "e", expType: .bool, flags: [.isConstant], expression: BoolLiteral(value: true)),
-    VariableDeclaration(name: "f", expType: .float, flags: [], expression: FloatLiteral(value: 1)),
-    VariableDeclaration(name: "g", expType: .bool, flags: [.isConstant], expression: BoolLiteral(value: false)),
+    VariableDeclaration(name: "a", exprType: .string, flags: [], expression: nil),
+    VariableDeclaration(name: "b", exprType: .int, flags: [], expression: IntLiteral(value: 1)),
+    VariableDeclaration(name: "c", exprType: .string, flags: [.isConstant], expression: StringLiteral(value: "hello")),
+    VariableDeclaration(name: "d", exprType: .int, flags: [], expression: IntLiteral(value: 1)),
+    VariableDeclaration(name: "e", exprType: .bool, flags: [.isConstant], expression: BoolLiteral(value: true)),
+    VariableDeclaration(name: "f", exprType: .float, flags: [], expression: FloatLiteral(value: 1)),
+    VariableDeclaration(name: "g", exprType: .bool, flags: [.isConstant], expression: BoolLiteral(value: false)),
                 ])),
         ]))
     }
@@ -52,15 +52,15 @@ func print3() { x :: 1; }
         
         printResultCase(code, result, Scope(code: [
             ProcedureDeclaration(
-                id: "__global_func_print1", name: "print1", arguments: [.string, .int],
+                id: "__global_func_print1", name: "print1", arguments: [.string, .int32],
                 returnType: .void, flags: [.isVarargs, .isForeign], scope: .empty),
             ProcedureDeclaration(
-                id: "__global_func_print2", name: "print2", arguments: [.string, .int],
+                id: "__global_func_print2", name: "print2", arguments: [.string, .int32],
                 returnType: .void, flags: [], scope: .empty),
             ProcedureDeclaration(
                 id: "__global_func_print3", name: "print3", arguments: [],
                 returnType: .void, flags: [], scope: Scope(code: [
-                    VariableDeclaration(name: "x", expType: .int, flags: [.isConstant],
+                    VariableDeclaration(name: "x", exprType: .int, flags: [.isConstant],
                                         expression: IntLiteral(value: 1))
                 ])),
         ]))
@@ -76,9 +76,9 @@ func print3() { x :: 1; }
         
         printResultCase(code, result, Scope(code: [
             StructDeclaration(name: "c", members: [
-                VariableDeclaration(name: "a", expType: .string,
+                VariableDeclaration(name: "a", exprType: .string,
                                     flags: [], expression: nil),
-                VariableDeclaration(name: "b", expType: .int,
+                VariableDeclaration(name: "b", exprType: .int,
                                     flags: .isConstant, expression: IntLiteral(value: 1))
             ])
         ]))

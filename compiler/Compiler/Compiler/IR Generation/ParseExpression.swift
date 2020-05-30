@@ -44,7 +44,7 @@ internal extension IR {
             var arguments: [String] = []
             
             for arg in call.arguments {
-                code += "\(identation); argument \(arg.expType.name)\n"
+                code += "\(identation); argument \(arg.exprType.name)\n"
 
                 // @Todo: don't load the same argument
                 // if passed twice, like a = add(a, a)
@@ -53,7 +53,7 @@ internal extension IR {
                 // for now, doing that manually
                 
                 if let arg = arg as? Value {
-                    if arg.expType == .string {
+                    if arg.exprType == .string {
                         
                         // @Todo: make it work with dynamic strings somehow
                         // I don't think we have to calculate its length before doing this?
@@ -76,7 +76,7 @@ internal extension IR {
                     }
                     else {
                         let argCount = count()
-                        let type = matchType(arg.expType.name)
+                        let type = matchType(arg.exprType.name)
                         code += "\(identation)%\(argCount) = load \(type), \(type)* %\(arg.name)"
                         arguments.append("\(type) %\(argCount)")
                     }
@@ -87,7 +87,7 @@ internal extension IR {
                         code += "\(identation); argument\n"
                         code += "\(identation)\(eCode)"
                     }
-                    arguments.append("\(matchType(arg.expType.name)) \(eValue)")
+                    arguments.append("\(matchType(arg.exprType.name)) \(eValue)")
                 }
                 code += "\n"
             }
@@ -112,13 +112,13 @@ internal extension IR {
             if l is IntLiteral { lValue = lExpVal }
             else {
                 lValue = "%\(count())"
-                loadL = "\(lValue) = load \(matchType(l.expType.name)), \(matchType(l.expType.name))* \(lExpVal)"
+                loadL = "\(lValue) = load \(matchType(l.exprType.name)), \(matchType(l.exprType.name))* \(lExpVal)"
             }
             
             if r is IntLiteral { rValue = rExpVal }
             else {
                 rValue = "%\(count())"
-                loadR = "\(rValue) = load \(matchType(r.expType.name)), \(matchType(r.expType.name))* \(rExpVal)"
+                loadR = "\(rValue) = load \(matchType(r.exprType.name)), \(matchType(r.exprType.name))* \(rExpVal)"
             }
             
             let resultCount = count()

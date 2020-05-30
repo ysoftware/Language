@@ -34,13 +34,17 @@ extension Parser {
         
         if expectingExpression {
             if let error = doExpression().then({ expr = $0 }) { return .failure(error) }
-            if let declaredType = suppliedTypeName, let exprType = expr?.expType.name,
-                declaredType != exprType { return error(.varDeclTypeMismatch) }
+            if let declaredType = suppliedTypeName, let exprType = expr?.exprType.name {
+                if let literal = expr as? LiteralExpr, literal.isCompliable(with: declaredType) {
+                    literal.exprType = .resolved(name: declaredType)
+                }
+                else if declaredType != exprType { return error(.varDeclTypeMismatch) }
+            }
         }
         guard consumeSep(";") else { return error(.expectedSemicolon) }
         // variable type inference
         let type: Type
-        if let t = expr?.expType { type = t }
+        if let t = expr?.exprType { type = t }
         else if let name = suppliedTypeName {
             // @Todo: refactor to "getType(...) -> Type"
             // that will resolve type depending on the currently known set of types
@@ -50,7 +54,7 @@ extension Parser {
         else { return error(.varDeclRequiresType) }
         
         let varDecl = VariableDeclaration(
-            name: identifier.value.value, expType: type, flags: flags, expression: expr)
+            name: identifier.value.value, exprType: type, flags: flags, expression: expr)
         if case .resolved = type { dependOnGlobal(type.name, varDecl) }
         if let e = verifyNameConflict(varDecl) { return error(e) }
         // @Todo: add this var decl to local or global scope
@@ -173,7 +177,7 @@ extension Parser {
             case .string(let value): return .success(StringLiteral(value: value))
             }
         case let identifier as Identifier:
-            let value = Value(name: identifier.value, expType: .predicted(.bool))
+            let value = Value(name: identifier.value, exprType: .predicted(.bool))
             dependOnGlobal(identifier.value, value)
             return .success(value)
         default: break

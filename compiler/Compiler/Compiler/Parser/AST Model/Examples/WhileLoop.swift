@@ -8,9 +8,9 @@
 
 let WhileLoopAST = Scope(code: [
     
-    VariableDeclaration(name: "global_string_literal_1", expType: .string, flags: .isConstant,
+    VariableDeclaration(name: "global_string_literal_1", exprType: .string, flags: .isConstant,
                         expression: StringLiteral(value: "a == %d\n\0")),
-    VariableDeclaration(name: "global_string_literal_2", expType: .string, flags: .isConstant,
+    VariableDeclaration(name: "global_string_literal_2", exprType: .string, flags: .isConstant,
                         expression: StringLiteral(value: "Left the loop, a == %d\n\0")),
     
     // func printf(_ format: String, _ arguments: Int32...) -> Int32 #foreign
@@ -30,30 +30,30 @@ let WhileLoopAST = Scope(code: [
             
             // a: Int = 10
             VariableDeclaration(name: "global_func_main_variable_a",
-                                expType: .int,
+                                exprType: .int,
                                 flags: [], expression: IntLiteral(value: 10)),
             
             // while a != 0 {
             WhileLoop(
                 userLabel: nil,
                 condition: BinaryOperator(
-                    name: .notEqual, operatorType: .int, expType: .bool,
+                    name: .notEqual, operatorType: .int, exprType: .bool,
                     arguments: (
-                        Value(name: "global_func_main_variable_a", expType: .int),
+                        Value(name: "global_func_main_variable_a", exprType: .int),
                         IntLiteral(value: 0)
                 )),
                 block: Scope(code: [
                     
                     // printf(string1, a)
                     ProcedureCall(
-                        name: "global_func_prinf", expType: .int8, arguments: [
-                            Value(name: "global_string_literal_1", expType: .string),
-                            Value(name: "global_func_main_variable_a", expType: .int)
+                        name: "global_func_prinf", exprType: .int8, arguments: [
+                            Value(name: "global_string_literal_1", exprType: .string),
+                            Value(name: "global_func_main_variable_a", exprType: .int)
                     ]),
                     
                     VariableAssignment(receiverId: "global_func_main_variable_a", expression:
-                        BinaryOperator(name: .sub, operatorType: .int, expType: .int, arguments: (
-                            Value(name: "global_func_main_variable_a", expType: .int),
+                        BinaryOperator(name: .sub, operatorType: .int, exprType: .int, arguments: (
+                            Value(name: "global_func_main_variable_a", exprType: .int),
                             IntLiteral(value: 1)
                         ))
                     )
@@ -62,9 +62,9 @@ let WhileLoopAST = Scope(code: [
             
             // printf(string2, a)
             ProcedureCall(
-                name: "global_func_prinf", expType: .int8, arguments: [
-                    Value(name: "global_string_literal_2", expType: .string),
-                    Value(name: "global_func_main_variable_a", expType: .int32)
+                name: "global_func_prinf", exprType: .int8, arguments: [
+                    Value(name: "global_string_literal_2", exprType: .string),
+                    Value(name: "global_func_main_variable_a", exprType: .int32)
             ]),
             
             Return(value: IntLiteral(value: 0))
