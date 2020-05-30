@@ -10,6 +10,8 @@ import Foundation
 
 extension ParserTest {
     
+    func testTypeInferenceLocal() { // @Todo: local scope, nested scopes
+        let code = """
 func main() {
     a := 1;
     b := a;
