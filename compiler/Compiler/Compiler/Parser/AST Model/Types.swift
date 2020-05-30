@@ -20,7 +20,7 @@ indirect enum Type: Equatable, CustomDebugStringConvertible {
     
     case resolved(name: String)
     case unresolved(name: String?)
-    case predicted(Type)
+    case predicted(name: String) // @Todo I need to describe what predicted it and decide if I need it
     
     static func == (lhs: Type, rhs: Type) -> Bool {
         switch (lhs, rhs) {
@@ -52,11 +52,7 @@ extension Type {
     }
     
     static func type(name: String) -> Type {
-        return Type.resolved(name: name)
-    }
-    
-    func predicted(_ type: Type) -> Type {
-        return .predicted(type)
+        .resolved(name: name)
     }
     
     static let float = type(name: "Float")

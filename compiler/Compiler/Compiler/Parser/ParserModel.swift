@@ -18,6 +18,9 @@ struct ParserError: Error {
         case expectedSemicolon = "Expected ';'."
         case declarationConflict = "Declaration conflicts with another declaration with the same name."
         
+        // var assign
+        case assignPassedNotValue = "Expression passed to variable is not a value."
+
         // var decl
         case varDeclExpectedEquals = "Expected '=' or ':' for the variable or constant declaration."
         case varDeclTypeMismatch = "Type supplied does not match the type of expression."

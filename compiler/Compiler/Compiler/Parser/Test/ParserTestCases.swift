@@ -10,6 +10,26 @@ import Foundation
 
 extension ParserTest {
     
+func main() {
+    a := 1;
+    b := a;
+}
+"""
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+        
+        printResultCase(
+            code, result, Scope(code: [
+                ProcedureDeclaration(
+                    id: "__global_func_main", name: "main", arguments: [],
+                    returnType: .void, flags: [], scope: Scope(code: [
+            VariableDeclaration(name: "a", exprType: .int, flags: [], expression: IntLiteral(value: 1)),
+            VariableDeclaration(name: "b", exprType: .int, flags: [], expression:
+                Value(name: "a", exprType: .int)),
+                    ])),
+            ]))
+    }
+    
     func testVariableDeclaration() {
         let code = """
 func main() {
@@ -62,8 +82,7 @@ func print3() { x :: 1; }
             ProcedureDeclaration(
                 id: "__global_func_print3", name: "print3", arguments: [],
                 returnType: .void, flags: [], scope: Scope(code: [
-                    VariableDeclaration(name: "x", exprType: .int, flags: [.isConstant],
-                                        expression: IntLiteral(value: 1))
+                    VariableDeclaration(name: "x", exprType: .int, flags: [.isConstant], expression: IntLiteral(value: 1))
                 ])),
         ]))
     }
@@ -71,24 +90,23 @@ func print3() { x :: 1; }
     func testStructDeclaration() {
         // @Todo: finish this test
         let code = "struct c { a: String; b :: 1; }"
-//        let code = "1struct c { a: String; b :: 1; }" // @Todo: this passes (with 1 at the start)
+        //        let code = "1struct c { a: String; b :: 1; }" // @Todo: this passes (with 1 at the start)
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Scope(code: [
             StructDeclaration(name: "c", members: [
-                VariableDeclaration(name: "a", exprType: .string,
-                                    flags: [], expression: nil),
-                VariableDeclaration(name: "b", exprType: .int,
-                                    flags: .isConstant, expression: IntLiteral(value: 1))
+        VariableDeclaration(name: "a", exprType: .string, flags: [], expression: nil),
+        VariableDeclaration(name: "b", exprType: .int, flags: .isConstant, expression: IntLiteral(value: 1))
             ])
         ]))
     }
     
-    func testTypeInference() {
+    func testTypeInferenceGlobal() { /// types of a and b are inferred from the known procedure declarations (1st pass)
         let code = """
-func getValue() -> Int { return 1; }
-struct Value { a := getValue(); }
+func getInt() -> Int { return 1; }
+func getString() -> String { return "hello"; }
+struct Value { a := getInt(); b := getString(); }
 """
         
         let tokens = try! Lexer(code).analyze().get()
@@ -96,12 +114,18 @@ struct Value { a := getValue(); }
         
         printResultCase(code, result, Scope(code: [
             ProcedureDeclaration(
-                id: "__global_func_getValue", name: "getValue", arguments: [],
+                id: "__global_func_getInt", name: "getInt", arguments: [],
                 returnType: .int, flags: [], scope: Scope(code: [Return(value: IntLiteral(value: 1))])),
+            ProcedureDeclaration(
+                id: "__global_func_getString", name: "getString", arguments: [],
+                returnType: .string, flags: [], scope: Scope(code: [
+                    Return(value: StringLiteral(value: "hello"))
+                ])),
             StructDeclaration(name: "Value", members: [
-                VariableDeclaration(name: "a", exprType: .int,
-                                    flags: [], expression:
-                    ProcedureCall(name: "getValue", exprType: .int, arguments: []))
+                VariableDeclaration(name: "a", exprType: .int, flags: [], expression:
+                    ProcedureCall(name: "getInt", exprType: .int, arguments: [])),
+                VariableDeclaration(name: "b", exprType: .string, flags: [], expression:
+                    ProcedureCall(name: "getString", exprType: .string, arguments: []))
             ])
         ]))
     }

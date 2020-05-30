@@ -110,7 +110,7 @@ extension Parser {
         }
         guard consumePunct(")") else { return error(.ifExpectedClosingParenthesis) }
         var returnType: Type = .unresolved(name: nil)
-        if let statement = globalDeclarations[name.value] {
+        if let statement = globalDeclarations[name.value] { // else - proceed
             if let procDecl = statement as? ProcedureDeclaration {
                 if case .resolved = procDecl.returnType { returnType = procDecl.returnType }
                 guard arguments.count >= procDecl.arguments.count else { return error(.callArgumentsCount) }
@@ -119,16 +119,13 @@ extension Parser {
                         else { return error(.callArgumentsCount) }
                     let declArgument = procDecl.arguments.count > i ? procDecl.arguments[i] : procDecl.arguments.last!
                     switch arguments[i].exprType {
-                    case .predicted(let type):
-                        // match arguments
                         // @Todo: refactor to matching procedure. This should be recursive.
-                        break
-                    case .resolved(let name):
+                    case .resolved(let name), .predicted(let name):
                         if name != declArgument.name { return error(.callArgumentTypeMismatch) }
                     case .unresolved(let name):
                         // @Todo: match with structs if not primitive (the block inside if)
                         if let name = name { arguments[i].exprType = .type(name: name) }
-                        else { arguments[i].exprType = .predicted(declArgument) }
+                        else { arguments[i].exprType = .predicted(name: declArgument.name) }
                     }
                 }
             }
@@ -245,8 +242,18 @@ extension Parser {
                 expression = ex
             }
             else {
-                expression = Value(name: identifier.value, exprType: .predicted(.bool))
-                dependOnGlobal(identifier.value, expression)
+                expression = Value(name: identifier.value, exprType: .unresolved(name: nil))
+                
+                if let statement = globalDeclarations[identifier.value] {
+                    if let variable = statement as? VariableDeclaration {
+                        expression.exprType = variable.exprType
+                        switch variable.exprType {
+                        case .resolved: break
+                        default: dependOnGlobal(identifier.value, expression)
+                        }
+                    }
+                    else { return error(.assignPassedNotValue) }
+                }
                 nextToken()
             }
         default:
