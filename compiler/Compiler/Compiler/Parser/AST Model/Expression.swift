@@ -132,3 +132,10 @@ class BoolLiteral: LiteralExpr, Equatable {
     var exprType: Type = .bool
     var value: Bool
 }
+
+class VoidLiteral: LiteralExpr {
+    
+    var debugDescription: String { "[Void] " }
+    
+    var exprType: Type = .void
+}

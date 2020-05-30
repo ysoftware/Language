@@ -8,6 +8,8 @@
 
 import Foundation
 
+func plural(_ value: Int) -> String { value == 1 ? "" : "s" }
+
 extension String {
     
     func endIndex(offsetBy offset: Int) -> String.Index { index(endIndex, offsetBy: offset) }
@@ -47,6 +49,7 @@ extension Ast {
         case (let l as IntLiteral, let r as IntLiteral): return l == r
         case (let l as FloatLiteral, let r as FloatLiteral): return l == r
         case (let l as BoolLiteral, let r as BoolLiteral): return l == r
+        case (is VoidLiteral, is VoidLiteral): return true
         default: return false
         }
     }

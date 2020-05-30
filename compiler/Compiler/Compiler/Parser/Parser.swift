@@ -21,6 +21,8 @@ extension Parser {
     }
     
     func doVarDecl() -> Result<VariableDeclaration, ParserError> {
+        startCursor = token.startCursor
+        defer { endCursor = token.endCursor }
         guard let identifier = consumeIdent() else { assert(false) }
         assert(consumePunct(":"))
         
@@ -41,7 +43,8 @@ extension Parser {
                 else if declaredType != exprType { return error(.varDeclTypeMismatch) }
             }
         }
-        guard consumeSep(";") else { return error(.expectedSemicolon) }
+        else if !consumeSep(";") { return error(.expectedSemicolon) }
+        
         // variable type inference
         let type: Type
         if let t = expr?.exprType { type = t }
@@ -64,6 +67,8 @@ extension Parser {
     // MARK: - STRUCT DECLARATION -
     
     func doStructDecl() -> Result<StructDeclaration, ParserError> {
+        startCursor = token.startCursor
+        defer { endCursor = token.endCursor }
         assert(consumeKeyword(.struct))
         guard let name = consumeIdent()?.value else { return error(.structExpectedName) }
         guard consumePunct("{") else { return error(.structExpectedBrackets) }
@@ -86,9 +91,61 @@ extension Parser {
         return .success(structDecl)
     }
     
+    // MARK: - PROCEDURE CALL -
+    
+    func matchProcedureCall() -> Bool {
+        token.value is Identifier && (peekNext()?.value as? Punctuator)?.value == "("
+    }
+    
+    func doProcedureCall() -> Result<ProcedureCall, ParserError> {
+        startCursor = token.startCursor
+        defer { endCursor = token.endCursor }
+        guard let name = consumeIdent()?.value, consumePunct("(")
+            else { fatalError("call matchProcedureCall required before calling this") }
+        var arguments: [Expression] = []
+        while tokens.count > i { // PROCEDURE CALL ARGUMENTS
+            if (token.value as? Punctuator)?.value == ")" { break }
+            if let error = doExpression().then({ arguments.append($0) }) { return .failure(error) }
+            if !consumeSep(",") { break }
+        }
+        guard consumePunct(")") else { return error(.ifExpectedClosingParenthesis) }
+        var returnType: Type = .unresolved(name: nil)
+        if let statement = globalDeclarations[name.value] {
+            if let procDecl = statement as? ProcedureDeclaration {
+                if case .resolved = procDecl.returnType { returnType = procDecl.returnType }
+                guard arguments.count >= procDecl.arguments.count else { return error(.callArgumentsCount) }
+                for i in 0..<arguments.count {
+                    guard procDecl.arguments.count > i || procDecl.flags.contains(.isVarargs)
+                        else { return error(.callArgumentsCount) }
+                    let declArgument = procDecl.arguments.count > i ? procDecl.arguments[i] : procDecl.arguments.last!
+                    switch arguments[i].exprType {
+                    case .predicted(let type):
+                        // match arguments
+                        // @Todo: refactor to matching procedure. This should be recursive.
+                        break
+                    case .resolved(let name):
+                        if name != declArgument.name { return error(.callArgumentTypeMismatch) }
+                    case .unresolved(let name):
+                        // @Todo: match with structs if not primitive (the block inside if)
+                        if let name = name { arguments[i].exprType = .type(name: name) }
+                        else { arguments[i].exprType = .predicted(declArgument) }
+                    }
+                }
+            }
+            else { return error(.callNotProcedure) }
+        }
+        // @Todo: match expressions to argument types
+        
+        let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments)
+        if case .resolved = returnType { dependOnGlobal(returnType.name, call) }
+        return .success(call)
+    }
+    
     // MARK: - PROCEDURE DECLARATION -
     
     func doProcDecl() -> Result<ProcedureDeclaration, ParserError> {
+        startCursor = token.startCursor
+        defer { endCursor = token.endCursor }
         assert(consumeKeyword(.func))
         guard let procName = consumeIdent()?.value else { return error(.procExpectedName) }
         guard consumePunct("(") else { return error(.procArgumentParenthesis) }
@@ -98,7 +155,7 @@ extension Parser {
         var arguments: [Type] = []
         var flags = ProcedureDeclaration.Flags()
         var scope: Scope = .empty
-        while tokens.count > i { // PROCEDURE ARGUMENTS
+        while tokens.count > i { // PROCEDURE ARGUMENTS DECLARATION
             if (token.value as? Punctuator)?.value == ")" { break }
             if consumePunct("...") {
                 if arguments.isEmpty { return error(.procExpectedArgumentBeforeVarargs) }
@@ -143,6 +200,8 @@ extension Parser {
     // MARK: - IF-ELSE -
     
     func doIf() -> Result<Condition, ParserError> {
+        startCursor = token.startCursor
+        defer { endCursor = token.endCursor }
         assert(consumeKeyword(.if))
         let hasParenthesis = consumePunct("(")
         var condition: Expression!
@@ -167,23 +226,36 @@ extension Parser {
     // MARK: - EXPRESSIONS -
     
     func doExpression() -> Result<Expression, ParserError> {
-        defer { nextToken() }
+        startCursor = token.startCursor
+        defer { endCursor = token.endCursor }
+        let expression: Expression
         switch token.value {
         case let literal as TokenLiteral:
             switch literal.value {
-            case .int(let value): return .success(IntLiteral(value: value))
-            case .bool(let value): return .success(BoolLiteral(value: value))
-            case .float(let value): return .success(FloatLiteral(value: value))
-            case .string(let value): return .success(StringLiteral(value: value))
+            case .int(let value): expression = IntLiteral(value: value)
+            case .bool(let value): expression = BoolLiteral(value: value)
+            case .float(let value): expression = FloatLiteral(value: value)
+            case .string(let value): expression = StringLiteral(value: value)
             }
+            nextToken()
         case let identifier as Identifier:
-            let value = Value(name: identifier.value, exprType: .predicted(.bool))
-            dependOnGlobal(identifier.value, value)
-            return .success(value)
-        default: break
+            if matchProcedureCall() {
+                var ex: Expression!
+                if let error = doProcedureCall().then({ ex = $0 }) { return .failure(error) }
+                expression = ex
+            }
+            else {
+                expression = Value(name: identifier.value, exprType: .predicted(.bool))
+                dependOnGlobal(identifier.value, expression)
+                nextToken()
+            }
+        default:
+            print("Expression unknown \(token)")
+            return error(.notImplemented)
         }
-        print("Expression unknown \(token)")
-        return error(.notImplemented)
+        guard consumeSep(";") else { return error(.expectedSemicolon) }
+        
+        return .success(expression)
     }
     
     // MARK: - STATEMENTS -
@@ -205,6 +277,12 @@ extension Parser {
                     if let error = doIf().then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
+                else if consumeKeyword(.return) {
+                    var returnExpression: Expression?
+                    if let error = doExpression().then({ returnExpression = $0 }) { return .failure(error) }
+                    let returnStatement = Return(value: returnExpression ?? VoidLiteral())
+                    statements.append(returnStatement)
+                }
                 else {
                     print("Unexpected keyword: \(keyword.rawValue)")
                     return error(.notImplemented)
@@ -218,7 +296,8 @@ extension Parser {
                     print("(statements loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
                     return error(.notImplemented)
                 }
-            case is Comment: nextToken()
+            case is Comment:
+                nextToken()
             default:
                 print("(statements loop) Unexpected token\n\(token)\n")
                 return error(.notImplemented)
@@ -243,9 +322,11 @@ class Parser {
     
     // Variables
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     var unresolved: [String: [Ast]] = [:] /// all with type unresolved
-    var global_declarations: [String: Ast] = [:] /// all declarations in global scope
-    var struct_declarations: [String: StructDeclaration] = [:] /// all structs declared
+    var globalDeclarations: [String: Ast] = [:] /// all declarations in global scope
     var i = 0
     var token: Token
     var statements: [Statement] = []

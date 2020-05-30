@@ -45,7 +45,7 @@ func main() {
     
     func testFunctionDeclaration() {
         let code = """
-func print1(format: String, arguments: Int32, ...) #foreign
+func print1(format: String, arguments: Int32, ...) #foreign;
 func print2(format: String, arguments: Int32) {  }
 func print3() { x :: 1; }
 """
@@ -69,10 +69,9 @@ func print3() { x :: 1; }
     }
     
     func testStructDeclaration() {
-        // @Incomplete: finish this test
-        let code = """
-        struct c { a: String; b :: 1; }
-        """
+        // @Todo: finish this test
+        let code = "struct c { a: String; b :: 1; }"
+//        let code = "1struct c { a: String; b :: 1; }" // @Todo: this passes (with 1 at the start)
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
@@ -82,6 +81,27 @@ func print3() { x :: 1; }
                                     flags: [], expression: nil),
                 VariableDeclaration(name: "b", exprType: .int,
                                     flags: .isConstant, expression: IntLiteral(value: 1))
+            ])
+        ]))
+    }
+    
+    func testTypeInference() {
+        let code = """
+func getValue() -> Int { return 1; }
+struct Value { a := getValue(); }
+"""
+        
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+        
+        printResultCase(code, result, Scope(code: [
+            ProcedureDeclaration(
+                id: "__global_func_getValue", name: "getValue", arguments: [],
+                returnType: .int, flags: [], scope: Scope(code: [Return(value: IntLiteral(value: 1))])),
+            StructDeclaration(name: "Value", members: [
+                VariableDeclaration(name: "a", exprType: .int,
+                                    flags: [], expression:
+                    ProcedureCall(name: "getValue", exprType: .int, arguments: []))
             ])
         ]))
     }

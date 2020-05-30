@@ -27,6 +27,12 @@ struct ParserError: Error {
         case ifExpectedClosingParenthesis = "Closing parenthesis is expected after condition expression."
         case ifExpectedBrackets = "Expected brackets around if-else blocks."
         
+        // procedure call
+        case callExpectedClosingParenthesis = "Closing parenthesis is expected after arguments."
+        case callNotProcedure = "Trying to call something that's not a procedure."
+        case callArgumentsCount = "Procedure requires different number of arguments."
+        case callArgumentTypeMismatch = "Argument expression doesn't match the type declared in the procedure."
+
         // procedure declaration
         case procNestedNotSupported = "Nested procedure declarations are not supported."
         case procArgumentParenthesis = "Expected parenthesis around arguments declaration."
@@ -46,18 +52,21 @@ struct ParserError: Error {
     }
     
     let fileName: String?
-    let cursor: Cursor
+    let startCursor: Cursor
+    let endCursor: Cursor
     let message: Message
     
     init(_ message: Message) {
-        self.cursor = Cursor()
+        self.startCursor = Cursor()
+        self.endCursor = Cursor()
         self.message = message
         self.fileName = nil
     }
     
-    init(fileName: String? = nil, cursor: Cursor, _ message: Message) {
+    init(fileName: String? = nil, startCursor: Cursor, endCursor: Cursor, _ message: Message) {
         self.message = message
-        self.cursor = cursor
+        self.startCursor = startCursor
+        self.endCursor = endCursor
         self.fileName = fileName
     }
 }

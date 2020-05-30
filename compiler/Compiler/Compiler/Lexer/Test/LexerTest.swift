@@ -46,7 +46,7 @@ class LexerTest {
         i.testFunctionDeclaration()
         i.testNumbers()
         
-        if i.failed != 0 { print("❌ \(i.failed) lexer test\(i.failed == 1 ? "" : "s") have failed!") }
+        if i.failed != 0 { print("❌ \(i.failed) lexer test\(plural(i.failed)) have failed!") }
         else { print("All lexer tests have passed.") }
     }
     

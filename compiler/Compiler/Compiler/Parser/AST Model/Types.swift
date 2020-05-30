@@ -35,7 +35,7 @@ indirect enum Type: Equatable, CustomDebugStringConvertible {
         if case let .resolved(name) = self {
             return name
         }
-        report("Unresolved type \(self)")
+        fatalError("Unresolved type \(self)")
     }
 }
 

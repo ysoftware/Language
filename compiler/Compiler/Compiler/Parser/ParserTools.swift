@@ -13,26 +13,29 @@ extension Parser {
     // @Todo: add append method the same as in Lexer
     // to auto-include the Cursor in the Ast
     
+    func dependOnGlobal(_ dependency: String, _ statement: Ast) {
+        if unresolved[dependency] == nil { unresolved[dependency] = [] }
+        unresolved[dependency]!.append(statement)
+    }
+    
+//    func resolveType(_ name: String) -> 
+    
     func verifyNameConflict(_ declaration: Declaration) -> ParserError.Message? {
-        if let _ = global_declarations[declaration.name] {
+        if let _ = globalDeclarations[declaration.name] {
             // @Todo: improve error message
             return .declarationConflict
         }
         return nil
     }
     
-    func dependOnGlobal(_ dependency: String, _ statement: Ast) {
-        if unresolved[dependency] == nil { unresolved[dependency] = [] }
-        unresolved[dependency]!.append(statement)
-    }
-    
     func declareGlobal(_ declaration: Declaration) {
-        global_declarations[declaration.name] = declaration
+        globalDeclarations[declaration.name] = declaration
     }
     
     /// returns the error set at the current point
     func error<T>(_ error: ParserError.Message) -> Result<T, ParserError> {
-        .failure(ParserError(fileName: fileName, cursor: token.endCursor, error))
+        .failure(ParserError(fileName: fileName, startCursor: startCursor,
+                             endCursor: endCursor, error))
     }
     
     /// advances the counter

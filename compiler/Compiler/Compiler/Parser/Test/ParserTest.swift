@@ -8,7 +8,7 @@
 
 import Foundation
 
-fileprivate let PRINT_PASSES = true
+fileprivate let PRINT_PASSES = false
 
 class ParserTest {
     fileprivate var failed = 0
@@ -17,11 +17,12 @@ class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
+        i.testTypeInference()
         i.testVariableDeclaration()
         i.testFunctionDeclaration()
         i.testStructDeclaration()
         
-        if i.failed != 0 { print("❌ \(i.failed) parser test\(i.failed == 1 ? "" : "s") have failed!") }
+        if i.failed != 0 { print("❌ \(i.failed) parser test\(plural(i.failed)) have failed!") }
         else { print("All parser tests have passed.") }
     }
     
@@ -36,14 +37,26 @@ class ParserTest {
         switch resultAST {
         case .failure(let error):
             failed += 1
-            print("\n❌ \(caseName)\nUnexpected error on line \(error.cursor.lineNumber):",
+            print("\n❌ \(caseName)\nUnexpected error on line \(error.startCursor.lineNumber):",
                 error.message.rawValue, "\n")
             
-            // @Todo: print 3 lines (before, current and after)
-            let line = code.split(separator: "\n")[error.cursor.lineNumber-1]
-            print("\"\(line)\"\n")
-            print("\(String(repeating: "_", count: error.cursor.character + 1))^")
-            print("\n\n")
+            _ = {
+                let lines = code.split(separator: "\n")
+                let line = lines[error.endCursor.lineNumber-1]
+                print("\(line)\n")
+                if error.startCursor.lineNumber == error.endCursor.lineNumber
+                    && error.startCursor.character != error.endCursor.character {
+                    
+                    let startCursor = String(repeating: "_", count: error.startCursor.character) + "^"
+                    let endCursor = String(repeating: "_", count: error.endCursor.character-error.startCursor.character-1) + "^"
+                    print("\(startCursor)\(endCursor)")
+                }
+                else {
+                    print(String(repeating: "_", count: error.endCursor.character) + "^")
+                }
+                print("\n\n")
+            }()
+            
         case .success(let result):
             if !result.equals(to: expect) {
                 failed += 1
