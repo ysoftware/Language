@@ -17,7 +17,12 @@ class LexerTest {
         let i = LexerTest()
         i.failed = 0
         
-//        i.testNumbersFail4() // @Todo: this test fails, maybe "while let ..." was a bad decision
+        // @Todo: this test fails
+        // I need to find a way to consume() some sort of separation after a token
+        // " ", ",", ";" or anything else. Not that it matters a lot, since
+        // the parser will error on the expression in the test
+//        i.testNumbersFail4()
+        
         i.testBoolLiteral()
         i.testNumbersFail3()
         i.testCursors()

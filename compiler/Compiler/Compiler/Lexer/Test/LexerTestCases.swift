@@ -188,7 +188,7 @@ bye
     
     func testNumbersFail4() {
         let code = "12a23"
-        printErrorCase(code, Lexer(code).analyze(), LexerError(.unexpectedMinusInNumberLiteral))
+        printErrorCase(code, Lexer(code).analyze(), LexerError(.unexpectedCharacter))
     }
     
     func testNumbers() {
