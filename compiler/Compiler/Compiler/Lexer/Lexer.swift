@@ -132,13 +132,15 @@ class Lexer {
                 }
                 
                 var value = String(char)
-                while let next = consumeNext(where: { numberRange.contains($0) || $0 == "." || $0 == "e" || $0 == "-" }) {
+                let numLitSymbols = "_.e-"
+                while let next = consumeNext(where: { numberRange.contains($0) || numLitSymbols.contains($0) }) {
                     if value.count >= 1 && next == "-" && value.last != "e" {
                         return error(.unexpectedMinusInNumberLiteral)
                     }
                     else if next == "." && value.contains(".") || next == "e" && value.contains("e") {
                         return error(next == "." ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral)
                     }
+                    if next == "_" { continue }
                     value.append(next)
                 }
                 

@@ -124,14 +124,14 @@
 			path = Parser;
 			sourceTree = "<group>";
 		};
-		1FAA3E952472DC570015C8BD /* Examples */ = {
+		1FAA3E952472DC570015C8BD /* Test */ = {
 			isa = PBXGroup;
 			children = (
 				1FAA3E932472DC530015C8BD /* IfElse.swift */,
 				1FAA3E962472DCC50015C8BD /* WhileLoop.swift */,
 				1F286DA2247453B60072120C /* LoopBreakContinue.swift */,
 			);
-			path = Examples;
+			path = Test;
 			sourceTree = "<group>";
 		};
 		1FB1EB782476E9D40088F63D /* Test */ = {
@@ -180,8 +180,8 @@
 		1FFF349224711E3100389B0C /* Compiler */ = {
 			isa = PBXGroup;
 			children = (
-				1F9C966A2475ACF900BAEC04 /* Parser */,
 				1F9C96652475736100BAEC04 /* Lexer */,
+				1F9C966A2475ACF900BAEC04 /* Parser */,
 				1FFF34B124714A4900389B0C /* IR Generation */,
 				1FB8F7032477CF71008CD1CD /* Utils */,
 				1FFF349324711E3100389B0C /* main.swift */,
@@ -192,7 +192,6 @@
 		1FFF349D247120D200389B0C /* AST Model */ = {
 			isa = PBXGroup;
 			children = (
-				1FAA3E952472DC570015C8BD /* Examples */,
 				1FFF34B224714AB900389B0C /* BaseAST.swift */,
 				1F0A3BD8247E92A9005C91F0 /* Statements.swift */,
 				1F09BF6A2471B8DF00171D0A /* ControlFlow.swift */,
@@ -207,6 +206,7 @@
 			children = (
 				1FFF34AC24713C1F00389B0C /* IRGen.swift */,
 				1FAA3E9A2472ECB80015C8BD /* ParseExpression.swift */,
+				1FAA3E952472DC570015C8BD /* Test */,
 				1F286D9F2474503F0072120C /* Model */,
 			);
 			path = "IR Generation";

@@ -90,9 +90,9 @@ class IntLiteral: LiteralExpr, Equatable {
     
     internal init(value: Int) {
         self.value = value
+        if value > Int32.max { exprType = .int64 }
     }
 
-    // @Todo: make it choose the type appropriately depending on value
     var exprType: Type = .int
     var value: Int
 }

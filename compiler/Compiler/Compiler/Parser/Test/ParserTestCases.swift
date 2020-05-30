@@ -20,6 +20,7 @@ func main() {
     e : Bool : true;
     f := 1.0;
     g :: false;
+    h :: 5_000_000_000_000; // @Todo: this should result in Int64
 }
 """
         let tokens = try! Lexer(code).analyze().get()
@@ -37,6 +38,7 @@ func main() {
     VariableDeclaration(name: "e", exprType: .bool, flags: [.isConstant], expression: BoolLiteral(value: true)),
     VariableDeclaration(name: "f", exprType: .float, flags: [], expression: FloatLiteral(value: 1)),
     VariableDeclaration(name: "g", exprType: .bool, flags: [.isConstant], expression: BoolLiteral(value: false)),
+    VariableDeclaration(name: "h", exprType: .int64, flags: [.isConstant], expression: IntLiteral(value: 5_000_000_000_000)),
                 ])),
         ]))
     }

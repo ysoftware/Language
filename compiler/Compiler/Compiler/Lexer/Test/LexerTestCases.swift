@@ -192,19 +192,20 @@ bye
     }
     
     func testNumbers() {
-        let code = "1 -123 17.e2 1.1724 0 011 11. .11 -0 1e-23"
+        let code = "1 -123 17.e2 1.1724 0 011 11. .11 -0 1e-23 1_2_3_____"
         
         printResultCase(code, Lexer(code).analyze(), asTokens([
             TokenLiteral(value: .int(value: 1)),
             TokenLiteral(value: .int(value: -123)),
-            TokenLiteral(value: .float(value: Float(17.0e2))),
-            TokenLiteral(value: .float(value: Float(1.1724))),
+            TokenLiteral(value: .float(value: 17.0e2)),
+            TokenLiteral(value: .float(value: 1.1724)),
             TokenLiteral(value: .int(value: 0)),
             TokenLiteral(value: .int(value: 011)),
             TokenLiteral(value: .float(value: Float(11))),
-            TokenLiteral(value: .float(value: Float(0.11))),
-            TokenLiteral(value: .int(value: Int(-0))),
-            TokenLiteral(value: .float(value: Float(1e-23))),
+            TokenLiteral(value: .float(value: 0.11)),
+            TokenLiteral(value: .int(value: -0)),
+            TokenLiteral(value: .float(value: 1e-23)),
+            TokenLiteral(value: .int(value: 123)),
         ]))
     }
     
