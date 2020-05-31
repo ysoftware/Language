@@ -24,10 +24,10 @@ class Code: Ast, Equatable {
     
     var statements: [Statement]
     
-    static let empty = Code(code: [])
+    static let empty = Code([])
     var isEmpty: Bool { statements.isEmpty }
     
-    internal init(code: [Statement]) {
+    internal init(_ code: [Statement]) {
         self.statements = code
     }
 }

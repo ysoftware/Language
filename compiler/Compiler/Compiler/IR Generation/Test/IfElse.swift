@@ -10,7 +10,7 @@ func IfElseAST(_ value: Bool) -> Code {
     
     let instruction: Instruction = value ? .sub : .add
     
-    return Code(code: [
+    return Code([
         
         // "%d\n"
         VariableDeclaration(name: "global_string_literal_1", exprType: .string, flags: .isConstant,
@@ -35,7 +35,7 @@ func IfElseAST(_ value: Bool) -> Code {
             arguments: [],
             returnType: .int,
             flags: [],
-            scope: Code(code: [
+            scope: Code([
                 
                 // a : Int32 : 3
                 VariableDeclaration(name: "global_func_main_variable_a",
@@ -66,7 +66,7 @@ func IfElseAST(_ value: Bool) -> Code {
                             Value(name: "global_func_main_variable_b", exprType: .int),
                             IntLiteral(value: 4)
                         )
-                    ), block: Code(code: [
+                    ), block: Code([
                         
                         ProcedureCall(
                             name: "global_func_prinf", exprType: .int8, arguments: [
@@ -75,7 +75,7 @@ func IfElseAST(_ value: Bool) -> Code {
                                 IntLiteral(value: 15),
                         ]),
                         
-                    ]), elseBlock: Code(code: [
+                    ]), elseBlock: Code([
                         
                         ProcedureCall(
                             name: "global_func_prinf", exprType: .int8, arguments: [

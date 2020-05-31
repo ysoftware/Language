@@ -30,16 +30,27 @@ struct ParserError: Error {
     }
 }
 
+class Context { }
+
+class ContextLoop: Context {
+    internal init(label: String?) { self.label = label }
+    let label: String?
+}
+
 class Scope {
     
     var declarations: [String: Ast]
+    var contexts: [Context] = []
     
-    func copy() -> Scope {
-        Scope(declarations: declarations)
+    func next(as context: Context? = nil) -> Scope {
+        let newScope = Scope(declarations: declarations, contexts: contexts)
+        context.map { newScope.contexts.append($0) }
+        return newScope
     }
     
-    internal init(declarations: [String : Ast] = [:]) {
+    internal init(declarations: [String : Ast] = [:], contexts: [Context] = []) {
         self.declarations = declarations
+        self.contexts = contexts
     }
 }
 
@@ -74,6 +85,11 @@ extension Parser {
         let loopNotExpectedAtGlobalScope = "While statement is not expected at the global scope"
         let loopExpectedClosingParenthesis = "Closing parenthesis is expected around the condition expression."
         let loopExpectedBrackets = "Expected brackets around a loop body."
+        let loopLabelDuplicate = "Break with this label is already declared in the current scope."
+        
+        // break
+        let breakContext = "Break can't be used outside of loop or switch."
+        let breakLabelNotFound = "Loop with this label is not found in the current scope."
 
         // procedure call
         let callExpectedClosingParenthesis = "Closing parenthesis is expected after arguments."

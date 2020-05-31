@@ -19,10 +19,10 @@ e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; }
         let result = Parser(tokens).parse()
         
         printResultCase(
-            code, result, Code(code: [
+            code, result, Code([
             ProcedureDeclaration(
                 id: "__global_func_main", name: "main", arguments: [],
-                returnType: .void, flags: [], scope: Code(code: [
+                returnType: .void, flags: [], scope: Code([
     VariableDeclaration(name: "a", exprType: .string, flags: [], expression: nil),
     VariableDeclaration(name: "b", exprType: .int, flags: [], expression: IntLiteral(value: 1)),
     VariableDeclaration(name: "c", exprType: .string, flags: [.isConstant], expression: StringLiteral(value: "hello")),
@@ -44,7 +44,7 @@ func print3() { x :: 1; }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        printResultCase(code, result, Code(code: [
+        printResultCase(code, result, Code([
             ProcedureDeclaration(
                 id: "__global_func_print1", name: "print1", arguments: [.string, .int32],
                 returnType: .void, flags: [.isVarargs, .isForeign], scope: .empty),
@@ -53,7 +53,7 @@ func print3() { x :: 1; }
                 returnType: .void, flags: [], scope: .empty),
             ProcedureDeclaration(
                 id: "__global_func_print3", name: "print3", arguments: [],
-                returnType: .void, flags: [], scope: Code(code: [
+                returnType: .void, flags: [], scope: Code([
     VariableDeclaration(name: "x", exprType: .int, flags: [.isConstant], expression: IntLiteral(value: 1))
                 ])),
         ]))
@@ -66,7 +66,7 @@ func print3() { x :: 1; }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        printResultCase(code, result, Code(code: [
+        printResultCase(code, result, Code([
     VariableDeclaration(name: "x", exprType: .float, flags: [], expression: FloatLiteral(value: 1)),
             StructDeclaration(name: "A", members: [
     VariableDeclaration(name: "a", exprType: .string, flags: [], expression: nil),
@@ -87,13 +87,13 @@ struct Value { a := getInt(); b := getString(); }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        printResultCase(code, result, Code(code: [
+        printResultCase(code, result, Code([
             ProcedureDeclaration(
                 id: "__global_func_getInt", name: "getInt", arguments: [],
-                returnType: .int, flags: [], scope: Code(code: [Return(value: IntLiteral(value: 1))])),
+                returnType: .int, flags: [], scope: Code([Return(value: IntLiteral(value: 1))])),
             ProcedureDeclaration(
                 id: "__global_func_getString", name: "getString", arguments: [],
-                returnType: .string, flags: [], scope: Code(code: [
+                returnType: .string, flags: [], scope: Code([
                     Return(value: StringLiteral(value: "hello"))
                 ])),
             StructDeclaration(name: "Value", members: [
@@ -111,11 +111,11 @@ struct Value { a := getInt(); b := getString(); }
         let result = Parser(tokens).parse()
         
         printResultCase(
-            code, result, Code(code: [
+            code, result, Code([
                 VariableDeclaration(name: "c", exprType: .int, flags: [], expression: IntLiteral(value: 1)),
                 ProcedureDeclaration(
                     id: "__global_func_main", name: "main", arguments: [],
-                    returnType: .void, flags: [], scope: Code(code: [
+                    returnType: .void, flags: [], scope: Code([
         VariableDeclaration(name: "a", exprType: .int, flags: [], expression: Value(name: "c", exprType: .int)),
         VariableDeclaration(name: "b", exprType: .int, flags: [], expression: Value(name: "a", exprType: .int)),
                     ])),
@@ -130,18 +130,18 @@ struct Value { a := getInt(); b := getString(); }
         let result = Parser(tokens).parse()
         
         printResultCase(
-            code, result, Code(code: [
+            code, result, Code([
                 ProcedureDeclaration(
                     id: "__global_func_main", name: "main", arguments: [],
-                    returnType: .void, flags: [], scope: Code(code: [
-                        Condition(condition: BoolLiteral(value: true), block: Code(code: [
+                    returnType: .void, flags: [], scope: Code([
+                        Condition(condition: BoolLiteral(value: true), block: Code([
                             VariableDeclaration(name: "a", exprType: .int, flags: [], expression:
                                 IntLiteral(value: 1)),
-                            Condition(condition: BoolLiteral(value: false), block: Code(code: [
+                            Condition(condition: BoolLiteral(value: false), block: Code([
                                 VariableDeclaration(name: "b", exprType: .int, flags: [], expression:
                                     Value(name: "a", exprType: .int)),
                             ]), elseBlock: .empty)
-                        ]), elseBlock: Code(code: [
+                        ]), elseBlock: Code([
                             VariableDeclaration(name: "c", exprType: .unresolved(name: nil), flags: [], expression:
                                 Value(name: "a", exprType: .unresolved(name: nil))),
                         ])),
@@ -154,11 +154,29 @@ struct Value { a := getInt(); b := getString(); }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
 
-        printResultCase(code, result, Code(code: [
+        printResultCase(code, result, Code([
             ProcedureDeclaration(
                 id: "__global_func_main", name: "main", arguments: [],
-                returnType: .void, flags: [], scope: Code(code: [
+                returnType: .void, flags: [], scope: Code([
                     WhileLoop(userLabel: nil, condition: BoolLiteral(value: true), block: .empty)
+                ])),
+        ]))
+    }
+    
+    func testWhileLoopBreak() {
+        let code = "func main() { loop: while (true) { loop1: while (true) { break loop; }}}"
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+
+        printResultCase(code, result, Code([
+            ProcedureDeclaration(
+                id: "__global_func_main", name: "main", arguments: [],
+                returnType: .void, flags: [], scope: Code([
+                    WhileLoop(userLabel: "loop", condition: BoolLiteral(value: true), block: Code([
+                        WhileLoop(userLabel: "loop1", condition: BoolLiteral(value: true), block: Code([
+                            Break(userLabel: "loop")
+                        ]))
+                    ]))
                 ])),
         ]))
     }

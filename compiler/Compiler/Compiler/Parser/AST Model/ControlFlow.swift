@@ -66,7 +66,7 @@ class Break: Statement, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[Break]"
+        var string = "[Break] "
         if let label = userLabel { string.append("(\(label)) ") }
         return string
     }

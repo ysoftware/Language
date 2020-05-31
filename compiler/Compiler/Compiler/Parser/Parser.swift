@@ -73,7 +73,7 @@ extension Parser {
         guard let name = consumeIdent()?.value else { return error(em.structExpectedName) }
         guard consumePunct("{") else { return error(em.structExpectedBrackets) }
         var members: [VariableDeclaration] = []
-        let structScope = globalScope.copy()
+        let structScope = globalScope.next()
         while tokens.count > i {
             var member: VariableDeclaration?
             if matchVarDecl() {
@@ -181,7 +181,7 @@ extension Parser {
         }
         else if consumePunct("{") {
             if flags.contains(.isForeign) { return error(em.procForeignUnexpectedBody) }
-            if let error = doStatements(in: globalScope.copy()).then({ scope = Code(code: $0) }) { return .failure(error) }
+            if let error = doStatements(in: globalScope.next()).then({ scope = Code($0) }) { return .failure(error) }
         }
         else {
             return error(em.procExpectedBody)
@@ -209,14 +209,14 @@ extension Parser {
             if !consumePunct(")") { return error(em.expectedParenthesis) }
         }
         if !consumePunct("{") { return error(em.ifExpectedBrackets) }
-        if let error = doStatements(in: scope.copy()).then({ ifBody = $0 }) { return .failure(error) }
+        if let error = doStatements(in: scope.next()).then({ ifBody = $0 }) { return .failure(error) }
         guard consumePunct("}") else { return error(em.ifExpectedBrackets) }
         if consumeKeyword(.else) {
             if !consumePunct("{") { return error(em.ifExpectedBrackets) }
-            if let error = doStatements(in: scope.copy()).then({ elseBody = $0 }) { return .failure(error) }
+            if let error = doStatements(in: scope.next()).then({ elseBody = $0 }) { return .failure(error) }
             guard consumePunct("}") else { return error(em.ifExpectedBrackets) }
         }
-        let ifStatement = Condition(condition: condition, block: Code(code: ifBody), elseBlock: Code(code: elseBody))
+        let ifStatement = Condition(condition: condition, block: Code(ifBody), elseBlock: Code(elseBody))
         return .success(ifStatement)
     }
     
@@ -232,11 +232,13 @@ extension Parser {
     func doWhile(in scope: Scope) -> Result<WhileLoop, ParserError> {
         startCursor = token.startCursor
         defer { endCursor = token.endCursor }
-        var label: String?
-        if let identifier = token.value as? Identifier, consumePunct(":") {
-            label = identifier.value
-        }
+        let label = consumeIdent()?.value.value
+        if label != nil { assert(consumePunct(":")) }
         assert(consumeKeyword(.while))
+        if let label = label {
+            if scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == label })
+            { return error(em.loopLabelDuplicate) }
+        }
         let hasParenthesis = consumePunct("(")
         var condition: Expression!
         var loopBody: [Statement] = []
@@ -245,10 +247,22 @@ extension Parser {
             if !consumePunct(")") { return error(em.expectedParenthesis) }
         }
         if !consumePunct("{") { return error(em.loopExpectedBrackets) }
-        if let error = doStatements(in: scope.copy()).then({ loopBody = $0 }) { return .failure(error) }
+        if let error = doStatements(in: scope.next(as: ContextLoop(label: label))).then({ loopBody = $0 }) { return .failure(error) }
         guard consumePunct("}") else { return error(em.loopExpectedBrackets) }
-        let whileStatement = WhileLoop(userLabel: label, condition: condition, block: Code(code: loopBody))
+        let whileStatement = WhileLoop(userLabel: label, condition: condition, block: Code(loopBody))
         return .success(whileStatement)
+    }
+    
+    func doBreak(in scope: Scope) -> Result<Break, ParserError> {
+        assert(consumeKeyword(.break))
+        let label = consumeIdent()?.value.value
+        guard consumeSep(";") else { return error(em.expectedSemicolon) }
+        if let label = label {
+            if !scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == label })
+            { return error(em.breakLabelNotFound) }
+        }
+        else { if nil == scope.contexts.last(where: { $0 is ContextLoop }) { return error(em.breakContext) }}
+        return .success(Break(userLabel: label))
     }
  
     // MARK: - EXPRESSIONS -
@@ -310,34 +324,40 @@ extension Parser {
                 if keyword == .func {
                     return error(em.procNestedNotSupported)
                 }
-                else if keyword == .if {
+                if keyword == .break {
+                    if let error = doBreak(in: scope).then({ statements.append($0) }) { return .failure(error) }
+                    break
+                }
+                if keyword == .if {
                     if let error = doIf(in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
-                else if matchWhile() {
+                if matchWhile() {
                     if let error = doWhile(in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
-                else if consumeKeyword(.return) {
+                if consumeKeyword(.return) {
                     var returnExpression: Expression?
                     if let error = doExpression(in: scope).then({ returnExpression = $0 }) { return .failure(error) }
                     guard consumeSep(";") else { return error(em.expectedSemicolon) }
                     let returnStatement = Return(value: returnExpression ?? VoidLiteral())
                     statements.append(returnStatement)
+                    break
                 }
-                else {
-                    print("Unexpected keyword: \(keyword.rawValue)")
-                    return error(em.notImplemented)
-                }
+                print("Unexpected keyword: \(keyword.rawValue)")
+                return error(em.notImplemented)
+                
             case is Identifier: // @Clean: this is a copy from the main loop
+                if matchWhile() {
+                    if let error = doWhile(in: scope).then({ statements.append($0) }) { return .failure(error) }
+                    break
+                }
                 if matchVarDecl() {
                     if let error = doVarDecl(in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
-                else {
-                    print("(statements loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
-                    return error(em.notImplemented)
-                }
+                print("(statements loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
+                return error(em.notImplemented)
             case is Comment:
                 if !nextToken() { break loop }
             case let separator as Separator:
@@ -398,7 +418,6 @@ class Parser {
                 }
                 if matchWhile() {
                     return error(em.loopNotExpectedAtGlobalScope)
-                    
                 }
                 
                 print("Keyword \(keyword.rawValue) is not YET implemented.")
@@ -422,6 +441,6 @@ class Parser {
             default: if !nextToken() { break loop }
             }
         }
-        return .success(Code(code: statements))
+        return .success(Code(statements))
     }
 }
