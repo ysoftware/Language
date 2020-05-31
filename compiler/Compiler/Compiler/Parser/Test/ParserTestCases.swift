@@ -69,15 +69,18 @@ func print3() { x :: 1; }
     
     func testStructDeclaration() {
         // @Todo: finish this test
-        let code = "struct c { a: String; b :: 1; }"
+        let code = "x := 1.0; struct A { a: String; b :: 1; c := b; d := x; }"
         //        let code = "1struct c { a: String; b :: 1; }" // @Todo: this passes (with 1 at the start)
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code(code: [
-            StructDeclaration(name: "c", members: [
+    VariableDeclaration(name: "x", exprType: .float, flags: [], expression: FloatLiteral(value: 1)),
+            StructDeclaration(name: "A", members: [
     VariableDeclaration(name: "a", exprType: .string, flags: [], expression: nil),
-    VariableDeclaration(name: "b", exprType: .int, flags: .isConstant, expression: IntLiteral(value: 1))
+    VariableDeclaration(name: "b", exprType: .int, flags: .isConstant, expression: IntLiteral(value: 1)),
+    VariableDeclaration(name: "c", exprType: .int, flags: [], expression: Value(name: "b", exprType: .int)),
+    VariableDeclaration(name: "d", exprType: .float, flags: [], expression: Value(name: "x", exprType: .float)),
             ])
         ]))
     }
@@ -134,7 +137,7 @@ struct Value { a := getInt(); b := getString(); }
     }
     
     func testTypeInferenceLocal2() {
-        // this test should fail when 2nd pass is implemented
+        // @Todo this test should fail when 2nd pass is implemented
         // this just stops at the type being unresolved
         let code = """
 

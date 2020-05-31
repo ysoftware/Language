@@ -73,10 +73,11 @@ extension Parser {
         guard let name = consumeIdent()?.value else { return error(.structExpectedName) }
         guard consumePunct("{") else { return error(.structExpectedBrackets) }
         var members: [VariableDeclaration] = []
+        let structScope = globalScope.copy()
         while tokens.count > i {
             var member: VariableDeclaration?
             if matchVarDecl() {
-                if let error = doVarDecl(in: globalScope.copy()).then({ member = $0 }) { return .failure(error) }
+                if let error = doVarDecl(in: structScope).then({ member = $0 }) { return .failure(error) }
                 members.append(member!)
             }
             else {
