@@ -18,8 +18,10 @@ class ParserTest {
         i.failed = 0
         
         i.testTypeInferenceLocal2()
-        i.testTypeInferenceLocal()
-        i.testTypeInferenceGlobal()
+        i.testWhileLoop()
+        i.testTypeInference2()
+        i.testTypeInference()
+        i.testTypeInferenceGlobalProc()
         i.testVariableDeclaration()
         i.testFunctionDeclaration()
         i.testStructDeclaration()
@@ -40,7 +42,7 @@ class ParserTest {
         case .failure(let error):
             failed += 1
             print("\n❌ \(caseName)\nUnexpected error on line \(error.startCursor.lineNumber):",
-                error.message.rawValue, "\n")
+                error.message, "\n")
             
             _ = {
                 let lines = code.split(separator: "\n")

@@ -18,9 +18,9 @@ extension Parser {
         unresolved[dependency]!.append(statement)
     }
     
-    func verifyNameConflict(_ declaration: Declaration, in scope: Scope? = nil) -> ParserError.Message? {
-        if let _ = globalScope.declarations[declaration.name] { return .declarationConflict }
-        if let _ = scope?.declarations[declaration.name] { return .declarationConflict }
+    func verifyNameConflict(_ declaration: Declaration, in scope: Scope? = nil) -> String? {
+        if let d = globalScope.declarations[declaration.name] { return em.declarationConflict(d) }
+        if let d = scope?.declarations[declaration.name] { return em.declarationConflict(d) }
         // @Todo: improve error message
         return nil
     }
@@ -30,9 +30,9 @@ extension Parser {
     }
     
     /// returns the error set at the current point
-    func error<T>(_ error: ParserError.Message) -> Result<T, ParserError> {
-        .failure(ParserError(fileName: fileName, startCursor: startCursor,
-                             endCursor: endCursor, error))
+    func error<T>(_ error: String) -> Result<T, ParserError> {
+        endCursor = token.endCursor // refresh cursor
+        return .failure(ParserError(fileName: fileName, startCursor: startCursor, endCursor: endCursor, error))
     }
     
     /// advances the counter
@@ -41,7 +41,6 @@ extension Parser {
     }
     
     /// advances the counter and sets `token` to the next in the array
-    @discardableResult
     func nextToken() -> Bool {
         guard tokens.count > i+1 else { return false }
         advance()

@@ -70,7 +70,7 @@ func print3() { x :: 1; }
     func testStructDeclaration() {
         // @Todo: finish this test
         let code = "x := 1.0; struct A { a: String; b :: 1; c := b; d := x; }"
-        //        let code = "1struct c { a: String; b :: 1; }" // @Todo: this passes (with 1 at the start)
+        //        let code = "1struct c { a: String; b :: 1; }" // @Lexer @Todo: this passes (with 1 at the start)
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
@@ -85,7 +85,7 @@ func print3() { x :: 1; }
         ]))
     }
     
-    func testTypeInferenceGlobal() { /// types of a and b are inferred from the known procedure declarations (1st pass)
+    func testTypeInferenceGlobalProc() { /// types of a and b are inferred from the known procedure declarations (1st pass)
         let code = """
 func getInt() -> Int { return 1; }
 func getString() -> String { return "hello"; }
@@ -113,7 +113,7 @@ struct Value { a := getInt(); b := getString(); }
         ]))
     }
     
-    func testTypeInferenceLocal() {
+    func testTypeInference() {
         let code = """
     c:= 1;
     func main() {
@@ -136,7 +136,7 @@ struct Value { a := getInt(); b := getString(); }
             ]))
     }
     
-    func testTypeInferenceLocal2() {
+    func testTypeInference2() {
         // @Todo this test should fail when 2nd pass is implemented
         // this just stops at the type being unresolved
         let code = """
@@ -167,4 +167,20 @@ struct Value { a := getInt(); b := getString(); }
                     ])),
             ]))
     }
+    
+    func testWhileLoop() {
+        // @Todo: finish this test
+//        let code = "func main() { /*while (true) {  } */}"
+//        let tokens = try! Lexer(code).analyze().get()
+//        let result = Parser(tokens).parse()
+//
+//        printResultCase(code, result, Code(code: [
+//            ProcedureDeclaration(
+//                id: "__global_func_main", name: "main", arguments: [],
+//                returnType: .void, flags: [], scope: Code(code: [
+//                    WhileLoop(userLabel: nil, condition: BoolLiteral(value: true), block: .empty)
+//                ])),
+//        ]))
+    }
+    
 }
