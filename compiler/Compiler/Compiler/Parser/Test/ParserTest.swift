@@ -17,6 +17,7 @@ class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
+        i.testTypeInferenceLocal2()
         i.testTypeInferenceLocal()
         i.testTypeInferenceGlobal()
         i.testVariableDeclaration()

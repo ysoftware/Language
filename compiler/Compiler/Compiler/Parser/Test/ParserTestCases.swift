@@ -133,4 +133,35 @@ struct Value { a := getInt(); b := getString(); }
             ]))
     }
     
+    func testTypeInferenceLocal2() {
+        // this test should fail when 2nd pass is implemented
+        // this just stops at the type being unresolved
+        let code = """
+
+    func main() {
+        if (true) { a := 1; if (false) { b := a; }} else { c := a; }
+    }
+    """
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+        
+        printResultCase(
+            code, result, Code(code: [
+                ProcedureDeclaration(
+                    id: "__global_func_main", name: "main", arguments: [],
+                    returnType: .void, flags: [], scope: Code(code: [
+                        Condition(condition: BoolLiteral(value: true), block: Code(code: [
+                            VariableDeclaration(name: "a", exprType: .int, flags: [], expression:
+                                IntLiteral(value: 1)),
+                            Condition(condition: BoolLiteral(value: false), block: Code(code: [
+                                VariableDeclaration(name: "b", exprType: .int, flags: [], expression:
+                                    Value(name: "a", exprType: .int)),
+                            ]), elseBlock: .empty)
+                        ]), elseBlock: Code(code: [
+                            VariableDeclaration(name: "c", exprType: .unresolved(name: nil), flags: [], expression:
+                                Value(name: "a", exprType: .unresolved(name: nil))),
+                        ])),
+                    ])),
+            ]))
+    }
 }

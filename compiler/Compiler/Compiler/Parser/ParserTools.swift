@@ -13,7 +13,7 @@ extension Parser {
     // @Todo: add append method the same as in Lexer
     // to auto-include the Cursor in the Ast
     
-    func dependOnGlobal(_ dependency: String, _ statement: Ast) {
+    func appendUnresolved(_ dependency: String, _ statement: Ast) {
         if unresolved[dependency] == nil { unresolved[dependency] = [] }
         unresolved[dependency]!.append(statement)
     }
@@ -25,8 +25,8 @@ extension Parser {
         return nil
     }
     
-    func appendDeclaration(_ declaration: Declaration, to scope: Scope? = nil) {
-        (scope ?? globalScope).declarations[declaration.name] = declaration
+    func appendDeclaration(_ declaration: Declaration, to scope: Scope) {
+        scope.declarations[declaration.name] = declaration
     }
     
     /// returns the error set at the current point

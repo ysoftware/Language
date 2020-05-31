@@ -11,7 +11,7 @@ import Foundation
 class Condition: Statement, Equatable {
     
     static func == (lhs: Condition, rhs: Condition) -> Bool {
-        true // @Todo
+        lhs.condition.equals(to: rhs.condition) && lhs.block == rhs.block && lhs.elseBlock == rhs.elseBlock
     }
     
     
@@ -36,7 +36,7 @@ class Condition: Statement, Equatable {
 class WhileLoop: Statement, Equatable {
 
     static func == (lhs: WhileLoop, rhs: WhileLoop) -> Bool {
-        true // @Todo
+        lhs.userLabel == rhs.userLabel && lhs.condition.equals(to: rhs.condition) && lhs.block == rhs.block
     }
     
     var debugDescription: String {
@@ -62,7 +62,7 @@ class WhileLoop: Statement, Equatable {
 class Break: Statement, Equatable {
     
     static func == (lhs: Break, rhs: Break) -> Bool {
-        true // @Todo
+        lhs.userLabel == rhs.userLabel
     }
     
     var debugDescription: String {

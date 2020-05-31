@@ -76,5 +76,13 @@ struct ParserError: Error {
 
 class Scope {
     
-    var declarations: [String: Ast] = [:]
+    var declarations: [String: Ast]
+    
+    func copy() -> Scope {
+        Scope(declarations: declarations)
+    }
+    
+    internal init(declarations: [String : Ast] = [:]) {
+        self.declarations = declarations
+    }
 }

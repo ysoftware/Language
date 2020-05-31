@@ -43,7 +43,7 @@ extension Parser {
                 else if declaredType != exprType { return error(.varDeclTypeMismatch) }
             }
         }
-        else if !consumeSep(";") { return error(.expectedSemicolon) }
+        if !consumeSep(";") { return error(.expectedSemicolon) }
         
         // variable type inference
         let type: Type
@@ -58,7 +58,7 @@ extension Parser {
         
         let varDecl = VariableDeclaration(
             name: identifier.value.value, exprType: type, flags: flags, expression: expr)
-        if case .resolved = type { dependOnGlobal(type.name, varDecl) }
+        if case .resolved = type { appendUnresolved(type.name, varDecl) }
         if let e = verifyNameConflict(varDecl, in: scope) { return error(e) }
         appendDeclaration(varDecl, to: scope)
         return .success(varDecl)
@@ -76,7 +76,7 @@ extension Parser {
         while tokens.count > i {
             var member: VariableDeclaration?
             if matchVarDecl() {
-                if let error = doVarDecl(in: globalScope).then({ member = $0 }) { return .failure(error) }
+                if let error = doVarDecl(in: globalScope.copy()).then({ member = $0 }) { return .failure(error) }
                 members.append(member!)
             }
             else {
@@ -86,7 +86,7 @@ extension Parser {
         }
         let structDecl = StructDeclaration(name: name.value, members: members)
         if let e = verifyNameConflict(structDecl) { return error(e) }
-        appendDeclaration(structDecl)
+        appendDeclaration(structDecl, to: globalScope)
         return .success(structDecl)
     }
     
@@ -133,7 +133,7 @@ extension Parser {
         // @Todo: match expressions to argument types
         
         let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments)
-        if case .resolved = returnType { dependOnGlobal(returnType.name, call) }
+        if case .resolved = returnType { appendUnresolved(returnType.name, call) }
         return .success(call)
     }
     
@@ -180,7 +180,7 @@ extension Parser {
         }
         else if consumePunct("{") {
             if flags.contains(.isForeign) { return error(.procForeignUnexpectedBody) }
-            if let error = doStatements(in: globalScope).then({ scope = Code(code: $0) }) { return .failure(error) }
+            if let error = doStatements(in: globalScope.copy()).then({ scope = Code(code: $0) }) { return .failure(error) }
         }
         else {
             return error(.procExpectedBody)
@@ -189,7 +189,7 @@ extension Parser {
             id: id, name: name, arguments: arguments,
             returnType: returnType, flags: flags, scope: scope)
         if let e = verifyNameConflict(procedure) { return error(e) }
-        appendDeclaration(procedure)
+        appendDeclaration(procedure, to: globalScope)
         return .success(procedure)
     }
     
@@ -208,11 +208,11 @@ extension Parser {
             if !consumePunct(")") { return error(.ifExpectedClosingParenthesis) }
         }
         if !consumePunct("{") { return error(.ifExpectedBrackets) }
-        if let error = doStatements(in: scope).then({ ifBody = $0 }) { return .failure(error) }
+        if let error = doStatements(in: scope.copy()).then({ ifBody = $0 }) { return .failure(error) }
         guard consumePunct("}") else { return error(.ifExpectedBrackets) }
         if consumeKeyword(.else) {
             if !consumePunct("{") { return error(.ifExpectedBrackets) }
-            if let error = doStatements(in: scope).then({ elseBody = $0 }) { return .failure(error) }
+            if let error = doStatements(in: scope.copy()).then({ elseBody = $0 }) { return .failure(error) }
             guard consumePunct("}") else { return error(.ifExpectedBrackets) }
         }
         return .success(Condition(
@@ -243,12 +243,12 @@ extension Parser {
             else {
                 expression = Value(name: identifier.value, exprType: .unresolved(name: nil))
                 
-                if let statement = globalScope.declarations[identifier.value] {
+                if let statement = scope.declarations[identifier.value] {
                     if let variable = statement as? VariableDeclaration {
                         expression.exprType = variable.exprType
                         switch variable.exprType {
                         case .resolved: break
-                        default: dependOnGlobal(identifier.value, expression)
+                        default: appendUnresolved(identifier.value, expression)
                         }
                     }
                     else { return error(.assignPassedNotValue) }
@@ -259,7 +259,6 @@ extension Parser {
             print("Expression unknown \(token)")
             return error(.notImplemented)
         }
-        guard consumeSep(";") else { return error(.expectedSemicolon) }
         
         return .success(expression)
     }
@@ -286,6 +285,7 @@ extension Parser {
                 else if consumeKeyword(.return) {
                     var returnExpression: Expression?
                     if let error = doExpression(in: scope).then({ returnExpression = $0 }) { return .failure(error) }
+                    guard consumeSep(";") else { return error(.expectedSemicolon) }
                     let returnStatement = Return(value: returnExpression ?? VoidLiteral())
                     statements.append(returnStatement)
                 }
@@ -304,6 +304,9 @@ extension Parser {
                 }
             case is Comment:
                 nextToken()
+            case let separator as Separator:
+                if separator.value == ";" { nextToken() /* ignore */ }
+                
             default:
                 print("(statements loop) Unexpected token\n\(token)\n")
                 return error(.notImplemented)
@@ -370,6 +373,8 @@ class Parser {
                     print("(main loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
                     return error(.notImplemented)
                 }
+            case let separator as Separator:
+                if separator.value == ";" { nextToken() /* ignore */ }
                 
             default: if !nextToken() { break loop }
             }
