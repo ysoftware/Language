@@ -17,7 +17,6 @@ class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
-        i.testTypeInferenceLocal2()
         i.testWhileLoop()
         i.testTypeInference2()
         i.testTypeInference()

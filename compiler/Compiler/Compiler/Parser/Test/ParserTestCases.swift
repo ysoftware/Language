@@ -12,16 +12,8 @@ extension ParserTest {
     
     func testVariableDeclaration() {
         let code = """
-func main() {
-    a : String;
-    b := 1;
-    c :: "hello";
-    d : Int = 1;
-    e : Bool : true;
-    f := 1.0;
-    g :: false;
-    h :: 5_000_000_000_000; // @Todo: this should result in Int64
-}
+func main() { a : String; b := 1; c :: "hello"; d : Int = 1;
+e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; }
 """
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
@@ -69,8 +61,8 @@ func print3() { x :: 1; }
     
     func testStructDeclaration() {
         // @Todo: finish this test
+//        let code = "1struct c { a: String; b :: 1; }" // @Lexer @Todo: this passes (with 1 at the start)
         let code = "x := 1.0; struct A { a: String; b :: 1; c := b; d := x; }"
-        //        let code = "1struct c { a: String; b :: 1; }" // @Lexer @Todo: this passes (with 1 at the start)
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
@@ -114,13 +106,7 @@ struct Value { a := getInt(); b := getString(); }
     }
     
     func testTypeInference() {
-        let code = """
-    c:= 1;
-    func main() {
-        a := c;
-        b := a;
-    }
-    """
+        let code = "c:= 1; func main() { a := c; b := a; }"
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
@@ -137,14 +123,9 @@ struct Value { a := getInt(); b := getString(); }
     }
     
     func testTypeInference2() {
-        // @Todo this test should fail when 2nd pass is implemented
+        // @Todo this test should fail when 2nd pass type inference is implemented
         // this just stops at the type being unresolved
-        let code = """
-
-    func main() {
-        if (true) { a := 1; if (false) { b := a; }} else { c := a; }
-    }
-    """
+        let code = "func main() { if (true) { a := 1; if (false) { b := a; }} else { c := a; }}"
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
@@ -169,18 +150,16 @@ struct Value { a := getInt(); b := getString(); }
     }
     
     func testWhileLoop() {
-        // @Todo: finish this test
-//        let code = "func main() { /*while (true) {  } */}"
-//        let tokens = try! Lexer(code).analyze().get()
-//        let result = Parser(tokens).parse()
-//
-//        printResultCase(code, result, Code(code: [
-//            ProcedureDeclaration(
-//                id: "__global_func_main", name: "main", arguments: [],
-//                returnType: .void, flags: [], scope: Code(code: [
-//                    WhileLoop(userLabel: nil, condition: BoolLiteral(value: true), block: .empty)
-//                ])),
-//        ]))
+        let code = "func main() { while (true) { }}"
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+
+        printResultCase(code, result, Code(code: [
+            ProcedureDeclaration(
+                id: "__global_func_main", name: "main", arguments: [],
+                returnType: .void, flags: [], scope: Code(code: [
+                    WhileLoop(userLabel: nil, condition: BoolLiteral(value: true), block: .empty)
+                ])),
+        ]))
     }
-    
 }

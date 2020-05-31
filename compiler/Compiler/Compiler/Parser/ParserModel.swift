@@ -51,6 +51,8 @@ extension Parser {
         // common
         var notImplemented: String { "Not implemented: \(p.token)" }
         let expectedSemicolon = "Expected ';' after an expression."
+        let expectedParenthesis = "Parenthesis are expected around the condition expression."
+        
         func declarationConflict(_ d: Ast) -> String {
             // @Todo point to definition by cursor
             "Declaration conflicts with another declaration with the same name: \(d)"
@@ -65,9 +67,14 @@ extension Parser {
         let varDeclRequiresType = "Variable declaration without expression requires type to be specified."
         
         // if
-        let ifExpectedClosingParenthesis = "Closing parenthesis is expected after condition expression."
         let ifExpectedBrackets = "Expected brackets around if-else blocks."
+        let ifNotExpectedAtGlobalScope = "If statement is not expected at the global scope"
         
+        // loop
+        let loopNotExpectedAtGlobalScope = "While statement is not expected at the global scope"
+        let loopExpectedClosingParenthesis = "Closing parenthesis is expected around the condition expression."
+        let loopExpectedBrackets = "Expected brackets around a loop body."
+
         // procedure call
         let callExpectedClosingParenthesis = "Closing parenthesis is expected after arguments."
         let callNotProcedure = "Trying to call something that's not a procedure."

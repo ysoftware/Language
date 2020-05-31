@@ -108,7 +108,7 @@ extension Parser {
             if let error = doExpression(in: scope).then({ arguments.append($0) }) { return .failure(error) }
             if !consumeSep(",") { break }
         }
-        guard consumePunct(")") else { return error(em.ifExpectedClosingParenthesis) }
+        guard consumePunct(")") else { return error(em.expectedParenthesis) }
         var returnType: Type = .unresolved(name: nil)
         if let statement = scope.declarations[name.value] { // else - proceed
             if let procDecl = statement as? ProcedureDeclaration {
@@ -145,7 +145,7 @@ extension Parser {
         defer { endCursor = token.endCursor }
         assert(consumeKeyword(.func))
         guard let procName = consumeIdent()?.value else { return error(em.procExpectedName) }
-        guard consumePunct("(") else { return error(em.procArgumentParenthesis) }
+        guard consumePunct("(") else { return error(em.expectedParenthesis) }
         let returnType: Type
         let name = procName.value
         let id = "__global_func_\(procName.value)" // @Todo: don't change the name of 'main'? or create a #main directive
@@ -206,7 +206,7 @@ extension Parser {
         var elseBody: [Statement] = []
         if hasParenthesis {
             if let error = doExpression(in: scope).then({ condition = $0 }) { return .failure(error) }
-            if !consumePunct(")") { return error(em.ifExpectedClosingParenthesis) }
+            if !consumePunct(")") { return error(em.expectedParenthesis) }
         }
         if !consumePunct("{") { return error(em.ifExpectedBrackets) }
         if let error = doStatements(in: scope.copy()).then({ ifBody = $0 }) { return .failure(error) }
@@ -216,10 +216,41 @@ extension Parser {
             if let error = doStatements(in: scope.copy()).then({ elseBody = $0 }) { return .failure(error) }
             guard consumePunct("}") else { return error(em.ifExpectedBrackets) }
         }
-        return .success(Condition(
-            condition: condition, block: Code(code: ifBody), elseBlock: Code(code: elseBody)))
+        let ifStatement = Condition(condition: condition, block: Code(code: ifBody), elseBlock: Code(code: elseBody))
+        return .success(ifStatement)
     }
     
+    // MARK: - WHILE LOOP -
+    
+    func matchWhile() -> Bool {
+        (token.value as? Keyword) == .while
+            || (token.value is Identifier // "label: while"
+                && (peekNext()?.value as? Punctuator)?.value == ":"
+                && (peekNext(index: 2)?.value as? Keyword) == .while)
+    }
+    
+    func doWhile(in scope: Scope) -> Result<WhileLoop, ParserError> {
+        startCursor = token.startCursor
+        defer { endCursor = token.endCursor }
+        var label: String?
+        if let identifier = token.value as? Identifier, consumePunct(":") {
+            label = identifier.value
+        }
+        assert(consumeKeyword(.while))
+        let hasParenthesis = consumePunct("(")
+        var condition: Expression!
+        var loopBody: [Statement] = []
+        if hasParenthesis {
+            if let error = doExpression(in: scope).then({ condition = $0 }) { return .failure(error) }
+            if !consumePunct(")") { return error(em.expectedParenthesis) }
+        }
+        if !consumePunct("{") { return error(em.loopExpectedBrackets) }
+        if let error = doStatements(in: scope.copy()).then({ loopBody = $0 }) { return .failure(error) }
+        guard consumePunct("}") else { return error(em.loopExpectedBrackets) }
+        let whileStatement = WhileLoop(userLabel: label, condition: condition, block: Code(code: loopBody))
+        return .success(whileStatement)
+    }
+ 
     // MARK: - EXPRESSIONS -
     
     func doExpression(in scope: Scope) -> Result<Expression, ParserError> {
@@ -281,6 +312,10 @@ extension Parser {
                 }
                 else if keyword == .if {
                     if let error = doIf(in: scope).then({ statements.append($0) }) { return .failure(error) }
+                    break
+                }
+                else if matchWhile() {
+                    if let error = doWhile(in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
                 else if consumeKeyword(.return) {
@@ -354,28 +389,33 @@ class Parser {
                     if let error = doProcDecl(in: globalScope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
-                
                 if keyword == .struct {
                     if let error = doStructDecl().then({ statements.append($0) }) { return .failure(error)}
                     break
                 }
-                    
-                else {
-                    print("Keyword \(keyword.rawValue) is not YET implemented.")
-                    return error(em.notImplemented)
+                if keyword == .if {
+                    return error(em.ifNotExpectedAtGlobalScope)
                 }
+                if matchWhile() {
+                    return error(em.loopNotExpectedAtGlobalScope)
                     
+                }
+                
+                print("Keyword \(keyword.rawValue) is not YET implemented.")
+                return error(em.notImplemented)
                     
             case is Identifier:
+                if matchWhile() {
+                    return error(em.loopNotExpectedAtGlobalScope)
+                }
                 if matchVarDecl() {
                     if let error = doVarDecl(in: globalScope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
-                    
-                else {
-                    print("(main loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
-                    return error(em.notImplemented)
-                }
+                
+                print("(main loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
+                return error(em.notImplemented)
+            
             case let separator as Separator:
                 if separator.value == ";" { if !nextToken() { break loop } /* ignore */ }
                 
