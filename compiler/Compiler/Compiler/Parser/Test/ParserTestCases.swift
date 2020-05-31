@@ -180,4 +180,22 @@ struct Value { a := getInt(); b := getString(); }
                 ])),
         ]))
     }
+    
+    func testWhileLoopContinue() {
+        let code = "func main() { loop: while (true) { loop1: while (true) { continue loop; }}}"
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+
+        printResultCase(code, result, Code([
+            ProcedureDeclaration(
+                id: "__global_func_main", name: "main", arguments: [],
+                returnType: .void, flags: [], scope: Code([
+                    WhileLoop(userLabel: "loop", condition: BoolLiteral(value: true), block: Code([
+                        WhileLoop(userLabel: "loop1", condition: BoolLiteral(value: true), block: Code([
+                            Continue(userLabel: "loop")
+                        ]))
+                    ]))
+                ])),
+        ]))
+    }
 }

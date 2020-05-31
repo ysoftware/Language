@@ -17,6 +17,7 @@ class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
+        i.testWhileLoopContinue()
         i.testWhileLoopBreak()
         i.testWhileLoop()
         i.testTypeInference2()

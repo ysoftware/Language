@@ -86,10 +86,11 @@ extension Parser {
         let loopExpectedClosingParenthesis = "Closing parenthesis is expected around the condition expression."
         let loopExpectedBrackets = "Expected brackets around a loop body."
         let loopLabelDuplicate = "Break with this label is already declared in the current scope."
+        let loopLabelNotFound = "Loop with this label is not found in the current scope."
         
-        // break
+        // break, continue
         let breakContext = "Break can't be used outside of loop or switch."
-        let breakLabelNotFound = "Loop with this label is not found in the current scope."
+        let continueContext = "Continue can't be used outside of loop or switch."
 
         // procedure call
         let callExpectedClosingParenthesis = "Closing parenthesis is expected after arguments."

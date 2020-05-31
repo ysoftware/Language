@@ -259,12 +259,24 @@ extension Parser {
         guard consumeSep(";") else { return error(em.expectedSemicolon) }
         if let label = label {
             if !scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == label })
-            { return error(em.breakLabelNotFound) }
+            { return error(em.loopLabelNotFound) }
         }
         else { if nil == scope.contexts.last(where: { $0 is ContextLoop }) { return error(em.breakContext) }}
         return .success(Break(userLabel: label))
     }
- 
+    
+    func doContinue(in scope: Scope) -> Result<Continue, ParserError> {
+        assert(consumeKeyword(.continue))
+        let label = consumeIdent()?.value.value
+        guard consumeSep(";") else { return error(em.expectedSemicolon) }
+        if let label = label {
+            if !scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == label })
+            { return error(em.loopLabelNotFound) }
+        }
+        else { if nil == scope.contexts.last(where: { $0 is ContextLoop }) { return error(em.continueContext) }}
+        return .success(Continue(userLabel: label))
+    }
+    
     // MARK: - EXPRESSIONS -
     
     func doExpression(in scope: Scope) -> Result<Expression, ParserError> {
@@ -326,6 +338,10 @@ extension Parser {
                 }
                 if keyword == .break {
                     if let error = doBreak(in: scope).then({ statements.append($0) }) { return .failure(error) }
+                    break
+                }
+                if keyword == .continue {
+                    if let error = doContinue(in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
                 if keyword == .if {
@@ -413,13 +429,12 @@ class Parser {
                     if let error = doStructDecl().then({ statements.append($0) }) { return .failure(error)}
                     break
                 }
-                if keyword == .if {
-                    return error(em.ifNotExpectedAtGlobalScope)
-                }
-                if matchWhile() {
-                    return error(em.loopNotExpectedAtGlobalScope)
-                }
-                
+                if keyword == .if { return error(em.ifNotExpectedAtGlobalScope) }
+                if matchWhile() { return error(em.loopNotExpectedAtGlobalScope) }
+                if keyword == .break { return error(em.breakContext) }
+                if keyword == .continue { return error(em.continueContext) }
+                if keyword == .fallthrough { return error("@Todo: FALLTHROUGH ERROR MESSAGE") }
+
                 print("Keyword \(keyword.rawValue) is not YET implemented.")
                 return error(em.notImplemented)
                     

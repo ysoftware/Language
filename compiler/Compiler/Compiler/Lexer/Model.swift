@@ -52,6 +52,7 @@ enum Keyword: String, CaseIterable, Equatable, TokenValue {
     case `func`
     case `break`
     case `continue`
+    case `fallthrough`
     case `while`
     case `for`
     case `enum`
