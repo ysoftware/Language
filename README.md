@@ -1,12 +1,14 @@
 # Language
 
-## Упражнение на разработку языка программирования
+## Excercise in developing a programming language
 
-Пишу на Swift, потому что мне так проще.
-Это мой первый опыт в разработке языка программирования, поэтому, я не принимаю критику и не читаю туториалы.
-Я хочу столкнуться со максимальным количеством ошибкок и проблем. И решить их сам.
 
-## Прогресс:
+I'm using Swift because I feel comfortable with it.
+This is my very first experience in compiler development, therefore, I'm not taking any criticism and not reading any tutorials.
+
+I want to stumble into as many mistakes and problems as I can, and solve them on my own.
+
+## Progress:
 - [x] use LLVM to parse manually-written IR
 - [x] generate IR from some manually written and pre-typed AST
 - [x] develop lexer (tokenizer)
