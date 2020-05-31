@@ -46,7 +46,7 @@ internal extension IR {
             for arg in call.arguments {
                 code += "\(identation); argument \(arg.exprType.name)\n"
 
-                // @Todo: don't load the same argument
+                // @Todo: don't load the same value argument
                 // if passed twice, like a = add(a, a)
                 
                 // @Todo: dereference all arguments passed by value

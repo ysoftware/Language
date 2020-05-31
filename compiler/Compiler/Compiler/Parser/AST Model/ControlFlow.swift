@@ -14,7 +14,6 @@ class Condition: Statement, Equatable {
         lhs.condition.equals(to: rhs.condition) && lhs.block == rhs.block && lhs.elseBlock == rhs.elseBlock
     }
     
-    
     var debugDescription: String {
         var string = "[If] \(condition)\n\tThen: \(block)"
         if !elseBlock.isEmpty { string.append("\n\tElse: \(elseBlock)") }

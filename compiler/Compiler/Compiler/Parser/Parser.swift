@@ -119,7 +119,7 @@ extension Parser {
                         else { return error(em.callArgumentsCount) }
                     let declArgument = procDecl.arguments.count > i ? procDecl.arguments[i] : procDecl.arguments.last!
                     switch arguments[i].exprType {
-                        // @Todo: refactor to matching procedure. This should be recursive.
+                        // @Todo: refactor to "getType(...) -> Type"
                     case .resolved(let name), .predicted(let name):
                         if name != declArgument.name { return error(em.callArgumentTypeMismatch) }
                     case .unresolved(let name):
@@ -131,8 +131,6 @@ extension Parser {
             }
             else { return error(em.callNotProcedure) }
         }
-        // @Todo: match expressions to argument types
-        
         let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments)
         if case .resolved = returnType { appendUnresolved(returnType.name, call) }
         return .success(call)

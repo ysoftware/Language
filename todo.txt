@@ -1,0 +1,30 @@
+LEXER TODO
+
+-- there are bugs
+-- check how lexer acts with whitespaces (and without them)
+
+PARSER TODO
+
+✅ procedure head            func printf(format: String, arguments: Int32, ...) -> Void #foreign
+✅ procedure body            return
+✅ procedure call            a = printf(format: a, arguments: b, a);
+✅ variable declaration      a := 1; a : Int = 1;
+✅ constant declaration      a :: 1; a : Int : 1;
+✅ struct declaration        struct Name {  }
+✅ type inference 1st pass   a = proc_a();
+✅ if else
+✅ switch
+✅ while loop
+✅ break, continue
+
+-- array literal             a : Int[3] = [1]; a := (Float[3])[1]
+-- tuple literal             a : (Int, String) = (1, "a"); 
+-- variable assignment       a = b;
+-- binary operators          a+b; a-b; a/b; a*a;
+-- unary operators           -a; ~a; !a; *a; (B)a ; ^a;
+-- type inference 2nd pass
+
+IR Gen TODO
+
+-- structures
+-- arrays
