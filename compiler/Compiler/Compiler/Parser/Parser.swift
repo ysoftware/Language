@@ -108,7 +108,7 @@ extension Parser {
             if let error = doExpression(in: scope).then({ arguments.append($0) }) { return .failure(error) }
             if !consumeSep(",") { break }
         }
-        guard consumePunct(")") else { return error(em.expectedParenthesis) }
+        guard consumePunct(")") else { return error(em.expectedParentheses) }
         var returnType: Type = .unresolved(name: nil)
         if let statement = scope.declarations[name.value] { // else - proceed
             if let procDecl = statement as? ProcedureDeclaration {
@@ -143,7 +143,7 @@ extension Parser {
         defer { endCursor = token.endCursor }
         assert(consumeKeyword(.func))
         guard let procName = consumeIdent()?.value else { return error(em.procExpectedName) }
-        guard consumePunct("(") else { return error(em.expectedParenthesis) }
+        guard consumePunct("(") else { return error(em.expectedParentheses) }
         let returnType: Type
         let name = procName.value
         let id = "__global_func_\(procName.value)" // @Todo: don't change the name of 'main'? or create a #main directive
@@ -167,7 +167,7 @@ extension Parser {
             }
             if !consumeSep(",") { break }
         }
-        if !consumePunct(")") { return error(em.procArgumentParenthesis) }
+        if !consumePunct(")") { return error(em.procArgumentParentheses) }
         if consumePunct("->") {
             if let type = consume(Identifier.self)?.value { returnType = .type(name: type.value) }
             else { return error(em.procReturnTypeExpected) }
@@ -198,13 +198,13 @@ extension Parser {
         startCursor = token.startCursor
         defer { endCursor = token.endCursor }
         assert(consumeKeyword(.if))
-        let hasParenthesis = consumePunct("(")
+        let hasParentheses = consumePunct("(")
         var condition: Expression!
         var ifBody: [Statement] = []
         var elseBody: [Statement] = []
-        if hasParenthesis {
+        if hasParentheses {
             if let error = doExpression(in: scope).then({ condition = $0 }) { return .failure(error) }
-            if !consumePunct(")") { return error(em.expectedParenthesis) }
+            if !consumePunct(")") { return error(em.expectedParentheses) }
         }
         if !consumePunct("{") { return error(em.ifExpectedBrackets) }
         if let error = doStatements(in: scope.next()).then({ ifBody = $0 }) { return .failure(error) }
@@ -237,12 +237,12 @@ extension Parser {
             if scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == label })
             { return error(em.loopLabelDuplicate) }
         }
-        let hasParenthesis = consumePunct("(")
+        let hasParentheses = consumePunct("(")
         var condition: Expression!
         var loopBody: [Statement] = []
-        if hasParenthesis {
+        if hasParentheses {
             if let error = doExpression(in: scope).then({ condition = $0 }) { return .failure(error) }
-            if !consumePunct(")") { return error(em.expectedParenthesis) }
+            if !consumePunct(")") { return error(em.expectedParentheses) }
         }
         if !consumePunct("{") { return error(em.loopExpectedBrackets) }
         if let error = doStatements(in: scope.next(as: ContextLoop(label: label))).then({ loopBody = $0 }) { return .failure(error) }

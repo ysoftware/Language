@@ -62,7 +62,7 @@ extension Parser {
         // common
         var notImplemented: String { "Not implemented: \(p.token)" }
         let expectedSemicolon = "Expected ';' after an expression."
-        let expectedParenthesis = "Parenthesis are expected around the condition expression."
+        let expectedParentheses = "Parentheses are expected around the condition expression."
         
         func declarationConflict(_ d: Ast) -> String {
             // @Todo point to definition by cursor
@@ -83,7 +83,7 @@ extension Parser {
         
         // loop
         let loopNotExpectedAtGlobalScope = "While statement is not expected at the global scope"
-        let loopExpectedClosingParenthesis = "Closing parenthesis is expected around the condition expression."
+        let loopExpectedClosingParentheses = "Closing parentheses is expected around the condition expression."
         let loopExpectedBrackets = "Expected brackets around a loop body."
         let loopLabelDuplicate = "Break with this label is already declared in the current scope."
         let loopLabelNotFound = "Loop with this label is not found in the current scope."
@@ -93,14 +93,14 @@ extension Parser {
         let continueContext = "Continue can't be used outside of loop or switch."
 
         // procedure call
-        let callExpectedClosingParenthesis = "Closing parenthesis is expected after arguments."
+        let callExpectedClosingParentheses = "Closing parentheses is expected after arguments."
         let callNotProcedure = "Trying to call something that's not a procedure."
         let callArgumentsCount = "Procedure requires different number of arguments."
         let callArgumentTypeMismatch = "Argument expression doesn't match the type declared in the procedure."
         
         // procedure declaration
         let procNestedNotSupported = "Nested procedure declarations are not supported."
-        let procArgumentParenthesis = "Expected parenthesis around arguments declaration."
+        let procArgumentParentheses = "Expected parentheses around arguments declaration."
         let procForeignUnexpectedBody = "Foreign procedure can not declare a body."
         let procExpectedBody = "Procedure is expected to have a body."
         let procExpectedArgumentType = "Expected a type of an argument after colon."

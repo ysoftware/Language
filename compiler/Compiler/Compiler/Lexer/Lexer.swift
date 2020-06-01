@@ -8,6 +8,9 @@
 
 // Constants
 
+// @Todo: add EOF token
+// @Todo: properly eat whitespaces
+
 fileprivate let punctuators = [".", ":", "(", ")", "{", "}", "[", "]", "->", "..."]
 fileprivate let operators = ["-", "+", "/", "*", "..", "=", ":=",
                              "==", "!=", "<=", ">=", "&&", "||",

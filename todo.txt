@@ -1,7 +1,9 @@
 LEXER TODO
 
--- there are bugs
--- check how lexer acts with whitespaces (and without them)
+-- properly eat whitespaces
+-- add EOF token
+-- escaping quotes in strings
+-- hex/bin numbers
 
 PARSER TODO
 
@@ -13,15 +15,16 @@ PARSER TODO
 ✅ struct declaration        struct Name {  }
 ✅ type inference 1st pass   a = proc_a();
 ✅ if else
-✅ switch
 ✅ while loop
 ✅ break, continue
 
--- array literal             a : Int[3] = [1]; a := (Float[3])[1]
--- tuple literal             a : (Int, String) = (1, "a"); 
--- variable assignment       a = b;
 -- binary operators          a+b; a-b; a/b; a*a;
 -- unary operators           -a; ~a; !a; *a; (B)a ; ^a;
+-- switch
+-- array literal             a : Int[3] = [1]; a := (Float[3])[1]
+-- tuple literal             a : (Int, String) = (1, "a"); 
+-- struct instance literal   x := Struct { a = 1, b = 2 }; // all unspecified are left as default
+-- variable assignment       a = b;
 -- type inference 2nd pass
 
 IR Gen TODO
