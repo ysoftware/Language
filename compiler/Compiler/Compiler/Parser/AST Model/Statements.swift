@@ -2,7 +2,7 @@
 //  Statements.swift
 //  Compiler
 //
-//  Created by Ерохин Ярослав Игоревич on 27.05.2020.
+//  Created by Yaroslav Erokhin on 27.05.2020.
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 
