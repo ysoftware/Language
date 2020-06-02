@@ -78,7 +78,7 @@ extension Parser {
     /// checks if `next token` exists, is a string-value token, and matches the passed value, then eats it if it does
     /// if not, does nothing and returns `false`
     func consume<T: StringValueToken>(_ type: T.Type, matching value: String) -> Bool {
-        return consume(where: { ($0 as? T)?.value == value }) != nil
+        consume(where: { ($0 as? T)?.value == value }) != nil
     }
     
     func consumeKeyword(_ keyword: Keyword) -> Bool {
@@ -92,9 +92,13 @@ extension Parser {
     func consumeSep(_ value: String) -> Bool {
         consume(Separator.self, matching: value)
     }
-    
+
     func consumeOp(_ value: String) -> Bool {
         consume(Operator.self, matching: value)
+    }
+    
+    func consumeOperator() -> (token: Token, value: Operator)? {
+         consume(Operator.self)
     }
     
     func consumeIdent() -> (token: Token, value: Identifier)? {

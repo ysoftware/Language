@@ -43,6 +43,7 @@ extension Parser {
                 else if declaredType != exprType { return error(em.varDeclTypeMismatch) }
             }
         }
+        else if !consumeSep(";") { return error(em.expectedSemicolon) }
         
         // variable type inference
         let type: Type
@@ -60,7 +61,6 @@ extension Parser {
         if case .resolved = type { appendUnresolved(type.name, varDecl) }
         if let e = verifyNameConflict(varDecl, in: scope) { return error(e) }
         appendDeclaration(varDecl, to: scope)
-        if !consumeSep(";") { return error(em.expectedSemicolon) }
         return .success(varDecl)
     }
     
@@ -203,7 +203,7 @@ extension Parser {
         var ifBody: [Statement] = []
         var elseBody: [Statement] = []
         if hasParentheses {
-            if let error = doExpression(in: scope).then({ condition = $0 }) { return .failure(error) }
+            if let error = doExpression(in: scope, expectSemicolon: false).then({ condition = $0 }) { return .failure(error) }
             if !consumePunct(")") { return error(em.expectedParentheses) }
         }
         if !consumePunct("{") { return error(em.ifExpectedBrackets) }
@@ -241,7 +241,7 @@ extension Parser {
         var condition: Expression!
         var loopBody: [Statement] = []
         if hasParentheses {
-            if let error = doExpression(in: scope).then({ condition = $0 }) { return .failure(error) }
+            if let error = doExpression(in: scope, expectSemicolon: false).then({ condition = $0 }) { return .failure(error) }
             if !consumePunct(")") { return error(em.expectedParentheses) }
         }
         if !consumePunct("{") { return error(em.loopExpectedBrackets) }
@@ -277,9 +277,36 @@ extension Parser {
     
     // MARK: - EXPRESSIONS -
     
-    func doExpression(in scope: Scope) -> Result<Expression, ParserError> {
+    func doExpression(in scope: Scope, expectSemicolon: Bool = true) -> Result<Expression, ParserError> {
+        // @Todo: binary operators
+        while tokens.count > i {
+            var left: Expression!
+            if let error = doExpr(in: scope).then({ left = $0 }) { return .failure(error) }
+                        
+//            if let op = consumeOperator()?.value {
+//                var right: Expression!
+//                if let error = doExpr(in: scope).then({ right = $0 }) { return .failure(error) }
+//            }
+
+            if consumeSep(";") || !expectSemicolon {
+                return .success(left)
+            }
+            
+            return error(em.expectedSemicolon)
+        }
+        return doExpr(in: scope)
+    }
+    
+    func doExpr(in scope: Scope) -> Result<Expression, ParserError> {
         startCursor = token.startCursor
         defer { endCursor = token.endCursor }
+        
+        // @Todo: member access
+        // @Todo: subscript
+        // @Todo: brackets "(1 + 2) * 3"
+        
+        // @Todo: unary operators
+        
         let expression: Expression
         switch token.value {
         case let literal as TokenLiteral:
@@ -289,7 +316,7 @@ extension Parser {
             case .float(let value): expression = FloatLiteral(value: value)
             case .string(let value): expression = StringLiteral(value: value)
             }
-            nextToken()
+            if !nextToken() { return error(em.unexpectedEndOfFile) }
         case let identifier as Identifier:
             if matchProcedureCall() {
                 var ex: Expression!
@@ -309,7 +336,7 @@ extension Parser {
                     }
                     else { return error(em.assignPassedNotValue(statement)) }
                 }
-                nextToken()
+                if !nextToken() { return error(em.unexpectedEndOfFile) }
             }
         default:
             print("Expression unknown \(token)")
@@ -353,7 +380,6 @@ extension Parser {
                 if consumeKeyword(.return) {
                     var returnExpression: Expression?
                     if let error = doExpression(in: scope).then({ returnExpression = $0 }) { return .failure(error) }
-                    guard consumeSep(";") else { return error(em.expectedSemicolon) }
                     let returnStatement = Return(value: returnExpression ?? VoidLiteral())
                     statements.append(returnStatement)
                     break

@@ -11,6 +11,8 @@ import Foundation
 /// Переводит строку из "Something\n" в "Something\0A"
 /// удаляет знаки, запрещенные внутри кода LLVM IR
 func getCString(from value: String) -> String? {
+    // @Todo: maybe I can convert any other encoding to cString
+    // I'm passing ASCII right now, but maybe I should be passing utf8?
     guard let cString = value.cString(using: .ascii) else { return nil }
     
     func shouldConvertCharacter(_ char: CChar) -> Bool {

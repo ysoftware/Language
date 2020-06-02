@@ -60,6 +60,7 @@ extension Parser {
         weak var p: Parser!
         
         // common
+        let unexpectedEndOfFile = "Unexpected end of file."
         var notImplemented: String { "Not implemented: \(p.token)" }
         let expectedSemicolon = "Expected ';' after an expression."
         let expectedParentheses = "Parentheses are expected around the condition expression."

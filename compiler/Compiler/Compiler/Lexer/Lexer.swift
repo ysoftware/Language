@@ -128,6 +128,8 @@ class Lexer {
             case numberRange, ".", "-":
                 // NUMBER LITERALS
                 
+                // @Todo: unary operator "-"?
+                
                 // if this and the next characters are both not numbers
                 // @Note: this will fail "---1", and maybe we don't need it
                 if !numberRange.contains(char), let next = peekNext(), !numberRange.contains(next) {

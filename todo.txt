@@ -27,6 +27,9 @@ PARSER TODO
 -- variable assignment       a = b;
 -- type inference 2nd pass
 
+-- add scope to Ast (to ident debug output)
+-- add cursor to Ast (for 2nd pass error messaging)
+
 IR Gen TODO
 
 -- structures

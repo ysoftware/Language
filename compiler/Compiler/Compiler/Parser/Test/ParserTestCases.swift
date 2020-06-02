@@ -198,4 +198,47 @@ struct Value { a := getInt(); b := getString(); }
                 ])),
         ]))
     }
+    
+    func testUnaryOperators() {
+        return
+        
+        let code = "func main() { a := 1; b := -a; }"
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+        
+        printResultCase(code, result, Code([
+            ProcedureDeclaration(
+                id: "__global_func_main", name: "main", arguments: [],
+                returnType: .void, flags: [], scope: Code([
+                 
+                ]))
+        ]))
+    }
+    
+    func testBinaryOperators() {
+        return
+        
+        let code = "func main() { a := 1 + 3; b := a - 2; c := a * b; }"
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+        
+        printResultCase(code, result, Code([
+            ProcedureDeclaration(
+                id: "__global_func_main", name: "main", arguments: [],
+                returnType: .void, flags: [], scope: Code([
+                    VariableDeclaration(name: "a", exprType: .int, flags: [], expression:
+                        BinaryOperator(name: .add, operatorType: .int, exprType: .int, arguments: (
+                            IntLiteral(value: 1), IntLiteral(value: 3))
+                    )),
+                    VariableDeclaration(name: "b", exprType: .int, flags: [], expression:
+                        BinaryOperator(name: .sub, operatorType: .int, exprType: .int, arguments: (
+                            Value(name: "a", exprType: .int), IntLiteral(value: 2))
+                    )),
+                    VariableDeclaration(name: "c", exprType: .int, flags: [], expression:
+                        BinaryOperator(name: .mul, operatorType: .int, exprType: .int, arguments: (
+                            Value(name: "a", exprType: .int), Value(name: "b", exprType: .int)
+                        )))
+                ]))
+        ]))
+    }
 }
