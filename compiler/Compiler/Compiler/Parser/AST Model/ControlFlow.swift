@@ -10,6 +10,9 @@ import Foundation
 
 class Condition: Statement, Equatable {
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: Condition, rhs: Condition) -> Bool {
         lhs.condition.equals(to: rhs.condition) && lhs.block == rhs.block && lhs.elseBlock == rhs.elseBlock
     }
@@ -33,7 +36,10 @@ class Condition: Statement, Equatable {
 }
 
 class WhileLoop: Statement, Equatable {
-
+    
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: WhileLoop, rhs: WhileLoop) -> Bool {
         lhs.userLabel == rhs.userLabel && lhs.condition.equals(to: rhs.condition) && lhs.block == rhs.block
     }
@@ -60,6 +66,9 @@ class WhileLoop: Statement, Equatable {
 
 class Break: Statement, Equatable {
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: Break, rhs: Break) -> Bool {
         lhs.userLabel == rhs.userLabel
     }
@@ -80,6 +89,9 @@ class Break: Statement, Equatable {
 
 class Continue: Statement, Equatable {
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: Continue, rhs: Continue) -> Bool {
         lhs.userLabel == rhs.userLabel
     }
@@ -99,6 +111,9 @@ class Continue: Statement, Equatable {
 }
 
 class Return: Statement, Equatable {
+    
+    var startCursor = Cursor()
+    var endCursor = Cursor()
     
     static func == (lhs: Return, rhs: Return) -> Bool {
         lhs.value.equals(to: rhs.value)

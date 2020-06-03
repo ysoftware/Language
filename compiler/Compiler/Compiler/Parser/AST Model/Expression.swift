@@ -10,6 +10,9 @@ import Foundation
 
 class BinaryOperator: Expression, Equatable {
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: BinaryOperator, rhs: BinaryOperator) -> Bool {
         lhs.name == rhs.name
             && lhs.operatorType == rhs.operatorType
@@ -37,6 +40,9 @@ class BinaryOperator: Expression, Equatable {
 
 class ProcedureCall: Expression, Statement, Equatable {
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: ProcedureCall, rhs: ProcedureCall) -> Bool {
         lhs.name == rhs.name
             && lhs.exprType == rhs.exprType
@@ -62,6 +68,9 @@ class ProcedureCall: Expression, Statement, Equatable {
 
 class StringLiteral: LiteralExpr, Equatable {
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: StringLiteral, rhs: StringLiteral) -> Bool {
         lhs.value == rhs.value
     }
@@ -79,6 +88,9 @@ class StringLiteral: LiteralExpr, Equatable {
 }
 
 class IntLiteral: LiteralExpr, Equatable {
+    
+    var startCursor = Cursor()
+    var endCursor = Cursor()
     
     static func == (lhs: IntLiteral, rhs: IntLiteral) -> Bool {
         lhs.value == rhs.value
@@ -99,6 +111,9 @@ class IntLiteral: LiteralExpr, Equatable {
 
 class FloatLiteral: LiteralExpr, Equatable {
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: FloatLiteral, rhs: FloatLiteral) -> Bool {
         lhs.value == rhs.value
     }
@@ -117,6 +132,9 @@ class FloatLiteral: LiteralExpr, Equatable {
 
 class BoolLiteral: LiteralExpr, Equatable {
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: BoolLiteral, rhs: BoolLiteral) -> Bool {
         lhs.value == rhs.value
     }
@@ -134,6 +152,9 @@ class BoolLiteral: LiteralExpr, Equatable {
 }
 
 class VoidLiteral: LiteralExpr {
+    
+    var startCursor = Cursor()
+    var endCursor = Cursor()
     
     var debugDescription: String { "[Void] " }
     

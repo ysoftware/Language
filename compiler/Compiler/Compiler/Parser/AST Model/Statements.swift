@@ -9,7 +9,10 @@
 import Foundation
 
 class ProcedureDeclaration: Statement, Declaration, Equatable {
-
+    
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: ProcedureDeclaration, rhs: ProcedureDeclaration) -> Bool {
         lhs.id == rhs.id
             && lhs.name == rhs.name
@@ -60,6 +63,9 @@ class ProcedureDeclaration: Statement, Declaration, Equatable {
 
 class StructDeclaration: Statement, Declaration, Equatable {
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: StructDeclaration, rhs: StructDeclaration) -> Bool {
         lhs.name == rhs.name
             && lhs.members.elementsEqual(rhs.members) { $0.equals(to: $1) }
@@ -81,6 +87,9 @@ class StructDeclaration: Statement, Declaration, Equatable {
 }
 
 class VariableDeclaration: Statement, Declaration, Equatable {
+    
+    var startCursor = Cursor()
+    var endCursor = Cursor()
     
     static func == (lhs: VariableDeclaration, rhs: VariableDeclaration) -> Bool {
         lhs.name == rhs.name
@@ -117,6 +126,9 @@ class VariableDeclaration: Statement, Declaration, Equatable {
 }
 
 class VariableAssignment: Statement, Equatable {
+    
+    var startCursor = Cursor()
+    var endCursor = Cursor()
     
     static func == (lhs: VariableAssignment, rhs: VariableAssignment) -> Bool {
         lhs.receiverId == rhs.receiverId

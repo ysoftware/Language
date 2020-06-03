@@ -17,10 +17,10 @@ class LexerTest {
         let i = LexerTest()
         i.failed = 0
         
+        i.testCursors()
         i.testNumbersFail4()
         i.testBoolLiteral()
         i.testNumbersFail3()
-        i.testCursors()
         i.testMultilineStringLiteral()
         i.testMultilineStringLiteralFail3()
         i.testMultilineStringLiteralFail2()
@@ -79,11 +79,14 @@ class LexerTest {
         switch resultR {
         case .failure(let error):
             failed += 1
-            print("\n❌ \(caseName)\nUnexpected error on line \(error.cursor.lineNumber):",
+            print("\n❌ \(caseName)\nUnexpected error on line \(error.startCursor.lineNumber):",
                 error.message.rawValue, "\n")
-            let line = code.split(separator: "\n")[error.cursor.lineNumber-1]
+            
+            // @Todo use endCursor
+                
+            let line = code.split(separator: "\n")[error.startCursor.lineNumber-1]
             print("\"\(line)\"")
-            print("\(String(repeating: "_", count: error.cursor.character + 1))^")
+            print("\(String(repeating: "_", count: error.startCursor.character + 1))^")
             print("\n\n")
             
         case .success(let result):

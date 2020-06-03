@@ -50,16 +50,15 @@ class ParserTest {
             _ = {
                 let lines = code.split(separator: "\n")
                 let line = lines[error.endCursor.lineNumber-1]
-                print("\(line)\n")
-                if error.startCursor.lineNumber == error.endCursor.lineNumber
-                    && error.startCursor.character != error.endCursor.character {
-                    
-                    let startCursor = String(repeating: "_", count: error.startCursor.character) + "^"
-                    let endCursor = String(repeating: "_", count: error.endCursor.character-error.startCursor.character-1) + "^"
+                print("\(line)")
+                if error.startCursor.lineNumber == error.endCursor.lineNumber {
+                    let startCursor = String(repeating: " ", count: error.startCursor.character) + "^"
+                    let endCursor = String(repeating: "^", count: error.endCursor.character-error.startCursor.character)
                     print("\(startCursor)\(endCursor)")
                 }
                 else {
-                    print(String(repeating: "_", count: error.endCursor.character) + "^")
+                    // multiline expression error
+                    print(String(repeating: "^", count: error.endCursor.character))
                 }
                 print("\n\n")
             }()

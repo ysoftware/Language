@@ -11,20 +11,24 @@ import Foundation
 extension Lexer {
 
     /// add this token to the return
-    func append(_ value: TokenValue) {
-        tokens.append(Token(value, start: startCursor, end: endCursor))
-        startCursor = endCursor
+    func append(_ value: TokenValue, _ start: Cursor, _ end: Cursor) {
+        tokens.append(Token(value, start: start, end: end))
     }
     
     /// returns the error set at the current point
-    func error(_ error: LexerError.Message) -> Result<[Token], LexerError> {
-        .failure(LexerError(fileName: fileName, cursor: endCursor, error))
+    func error(_ error: LexerError.Message, _ start: Cursor, _ end: Cursor) -> Result<[Token], LexerError> {
+        .failure(LexerError(fileName: fileName, startCursor: start, endCursor: end, error))
     }
     
     /// advances the counter
     func advance(_ count: Int = 1) {
         i += count
-        endCursor.advanceCharacter(by: count)
+        if char.isNewline {
+            cursor.advanceLine()
+        }
+        else {
+            cursor.advanceCharacter(by: count)
+        }
     }
     
     /// advances the counter and sets `char` to the next character in string

@@ -10,6 +10,9 @@ import Foundation
 
 class Code: Ast, Equatable {
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: Code, rhs: Code) -> Bool {
         lhs.statements.elementsEqual(rhs.statements) { $0.equals(to: $1) }
     }
@@ -34,6 +37,9 @@ class Code: Ast, Equatable {
 
 class Value: Expression, Equatable {
     
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
     static func == (lhs: Value, rhs: Value) -> Bool {
         lhs.name == rhs.name
             && lhs.exprType == rhs.exprType
@@ -52,8 +58,11 @@ class Value: Expression, Equatable {
     }
 }
 
-protocol Ast: class, CustomDebugStringConvertible { }
-
+protocol Ast: class, CustomDebugStringConvertible {
+    
+    var startCursor: Cursor { get set }
+    var endCursor: Cursor { get set }
+}
 
 protocol Statement: Ast { }
 

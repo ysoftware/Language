@@ -27,17 +27,17 @@ extension LexerTest {
                   start: Cursor(lineNumber: 1, character: 0),
                   end: Cursor(lineNumber: 1, character: 4)),
             Token(Separator(value: ","),
-                  start: Cursor(lineNumber: 1, character: 4),
+                  start: Cursor(lineNumber: 1, character: 5),
                   end: Cursor(lineNumber: 1, character: 5)),
             Token(Identifier(value: "world"),
-                  start: Cursor(lineNumber: 1, character: 6),
+                  start: Cursor(lineNumber: 1, character: 7),
                   end: Cursor(lineNumber: 1, character: 11)),
             Token(TokenLiteral(value: .int(value: 1)),
                   start: Cursor(lineNumber: 2, character: 0),
-                  end: Cursor(lineNumber: 2, character: 1)),
+                  end: Cursor(lineNumber: 2, character: 0)),
             Token(TokenLiteral(value: .int(value: 123)),
                   start: Cursor(lineNumber: 4, character: 0),
-                  end: Cursor(lineNumber: 4, character: 3)),
+                  end: Cursor(lineNumber: 4, character: 2)),
         ])
     }
         

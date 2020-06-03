@@ -8,7 +8,7 @@
 
 // Constants
 
-// @Todo: add EOF token
+// @Todo: add EOF token - unfinished string literal results in crash
 // @Todo: properly eat whitespaces
 
 fileprivate let punctuators = [".", ":", "(", ")", "{", "}", "[", "]", "->", "..."]
@@ -35,77 +35,73 @@ class Lexer {
     // Variables
     
     var tokens: [Token] = []
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var cursor = Cursor()
     var i = 0
     var char: Character
     
     func analyze() -> Result<[Token], LexerError> {    
-        while string.count > i {
+        loop: while string.count > i {
             switch char {
                 
             case "\"":
+                let start = cursor
                 // STRING LITERAL
                 
                 let isMultiline = consume(string: "\"\"\"")
                 if isMultiline, !consumeNext("\n") {
-                    return error(.newlineExpectedBeforeMultilineStringLiteral)
+                    return error(.newlineExpectedBeforeMultilineStringLiteral, start, cursor)
                 }
                 else if !nextChar() {
-                    return error(.unexpectedEndOfFile)
+                    return error(.unexpectedEndOfFile, start, cursor)
                 }
                 
                 var value = ""
                 while string.count > i {
-                    if char == "\n" {
-                        endCursor.advanceLine()
-                    }
+                    if char == "\n" { }
                     
                     if isMultiline {
-                        if peekNext() == nil { return error(.unexpectedEndOfFile) }
+                        if peekNext() == nil { return error(.unexpectedEndOfFile, start, cursor) }
                         else if consume(string: "\"\"\"") {
-                            return error(.newlineExpectedAfterMultilineStringLiteral)
+                            return error(.newlineExpectedAfterMultilineStringLiteral, start, cursor)
                         }
                         else if consume(string: "\n\"\"\"") {
                             if let next = peekNext(), next != "\n" {
-                                return error(.newlineExpectedAfterMultilineStringLiteral)
+                                return error(.newlineExpectedAfterMultilineStringLiteral, start, cursor)
                             }
                             else {
-                                append(TokenLiteral(value: .string(value: value)))
+                                append(TokenLiteral(value: .string(value: value)), start, cursor)
                                 break
                             }
                         }
                     }
                     else {
                         if consume(string: "\"") {
-                            append(TokenLiteral(value: .string(value: value)))
+                            append(TokenLiteral(value: .string(value: value)), start, cursor)
                             break
                         }
-                        else if consume(string: "\n") { return error(.newLineInStringLiteral) }
+                        else if consume(string: "\n") { return error(.newLineInStringLiteral, start, cursor) }
                     }
                     
                     value.append(char)
-                    if !nextChar() { return error(.unexpectedEndOfFile) }
+                    if !nextChar() { return error(.unexpectedEndOfFile, start, cursor) }
                 }
-                
-            case "\n":
-                startCursor.advanceLine()
-                endCursor.advanceLine()
                 
             case ";",  ",":
                 // SEPARATORS
-                append(Separator(value: String(char)))
+                let start = cursor
+                append(Separator(value: String(char)), start, cursor)
                 
             case lowercaseRange, uppercaseRange, "_", "#":
                 // KEYWORDS / IDENTIFIERS / DIRECTIVES / BOOL LITERALS
                 
+                let start = cursor
                 let isDirective = consume(string: "#")
                 if isDirective {
-                    if !nextChar() { return error(.emptyDirectiveName) }
-                    else if char == " " { return error(.emptyDirectiveName) }
+                    if !nextChar() { return error(.emptyDirectiveName, start, cursor) }
+                    else if char == " " { return error(.emptyDirectiveName, start, cursor) }
                     else if !lowercaseRange.contains(char)
                         && !uppercaseRange.contains(char) && char != "_" {
-                        return error(.unexpectedDirectiveName)
+                        return error(.unexpectedDirectiveName, start, cursor)
                     }
                 }
                 
@@ -116,18 +112,19 @@ class Lexer {
                             value.append(next)
                 }
                 
-                if value == "true" { append(TokenLiteral(value: .bool(value: true))) }
-                else if value == "false" { append(TokenLiteral(value: .bool(value: false))) }
-                else if let keyword = Keyword(rawValue: value) { append(keyword) }
+                if value == "true" { append(TokenLiteral(value: .bool(value: true)), start, cursor) }
+                else if value == "false" { append(TokenLiteral(value: .bool(value: false)), start, cursor) }
+                else if let keyword = Keyword(rawValue: value) { append(keyword, start, cursor) }
                 else if isDirective {
-                    if value.isEmpty { return error(.emptyDirectiveName) }
-                    append(Directive(value: value))
+                    if value.isEmpty { return error(.emptyDirectiveName, start, cursor) }
+                    append(Directive(value: value), start, cursor)
                 }
-                else { append(Identifier(value: value)) }
+                else { append(Identifier(value: value), start, cursor) }
                 
             case numberRange, ".", "-":
                 // NUMBER LITERALS
                 
+                let start = cursor
                 // @Todo: unary operator "-"?
                 
                 // if this and the next characters are both not numbers
@@ -140,10 +137,10 @@ class Lexer {
                 let numLitSymbols = "_.e-"
                 while let next = consumeNext(where: { numberRange.contains($0) || numLitSymbols.contains($0) }) {
                     if value.count >= 1 && next == "-" && value.last != "e" {
-                        return error(.unexpectedMinusInNumberLiteral)
+                        return error(.unexpectedMinusInNumberLiteral, start, cursor)
                     }
                     else if next == "." && value.contains(".") || next == "e" && value.contains("e") {
-                        return error(next == "." ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral)
+                        return error((next == "." ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral), start, cursor)
                     }
                     if next == "_" { continue }
                     value.append(next)
@@ -153,10 +150,10 @@ class Lexer {
                     fallthrough
                 }
                 else if value.contains("e") || value.contains(".") {
-                    append(TokenLiteral(value: .float(value: Float(value)!)))
+                    append(TokenLiteral(value: .float(value: Float(value)!)), start, cursor)
                 }
                 else {
-                    append(TokenLiteral(value: .int(value: Int(value)!)))
+                    append(TokenLiteral(value: .int(value: Int(value)!)), start, cursor)
                 }
                 
             case "/":
@@ -165,13 +162,14 @@ class Lexer {
                 // @Note: we fallthrough to here from the case above
                 // can expect ".", "e", "-" and number characters
                 
+                let start = cursor
                 var value = ""
                 if consume(string: "//") {
                     nextChar()
                     
                     while string.count > i {
                         if consume(string: "\n") {
-                            endCursor.advanceLine()
+                            cursor.advanceLine()
                             break
                         }
                         else {
@@ -179,7 +177,7 @@ class Lexer {
                             nextChar()
                         }
                     }
-                    append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)), start, cursor)
                 }
                 else if consume(string: "/*") {
                     var commentLevel = 1
@@ -199,7 +197,6 @@ class Lexer {
                             }
                         }
                         else if consume(string: "\n") {
-                            endCursor.advanceLine()
                             value.append("\n")
                         }
                         else {
@@ -207,7 +204,7 @@ class Lexer {
                         }
                         nextChar()
                     }
-                    append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)), start, cursor)
                 }
                 else {
                     fallthrough
@@ -215,18 +212,19 @@ class Lexer {
                 
             default:
                 // PUNCTUATORS, OPERATORS
+                let start = cursor
                 if let value = consume(oneOf: punctuators) {
-                    append(Punctuator(value: value))
+                    append(Punctuator(value: value), start, cursor)
                 }
                 else if let value = consume(oneOf: operators) {
-                    append(Operator(value: value))
+                    append(Operator(value: value), start, cursor)
                 }
-                else if char == " " {
-                    startCursor.advanceCharacter()
+                else if char.isWhitespace {
+                    break
                 }
                 else {
                     // for some reason?
-                    return error(.unexpectedCharacter)
+                    return error(.unexpectedCharacter, cursor, cursor)
                 }
             }
             nextChar()

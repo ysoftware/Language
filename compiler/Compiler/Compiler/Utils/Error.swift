@@ -8,7 +8,11 @@
 
 import Foundation
 
-struct Cursor: Equatable {
+struct Cursor: Equatable, CustomDebugStringConvertible {
+    
+    var debugDescription: String {
+        "\(lineNumber):\(character)"
+    }
     
     var lineNumber: Int
     var character: Int
@@ -16,6 +20,12 @@ struct Cursor: Equatable {
     init(lineNumber: Int = 1, character: Int = 0) {
         self.lineNumber = lineNumber
         self.character = character
+    }
+    
+    func advancingCharacter() -> Cursor {
+        var next = self
+        next.advanceCharacter()
+        return next
     }
     
     mutating func advanceCharacter(by count: Int = 1) {

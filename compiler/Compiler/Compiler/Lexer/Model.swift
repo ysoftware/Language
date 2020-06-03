@@ -78,22 +78,34 @@ struct TokenLiteral: TokenValue { let value: LiteralToken }
 
 class Token: Equatable, CustomDebugStringConvertible {
     
+    var tokenType: String {
+        switch value {
+        case is Identifier: return "Identifier"
+        case is Punctuator: return "Punctuator"
+        case is Directive: return "Directive"
+        case is Operator: return "Operator"
+        case is Comment: return "Comment"
+        case is Separator: return "Separator"
+        default: return "\(self.self)"
+        }
+    }
+    
     var debugDescription: String {
         if let string = value as? StringValueToken {
-            return "Token [\(string.self)] \(string.value)"
+            return "[\(tokenType)] \"\(string.value)\" (\(startCursor)-\(endCursor))"
         }
         else if let literal = value as? TokenLiteral {
             switch literal.value {
-            case .string(let value): return "Token [Literal] '\(value)'"
-            case .float(let value): return "Token [Literal] '\(value)'"
-            case .int(let value): return "Token [Literal] '\(value)'"
-            case .bool(let value): return "Token [Literal] '\(value)'"
+            case .string(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
+            case .float(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
+            case .int(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
+            case .bool(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
             }
         }
         else if let keyword = value as? Keyword {
-            return "Token [Keyword] '\(keyword.rawValue)'"
+            return "[Keyword] '\(keyword.rawValue)' (\(startCursor)-\(endCursor))"
         }
-        else { return "Token \(value)" }
+        else { return "Token \(value) (\(startCursor)-\(endCursor))" }
     }
     
     let startCursor: Cursor
@@ -139,18 +151,21 @@ struct LexerError: Error {
     }
     
     let fileName: String?
-    let cursor: Cursor
+    let startCursor: Cursor
+    let endCursor: Cursor
     let message: Message
     
     init(_ message: Message) {
-        self.cursor = Cursor()
+        self.startCursor = Cursor()
+        self.endCursor = Cursor()
         self.message = message
         self.fileName = nil
     }
     
-    init(fileName: String? = nil, cursor: Cursor, _ message: Message) {
+    init(fileName: String? = nil, startCursor: Cursor, endCursor: Cursor, _ message: Message) {
         self.message = message
-        self.cursor = cursor
+        self.startCursor = startCursor
+        self.endCursor = endCursor
         self.fileName = fileName
     }
 }

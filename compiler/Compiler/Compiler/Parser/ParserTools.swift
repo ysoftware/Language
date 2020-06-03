@@ -30,9 +30,9 @@ extension Parser {
     }
     
     /// returns the error set at the current point
-    func error<T>(_ error: String) -> Result<T, ParserError> {
-        endCursor = token.endCursor // refresh cursor
-        return .failure(ParserError(fileName: fileName, startCursor: startCursor, endCursor: endCursor, error))
+    func error<T>(_ error: String, _ start: Cursor, _ end: Cursor? = nil) -> Result<T, ParserError> {
+        let endC = end ?? start
+        return .failure(ParserError(fileName: fileName, startCursor: start, endCursor: endC, error))
     }
     
     /// advances the counter
