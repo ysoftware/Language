@@ -77,7 +77,9 @@ func print3() { x :: 1; }
         ]))
     }
     
-    func testTypeInferenceGlobalProc() { /// types of a and b are inferred from the known procedure declarations (1st pass)
+    func testTypeInferenceGlobalProc() {
+        // types of a and b are inferred from the known procedure declarations (1st pass)
+        
         let code = """
 func getInt() -> Int { return 1; }
 func getString() -> String { return "hello"; }
@@ -164,6 +166,8 @@ struct Value { a := getInt(); b := getString(); }
     }
     
     func testWhileLoopBreak() {
+        // @Todo: you can pass string literal with no error as while condition
+        
         let code = "func main() { loop: while (true) { loop1: while (true) { break loop; }}}"
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()

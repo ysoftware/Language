@@ -44,7 +44,7 @@ class ParserTest {
         switch resultAST {
         case .failure(let error):
             failed += 1
-            print("\n❌ \(caseName)\nUnexpected error on line \(error.startCursor.lineNumber):",
+            print("\n❌ \(caseName)\nUnexpected error @ \(error.startCursor)-\(error.endCursor):",
                 error.message, "\n")
             
             _ = {

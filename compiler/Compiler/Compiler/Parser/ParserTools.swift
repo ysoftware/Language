@@ -48,6 +48,11 @@ extension Parser {
         return true
     }
     
+    var lastToken: Token {
+        if i == 0 { fatalError("Do not call this at the first token") }
+        return tokens[i-1]
+    }
+    
     /// Peeks at the `next` token
     func peekNext(index: Int = 1) -> Token? {
         let nextIndex = i + index
