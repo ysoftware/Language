@@ -164,10 +164,11 @@ extension Parser {
         guard consumePunct("(") else { return error(em.expectedParentheses, lastToken.endCursor.advancingCharacter()) }
         let returnType: Type
         let name = procName.value
-        let id = "__global_func_\(procName.value)" // @Todo: don't change the name of 'main'? or create a #main directive
+        var id = "__global_func_\(procName.value)" // @Todo: don't change the name of 'main'? or create a #main directive
         var arguments: [Type] = []
         var flags = ProcedureDeclaration.Flags()
         var scope: Code = .empty
+        var isForceEntry = false
         while tokens.count > i { // PROCEDURE ARGUMENTS DECLARATION
             if (token.value as? Punctuator)?.value == ")" { break }
             if consumePunct("...") {
@@ -176,7 +177,9 @@ extension Parser {
                 break
             }
             else {
-                guard token.value is Identifier else { return error(em.procExpectedArgumentName, lastToken.endCursor.advancingCharacter()) }
+                guard token.value is Identifier else {
+                    return error(em.procExpectedArgumentName, lastToken.endCursor.advancingCharacter())
+                }
                 guard let _ = consumeIdent()?.value, consumePunct(":"),
                     let argType = consumeIdent()?.value
                     else { return error(em.procExpectedArgumentType, lastToken.endCursor.advancingCharacter()) }
@@ -193,11 +196,15 @@ extension Parser {
         else { returnType = .void }
         end = lastToken.endCursor
         if let (directiveToken, directive) = consume(Directive.self) {
-            if directive.value == "foreign" {
-                flags.insert(.isForeign)
-                end = directiveToken.endCursor
+            switch directive.value {
+            case "foreign": flags.insert(.isForeign)
+            case "main":
+                flags.insert(.main)
+                isForceEntry = true
+            default:
+                return error(em.procUndeclaredDirective, directiveToken.startCursor, directiveToken.endCursor)
             }
-            else { return error(em.procUndeclaredDirective, directiveToken.startCursor, directiveToken.endCursor) }
+            end = directiveToken.endCursor
         }
         else if consumePunct("{") {
             if flags.contains(.isForeign) { return error(em.procForeignUnexpectedBody, lastToken.endCursor.advancingCharacter()) }
@@ -209,7 +216,13 @@ extension Parser {
         let procedure = ProcedureDeclaration(
             id: id, name: name, arguments: arguments,
             returnType: returnType, flags: flags, scope: scope)
-        if let e = verifyNameConflict(procedure) { return error(e, lastToken.endCursor.advancingCharacter()) }
+        let previousForceEntry = entry?.flags.contains(.main) ?? false
+        if previousForceEntry && isForceEntry { return error(em.procMainRedecl, start, end) }
+        if name == "main" && entry == nil || isForceEntry {
+            entry = procedure
+            id = procName.value
+        }
+        if let e = verifyNameConflict(procedure) { return error(e, start, end) }
         appendDeclaration(procedure, to: globalScope)
         procedure.startCursor = start
         procedure.endCursor = end
@@ -464,6 +477,7 @@ class Parser {
     var i = 0
     var token: Token
     var statements: [Statement] = []
+    var entry: ProcedureDeclaration?
     
     func parse() -> Result<Code, ParserError> {
         

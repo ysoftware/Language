@@ -112,6 +112,7 @@ extension Parser {
         let procExpectedArgumentName = "Expected argument name."
         let procExpectedArgumentBeforeVarargs = "Variadic argument requires definition before '...'."
         let procUndeclaredDirective = "Undeclared procedure directive."
+        let procMainRedecl = "Redeclaration of the entry procedure."
         let procReturnTypeExpected = "Expected a return type after '->'."
         let procExpectedName = "Expected procedure name after 'func'."
         

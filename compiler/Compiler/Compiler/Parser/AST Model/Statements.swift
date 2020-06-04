@@ -41,6 +41,9 @@ class ProcedureDeclaration: Statement, Declaration, Equatable {
         
         /// Is imported from another library
         static let isForeign    = Flags(rawValue: 1 << 1)
+        
+        /// overwrites the main function
+        static let main    = Flags(rawValue: 1 << 1)
     }
     
     var id: String
