@@ -63,6 +63,7 @@ extension Parser {
         let unexpectedEndOfFile = "Unexpected end of file."
         var notImplemented: String { "Not implemented: \(p.token)" }
         let expectedSemicolon = "Expected ';' after an expression."
+        let expectedExpression = "Expected expression."
         let expectedParentheses = "Parentheses are expected around the condition expression."
         
         func declarationConflict(_ d: Ast) -> String {
@@ -96,8 +97,11 @@ extension Parser {
         // procedure call
         let callExpectedClosingParentheses = "Closing parentheses is expected after arguments."
         let callNotProcedure = "Trying to call something that's not a procedure."
-        let callArgumentsCount = "Procedure requires different number of arguments."
-        let callArgumentTypeMismatch = "Argument expression doesn't match the type declared in the procedure."
+        func callArgumentsCount(_ r: Int, _ g: Int) -> String { "Procedure requires \(r) argument\(plural(r)), \(g) given." }
+        func callArgumentsVarCount(_ r: Int, _ g: Int) -> String { "Procedure requires at least \(r) arguments, \(g) given." }
+        func callArgumentTypeMismatch(_ a: String, e: String) -> String {
+            "Argument of type \(e) is expected by the procedure, \(a) given."
+        }
         
         // procedure declaration
         let procNestedNotSupported = "Nested procedure declarations are not supported."
