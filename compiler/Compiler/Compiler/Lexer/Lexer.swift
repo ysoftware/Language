@@ -109,6 +109,7 @@ class Lexer {
                 while let next = consumeNext(where: {
                     lowercaseRange.contains($0) || uppercaseRange.contains($0)
                         || numberRange.contains($0) || $0 == "_" }) {
+                            // @Todo: is ___identifier valid?
                             value.append(next)
                 }
                 
@@ -119,7 +120,10 @@ class Lexer {
                     if value.isEmpty { return error(.emptyDirectiveName, start, cursor) }
                     append(Directive(value: value), start, cursor)
                 }
-                else { append(Identifier(value: value), start, cursor) }
+                else {
+                    // @Todo: "_" is invalid identifier
+                    append(Identifier(value: value), start, cursor)
+                }
                 
             case numberRange, ".", "-":
                 // NUMBER LITERALS

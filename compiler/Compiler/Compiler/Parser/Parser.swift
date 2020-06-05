@@ -114,7 +114,7 @@ extension Parser {
             if let procDecl = statement as? ProcedureDeclaration {
                 if case .resolved = procDecl.returnType { returnType = procDecl.returnType }
                 guard arguments.count >= procDecl.arguments.count else {
-                    return error(em.callArgumentsCount(arguments.count, procDecl.arguments.count), start, end)
+                    return error(em.callArgumentsCount(procDecl.arguments.count, arguments.count), start, end)
                 }
                 for i in 0..<arguments.count {
                     guard procDecl.arguments.count > i || procDecl.flags.contains(.isVarargs) else {
@@ -154,8 +154,6 @@ extension Parser {
     
     // MARK: - PROCEDURE DECLARATION -
 
-    // @Todo: make all the error() calls below this line produce correct cursors
-    
     func doProcDecl(in scope: Scope) -> Result<ProcedureDeclaration, ParserError> {
         let start = token.startCursor
         var end = token.endCursor
@@ -172,13 +170,13 @@ extension Parser {
         while tokens.count > i { // PROCEDURE ARGUMENTS DECLARATION
             if (token.value as? Punctuator)?.value == ")" { break }
             if consumePunct("...") {
-                if arguments.isEmpty { return error(em.procExpectedArgumentBeforeVarargs, lastToken.endCursor.advancingCharacter()) }
+                if arguments.isEmpty { return error(em.procExpectedArgumentBeforeVarargs, tokens[i-2].endCursor.advancingCharacter()) }
                 flags.insert(.isVarargs)
                 break
             }
             else {
                 guard token.value is Identifier else {
-                    return error(em.procExpectedArgumentName, lastToken.endCursor.advancingCharacter())
+                    return error(em.procExpectedArgumentName, token.startCursor, token.endCursor)
                 }
                 guard let _ = consumeIdent()?.value, consumePunct(":"),
                     let argType = consumeIdent()?.value
@@ -194,6 +192,8 @@ extension Parser {
             else { return error(em.procReturnTypeExpected, lastToken.endCursor.advancingCharacter()) }
         }
         else { returnType = .void }
+        // @Todo: check all return statements to match return value
+        // @Todo: static analysis of
         end = lastToken.endCursor
         if let (directiveToken, directive) = consume(Directive.self) {
             switch directive.value {
@@ -263,12 +263,13 @@ extension Parser {
     }
     
     func doWhile(in scope: Scope) -> Result<WhileLoop, ParserError> {
-        let label = consumeIdent()?.value.value
-        if label != nil { assert(consumePunct(":")) }
+        let labelIdent = consumeIdent()
+        let label = labelIdent?.value.value
+        if labelIdent != nil { assert(consumePunct(":")) }
         assert(consumeKeyword(.while))
-        if let label = label {
-            if scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == label })
-            { return error(em.loopLabelDuplicate, lastToken.endCursor.advancingCharacter()) }
+        if let labelIdent = labelIdent {
+            if scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == labelIdent.value.value })
+            { return error(em.loopLabelDuplicate, labelIdent.token.startCursor, labelIdent.token.endCursor) }
         }
         let hasParentheses = consumePunct("(")
         var condition: Expression!
@@ -286,36 +287,38 @@ extension Parser {
     
     func doBreak(in scope: Scope) -> Result<Break, ParserError> {
         assert(consumeKeyword(.break))
-        let label = consumeIdent()?.value.value
+        let labelIdent = consumeIdent()
         guard consumeSep(";") else { return error(em.expectedSemicolon, lastToken.endCursor.advancingCharacter()) }
-        if let label = label {
-            if !scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == label })
-            { return error(em.loopLabelNotFound, lastToken.endCursor.advancingCharacter()) }
+        if let labelIdent = labelIdent {
+            if !scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == labelIdent.value.value })
+            { return error(em.loopLabelNotFound, labelIdent.token.startCursor, labelIdent.token.endCursor) }
         }
         else {
             if nil == scope.contexts.last(where: { $0 is ContextLoop }) {
                 return error(em.breakContext, lastToken.endCursor.advancingCharacter())
             }
         }
-        return .success(Break(userLabel: label))
+        return .success(Break(userLabel: labelIdent?.value.value))
     }
     
     func doContinue(in scope: Scope) -> Result<Continue, ParserError> {
         assert(consumeKeyword(.continue))
-        let label = consumeIdent()?.value.value
+        let labelIdent = consumeIdent()
         guard consumeSep(";") else { return error(em.expectedSemicolon, lastToken.endCursor.advancingCharacter()) }
-        if let label = label {
-            if !scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == label })
-            { return error(em.loopLabelNotFound, lastToken.endCursor.advancingCharacter()) }
+        if let labelIdent = labelIdent {
+            if !scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == labelIdent.value.value })
+            { return error(em.loopLabelNotFound, labelIdent.token.startCursor, labelIdent.token.endCursor) }
         }
         else {
             if nil == scope.contexts.last(where: { $0 is ContextLoop }) {
             return error(em.continueContext, lastToken.endCursor.advancingCharacter()) }
         }
-        return .success(Continue(userLabel: label))
+        return .success(Continue(userLabel: labelIdent?.value.value))
     }
     
     // MARK: - EXPRESSIONS -
+    
+    // @Todo: make all the error() calls below this line produce correct cursors
     
     func doExpression(in scope: Scope, expectSemicolon: Bool = true) -> Result<Expression, ParserError> {
         // @Todo: binary operators
@@ -377,6 +380,8 @@ extension Parser {
                 }
                 if !nextToken() { return error(em.unexpectedEndOfFile, lastToken.endCursor.advancingCharacter()) }
             }
+        case is Punctuator:
+            return error(em.expectedExpression, lastToken.endCursor.advancingCharacter())
         case is Separator:
             return error(em.expectedExpression, lastToken.endCursor.advancingCharacter())
         default:
