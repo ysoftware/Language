@@ -241,6 +241,7 @@ extension Parser {
             if let error = doExpression(in: scope, expectSemicolon: false).then({ condition = $0 }) { return .failure(error) }
             if !consumePunct(")") { return error(em.expectedParentheses, lastToken.endCursor.advancingCharacter()) }
         }
+        // @Todo: match condition type to bool (make the matching procedure)
         if !consumePunct("{") { return error(em.ifExpectedBrackets, lastToken.endCursor.advancingCharacter()) }
         if let error = doStatements(in: scope.next()).then({ ifBody = $0 }) { return .failure(error) }
         guard consumePunct("}") else { return error(em.ifExpectedBrackets, lastToken.endCursor.advancingCharacter()) }
@@ -278,6 +279,7 @@ extension Parser {
             if let error = doExpression(in: scope, expectSemicolon: false).then({ condition = $0 }) { return .failure(error) }
             if !consumePunct(")") { return error(em.expectedParentheses, lastToken.endCursor.advancingCharacter()) }
         }
+        // @Todo: match condition type to bool (make the matching procedure)
         if !consumePunct("{") { return error(em.loopExpectedBrackets, lastToken.endCursor.advancingCharacter()) }
         if let error = doStatements(in: scope.next(as: ContextLoop(label: label))).then({ loopBody = $0 }) { return .failure(error) }
         guard consumePunct("}") else { return error(em.loopExpectedBrackets, lastToken.endCursor.advancingCharacter()) }
@@ -286,6 +288,7 @@ extension Parser {
     }
     
     func doBreak(in scope: Scope) -> Result<Break, ParserError> {
+        let tok = token
         assert(consumeKeyword(.break))
         let labelIdent = consumeIdent()
         guard consumeSep(";") else { return error(em.expectedSemicolon, lastToken.endCursor.advancingCharacter()) }
@@ -294,14 +297,14 @@ extension Parser {
             { return error(em.loopLabelNotFound, labelIdent.token.startCursor, labelIdent.token.endCursor) }
         }
         else {
-            if nil == scope.contexts.last(where: { $0 is ContextLoop }) {
-                return error(em.breakContext, lastToken.endCursor.advancingCharacter())
-            }
+            if nil == scope.contexts.last(where: { $0 is ContextLoop })
+                { return error(em.breakContext, tok.startCursor, tok.endCursor) }
         }
         return .success(Break(userLabel: labelIdent?.value.value))
     }
     
     func doContinue(in scope: Scope) -> Result<Continue, ParserError> {
+        let tok = token
         assert(consumeKeyword(.continue))
         let labelIdent = consumeIdent()
         guard consumeSep(";") else { return error(em.expectedSemicolon, lastToken.endCursor.advancingCharacter()) }
@@ -310,15 +313,13 @@ extension Parser {
             { return error(em.loopLabelNotFound, labelIdent.token.startCursor, labelIdent.token.endCursor) }
         }
         else {
-            if nil == scope.contexts.last(where: { $0 is ContextLoop }) {
-            return error(em.continueContext, lastToken.endCursor.advancingCharacter()) }
+            if nil == scope.contexts.last(where: { $0 is ContextLoop })
+                { return error(em.continueContext, tok.startCursor, tok.endCursor) }
         }
         return .success(Continue(userLabel: labelIdent?.value.value))
     }
     
     // MARK: - EXPRESSIONS -
-    
-    // @Todo: make all the error() calls below this line produce correct cursors
     
     func doExpression(in scope: Scope, expectSemicolon: Bool = true) -> Result<Expression, ParserError> {
         // @Todo: binary operators
@@ -360,6 +361,7 @@ extension Parser {
             }
             if !nextToken() { return error(em.unexpectedEndOfFile, lastToken.endCursor.advancingCharacter()) }
         case let identifier as Identifier:
+            let tok = token
             if matchProcedureCall() {
                 var ex: Expression!
                 if let error = doProcedureCall(in: scope).then({ ex = $0 }) { return .failure(error) }
@@ -376,7 +378,7 @@ extension Parser {
                         default: appendUnresolved(identifier.value, expression)
                         }
                     }
-                    else { return error(em.assignPassedNotValue(statement), lastToken.endCursor.advancingCharacter()) }
+                    else { return error(em.assignPassedNotValue(statement), tok.startCursor, tok.endCursor) }
                 }
                 if !nextToken() { return error(em.unexpectedEndOfFile, lastToken.endCursor.advancingCharacter()) }
             }
@@ -385,10 +387,9 @@ extension Parser {
         case is Separator:
             return error(em.expectedExpression, lastToken.endCursor.advancingCharacter())
         default:
-            print("Expression unknown \(token), but got \(token)")
-            return error(em.notImplemented, lastToken.endCursor.advancingCharacter())
+            print("Expression unknown: \(token)")
+            return error(em.notImplemented, token.startCursor, token.endCursor)
         }
-        
         expression.startCursor = start
         expression.endCursor = lastToken.endCursor
         return .success(expression)
@@ -407,7 +408,7 @@ extension Parser {
                 }
             case let keyword as Keyword: // @Clean: this is a copy from the main loop
                 if keyword == .func {
-                    return error(em.procNestedNotSupported, lastToken.endCursor.advancingCharacter())
+                    return error(em.procNestedNotSupported, token.startCursor, token.endCursor)
                 }
                 if keyword == .break {
                     if let error = doBreak(in: scope).then({ statements.append($0) }) { return .failure(error) }
@@ -433,7 +434,7 @@ extension Parser {
                     break
                 }
                 print("Unexpected keyword: \(keyword.rawValue)")
-                return error(em.notImplemented, lastToken.endCursor.advancingCharacter())
+                return error(em.notImplemented, token.startCursor, token.endCursor)
                 
             case is Identifier: // @Clean: this is a copy from the main loop
                 if matchWhile() {
@@ -445,7 +446,7 @@ extension Parser {
                     break
                 }
                 print("(statements loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
-                return error(em.notImplemented, lastToken.endCursor.advancingCharacter())
+                return error(em.notImplemented, token.startCursor, token.endCursor)
             case is Comment:
                 if !nextToken() { break loop }
             case let separator as Separator:
@@ -453,7 +454,7 @@ extension Parser {
                 
             default:
                 print("(statements loop) Unexpected token\n\(token)\n")
-                return error(em.notImplemented, lastToken.endCursor.advancingCharacter())
+                return error(em.notImplemented, token.startCursor, token.endCursor)
             }
         }
         return .success(statements)
@@ -487,7 +488,7 @@ class Parser {
     func parse() -> Result<Code, ParserError> {
         
         // Cycle
-        
+
         loop: while tokens.count > i {
             switch token.value  {
             case let keyword as Keyword:
@@ -499,14 +500,14 @@ class Parser {
                     if let error = doStructDecl().then({ statements.append($0) }) { return .failure(error)}
                     break
                 }
-                if keyword == .if { return error(em.ifNotExpectedAtGlobalScope, lastToken.endCursor.advancingCharacter()) }
-                if matchWhile() { return error(em.loopNotExpectedAtGlobalScope, lastToken.endCursor.advancingCharacter()) }
-                if keyword == .break { return error(em.breakContext, lastToken.endCursor.advancingCharacter()) }
-                if keyword == .continue { return error(em.continueContext, lastToken.endCursor.advancingCharacter()) }
-                if keyword == .fallthrough { return error("@Todo: FALLTHROUGH ERROR MESSAGE", lastToken.endCursor.advancingCharacter()) }
+                if keyword == .if { return error(em.ifNotExpectedAtGlobalScope, token.startCursor, token.endCursor) }
+                if matchWhile() { return error(em.loopNotExpectedAtGlobalScope, token.startCursor, token.endCursor) }
+                if keyword == .break { return error(em.breakContext, token.startCursor, token.endCursor) }
+                if keyword == .continue { return error(em.continueContext, token.startCursor, token.endCursor) }
+                if keyword == .fallthrough { return error("@Todo: FALLTHROUGH ERROR MESSAGE", token.startCursor, token.endCursor) }
 
                 print("Keyword \(keyword.rawValue) is not YET implemented.")
-                return error(em.notImplemented, lastToken.endCursor.advancingCharacter())
+                return error(em.notImplemented, token.startCursor, token.endCursor)
                     
             case is Identifier:
                 if matchWhile() {
@@ -518,7 +519,7 @@ class Parser {
                 }
                 
                 print("(main loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
-                return error(em.notImplemented, lastToken.endCursor.advancingCharacter())
+                return error(em.notImplemented, token.startCursor, token.endCursor)
             
             case let separator as Separator:
                 if separator.value == ";" { if !nextToken() { break loop } /* ignore */ }

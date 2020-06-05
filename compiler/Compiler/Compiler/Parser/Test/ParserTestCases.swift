@@ -167,7 +167,6 @@ struct Value { a := getInt(); b := getString(); }
     
     func testWhileLoopBreak() {
         // @Todo: you can pass string literal with no error as while condition
-        
         let code = "func main() { loop: while (true) { loop1: while (true) { break loop; }}}"
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()

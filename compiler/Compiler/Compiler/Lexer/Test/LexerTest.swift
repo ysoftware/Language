@@ -79,8 +79,8 @@ class LexerTest {
         switch resultR {
         case .failure(let error):
             failed += 1
-            print("\n❌ \(caseName)\nUnexpected error on line \(error.startCursor.lineNumber):",
-                error.message.rawValue, "\n")
+            print("\n❌ \(caseName)\nUnexpected error on line \(error.startCursor.lineNumber)")
+            print(error.message.rawValue, "\n")
             
             // @Todo use endCursor
                 
