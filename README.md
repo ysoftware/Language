@@ -9,11 +9,12 @@ This is my very first experience in compiler development, therefore, I'm not tak
 I want to stumble into as many mistakes and problems as I can, and solve them on my own.
 
 ## Progress:
-- [x] use LLVM to parse manually-written IR
+- [x] use LLVM to parse manually-written IR (part 1)
 - [x] generate IR from some manually written and pre-typed AST
 - [x] develop lexer (tokenizer)
 - [ ] **parse code into AST**
 - [ ] type infer AST and hook it to IR generation
+- [ ] IR generation for more complicated things (part 2)
 - [ ] static analyzer (all paths return a value, unused values)
 
 
