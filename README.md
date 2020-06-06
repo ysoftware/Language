@@ -9,11 +9,13 @@ This is my very first experience in compiler development, therefore, I'm not tak
 I want to stumble into as many mistakes and problems as I can, and solve them on my own.
 
 ## Progress:
-- [x] use LLVM to parse manually-written IR
+- [x] use LLVM to parse manually-written IR (part 1)
 - [x] generate IR from some manually written and pre-typed AST
 - [x] develop lexer (tokenizer)
 - [ ] **parse code into AST**
 - [ ] type infer AST and hook it to IR generation
+- [ ] IR generation for more complicated things (part 2)
+- [ ] static analyzer (all paths return a value, unused values)
 
 
 ## Syntax Description
@@ -36,6 +38,7 @@ b :: 2; // constant
  *Procedure declaration*
 ```
 func printf(_ format: String, _ arguments: Int32, ...) #foreign;
+func entry_point() -> Int32 #main { ... }
 ```
  
  Array Literals
@@ -49,17 +52,38 @@ func printf(_ format: String, _ arguments: Int32, ...) #foreign;
 
  
  
-## Future Feature Roadmap:
+## Ideas Roadmap:
+
+If/switch expression
+```
+enum Values { A, B, C };
+value := Values.A;
+
+name := switch (value) {
+  case A: #provide "A";
+  case B: #provide "B";
+  case C: #provide "C";
+}
+
+description := if (name == Values.B) {
+  #provide "The name is B."
+}
+else {
+  #provide "The name is not B."
+}
+
+// name == "A"
+// description == "The name is not B."
+```
 
 Polymorphic procedures
  ```
 func array_add(_ array: *($T[]), _ element: T);
 ```
 
-Variable length arrays
+Dynamic arrays (probably written in the language as a part of the st. lib)
 ```
-// first I need to learn how they work
-a := [1, 2, 3, 4, ...] // use varargs for not constraining to length?
+a := [1, 2, 3, 4, ...] // use varargs as syntax for dynamic array
 ```
 
 Also:
