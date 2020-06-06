@@ -36,6 +36,7 @@ b :: 2; // constant
  *Procedure declaration*
 ```
 func printf(_ format: String, _ arguments: Int32, ...) #foreign;
+func entry_point() -> Int32 #main { ... }
 ```
  
  Array Literals
@@ -57,16 +58,16 @@ enum Values { A, B, C };
 value := Values.A;
 
 name := switch (value) {
-  case A: provide "A";
-  case B: provide "B";
-  case C: provide "C";
+  case A: #provide "A";
+  case B: #provide "B";
+  case C: #provide "C";
 }
 
 description := if (name == Values.B) {
-  provide "The name is B."
+  #provide "The name is B."
 }
 else {
-  provide "The name is not B."
+  #provide "The name is not B."
 }
 
 // name == "A"
