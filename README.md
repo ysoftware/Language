@@ -49,17 +49,38 @@ func printf(_ format: String, _ arguments: Int32, ...) #foreign;
 
  
  
-## Future Feature Roadmap:
+## Ideas Roadmap:
+
+If/switch expression
+```
+enum Values { A, B, C };
+value := Values.A;
+
+name := switch (value) {
+  case A: provide "A";
+  case B: provide "B";
+  case C: provide "C";
+}
+
+description := if (name == Values.B) {
+  provide "The name is B."
+}
+else {
+  provide "The name is not B."
+}
+
+// name == "A"
+// description == "The name is not B."
+```
 
 Polymorphic procedures
  ```
 func array_add(_ array: *($T[]), _ element: T);
 ```
 
-Variable length arrays
+Dynamic arrays (probably written in the language as a part of the st. lib)
 ```
-// first I need to learn how they work
-a := [1, 2, 3, 4, ...] // use varargs for not constraining to length?
+a := [1, 2, 3, 4, ...] // use varargs as syntax for dynamic array
 ```
 
 Also:
