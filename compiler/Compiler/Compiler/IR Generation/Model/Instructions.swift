@@ -28,31 +28,6 @@ enum Instruction: String {
     case mul
 }
 
-func precedenceLevel(of operation: String) -> Int {
-    switch operation {
-    case "()", ".", "[]":
-                        return 1  // Function call, scope, array/member access
-                                  // sizeof, cast, unary operators
-    case "*", "/", "%": return 3  // Multiplication, division, modulo
-    case "+", "-":      return 4  // Addition and subtraction
-    case "<<", ">>":    return 5  // Bitwise shift left and right
-                                  // Comparisons: less-than and greater-than
-                                  // Comparisons: equal and not equal
-    case "&":           return 8  // Bitwise AND
-    case "^":           return 9  // Bitwise exclusive OR (XOR)
-    case "|":           return 10 // Bitwise inclusive (normal) OR
-    case "&&":          return 11 // Logical AND
-    case "||":          return 12 // Logical OR
-    case "?", ":":      return 13 // Conditional expression (ternary)
-        
-    case "=", "+=", "-=", "*=", "/=", "%=", "|=":
-                        return 14 // =   +=   -=   *=   /=   %=   &=   |=   ^=   <<=   >>= Assignment operators (right to left)
-    case ",":           return 15 // Comma operator
-    default:
-        fatalError("incorrect operation")
-    }
-}
-
 extension Instruction {
     
     /// name of the instruction for integer types

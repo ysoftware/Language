@@ -122,7 +122,7 @@ internal extension IR {
             }
             
             let resultCount = count()
-            let instruction: String = op.name.int
+            let instruction: String = op.name
             let workingType = matchType(op.operatorType.name)
             let result = "%\(resultCount) = \(instruction) \(workingType) \(lValue), \(rValue)"
             let value = "%\(resultCount)"

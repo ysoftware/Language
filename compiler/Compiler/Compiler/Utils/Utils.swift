@@ -19,6 +19,20 @@ extension String {
 
 extension Result where Failure == ParserError {
     
+    func assign(_ pointer: inout Success?) -> ParserError? {
+        switch self {
+        case .success(let value): pointer = value; return nil
+        case .failure(let error): return error
+        }
+    }
+    
+    func assign(_ pointer: inout Success) -> ParserError? {
+        switch self {
+        case .success(let value): pointer = value; return nil
+        case .failure(let error): return error
+        }
+    }
+    
     func then(_ block: (Success)->Void) -> ParserError? {
         switch self {
         case .success(let value): block(value); return nil

@@ -8,7 +8,7 @@
 
 func IfElseAST(_ value: Bool) -> Code {
     
-    let instruction: Instruction = value ? .sub : .add
+    let instruction = value ? "-" : "+"
     
     return Code([
         
@@ -61,7 +61,7 @@ func IfElseAST(_ value: Bool) -> Code {
                 
                 Condition(
                     condition: BinaryOperator(
-                        name: .equal, operatorType: .int, exprType: .int,
+                        name: "==", operatorType: .int, exprType: .int,
                         arguments: (
                             Value(name: "global_func_main_variable_b", exprType: .int),
                             IntLiteral(value: 4)

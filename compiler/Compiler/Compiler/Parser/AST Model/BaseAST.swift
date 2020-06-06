@@ -35,6 +35,7 @@ class Code: Ast, Equatable {
     }
 }
 
+/// A variable or constant passed by name.
 class Value: Expression, Equatable {
     
     var startCursor = Cursor()

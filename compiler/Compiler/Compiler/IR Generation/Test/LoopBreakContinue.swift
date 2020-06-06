@@ -64,7 +64,7 @@ let LoopBreakContinueAST = Code([
                             
                             // a = a + 1
                             VariableAssignment(receiverId: "global_func_main_variable_a", expression:
-                                BinaryOperator(name: .add, operatorType: .int, exprType: .int, arguments: (
+                                BinaryOperator(name: "+", operatorType: .int, exprType: .int, arguments: (
                                     Value(name: "global_func_main_variable_a", exprType: .int),
                                     IntLiteral(value: 1)
                                 ))
@@ -73,7 +73,7 @@ let LoopBreakContinueAST = Code([
                             // if a > 500 { break outerLoop }
                             Condition(
                                 condition: BinaryOperator(
-                                    name: .signedGreaterThan,
+                                    name: ">",
                                     operatorType: .int,
                                     exprType: .bool,
                                     arguments: (
@@ -86,7 +86,7 @@ let LoopBreakContinueAST = Code([
                             // if a == 100 { break }
                             Condition(
                                 condition: BinaryOperator(
-                                    name: .equal,
+                                    name: "==",
                                     operatorType: .int,
                                     exprType: .bool,
                                     arguments: (
@@ -100,7 +100,7 @@ let LoopBreakContinueAST = Code([
                             // else { printf("...", a)
                             Condition(
                                 condition: BinaryOperator(
-                                    name: .signedGreaterThan,
+                                    name: ">",
                                     operatorType: .int,
                                     exprType: .bool,
                                     arguments: (

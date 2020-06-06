@@ -22,15 +22,16 @@ class BinaryOperator: Expression, Equatable {
     }
     
     var debugDescription: String {
-        "[Operation] \(arguments.0)\n\t\(name.rawValue)\n\t\(arguments.1)"
+        "[Operation] \(arguments.0)\n\t\(name)\n\t\(arguments.1)"
     }
     
-    var name: Instruction
+    var name: String
+    var instruction: Instruction { return .add } // @Todo: I broke this
     var operatorType: Type
     var exprType: Type
     var arguments: (Expression, Expression)
 
-    internal init(name: Instruction, operatorType: Type, exprType: Type, arguments: (Expression, Expression)) {
+    internal init(name: String, operatorType: Type, exprType: Type, arguments: (Expression, Expression)) {
         self.name = name
         self.operatorType = operatorType
         self.exprType = exprType
