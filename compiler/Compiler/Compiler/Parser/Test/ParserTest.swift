@@ -88,4 +88,14 @@ class ParserTest {
             }
         }
     }
+    
+    func int(_ val: Int) -> IntLiteral { IntLiteral(value: val) }
+    func bool(_ val: Bool) -> BoolLiteral { BoolLiteral(value: val) }
+    func string(_ val: String) -> StringLiteral { StringLiteral(value: val) }
+    func float(_ val: Float) -> FloatLiteral { FloatLiteral(value: val) }
+    
+    func main(_ code: [Statement]) -> ProcedureDeclaration {
+        ProcedureDeclaration(id: "__global_func_main", name: "main", arguments: [],
+                              returnType: .void, flags: [], scope: Code(code))
+    }
 }

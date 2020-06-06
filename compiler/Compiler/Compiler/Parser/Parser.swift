@@ -329,7 +329,7 @@ extension Parser {
         var left: Expression!
         if let error = doExpr(in: scope).assign(&left) { return .failure(error) }
         
-        if let (_, op) = consumeOperator() {
+        if let (opTok, op) = consumeOperator() {
             let opPrecedence = precedence(of: op.value)
             var right: Expression!
             if opPrecedence > priority {
@@ -343,6 +343,8 @@ extension Parser {
             // @Todo: match arguments' types and also operation type
             let exprType = left.exprType // @Todo: check if it's a binary or logical or something operator
             let op = BinaryOperator(name: op.value, operatorType: opType, exprType: exprType, arguments: (left, right))
+            op.startCursor = opTok.startCursor
+            op.endCursor = opTok.endCursor
             return .success(op)
         }
         
@@ -360,7 +362,18 @@ extension Parser {
         // @Todo: member access
         // @Todo: subscript
         // @Todo: brackets "(1 + 2) * 3"
-        // @Todo: unary operators
+        
+        if let (opTok, op) = consumeOperator() { // unary operation
+            var arg: Expression!
+            if let error = doExpr(in: scope).assign(&arg) { return .failure(error) }
+            
+            let opType = arg.exprType // @Todo: get operator type
+            let exprType = arg.exprType // @Todo: check if it's a binary or logical or something operator
+            let op = UnaryOperator(name: op.value, operatorType: opType, exprType: exprType, argument: arg)
+            op.startCursor = opTok.startCursor
+            op.endCursor = opTok.endCursor
+            return .success(op)
+        }
         
         let expression: Expression
         switch token.value {

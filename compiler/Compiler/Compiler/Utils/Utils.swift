@@ -58,6 +58,7 @@ extension Ast {
         case (let l as Continue, let r as Continue): return l == r
         case (let l as Return, let r as Return): return l == r
         case (let l as BinaryOperator, let r as BinaryOperator): return l == r
+        case (let l as UnaryOperator, let r as UnaryOperator): return l == r
         case (let l as ProcedureCall, let r as ProcedureCall): return l == r
         case (let l as StringLiteral, let r as StringLiteral): return l == r
         case (let l as IntLiteral, let r as IntLiteral): return l == r

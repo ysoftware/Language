@@ -8,6 +8,36 @@
 
 import Foundation
 
+class UnaryOperator: Expression, Equatable {
+    
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
+    static func == (lhs: UnaryOperator, rhs: UnaryOperator) -> Bool {
+        lhs.operatorType == rhs.operatorType
+            && lhs.name == rhs.name
+            && lhs.exprType == rhs.exprType
+            && lhs.argument.equals(to: rhs.argument)
+    }
+    
+    var debugDescription: String {
+        "[UnOp] \(name){ \(argument) }"
+    }
+    
+    var name: String
+    var instruction: Instruction { return .add } // @Todo: make it work
+    var argument: Expression
+    var operatorType: Type
+    var exprType: Type
+    
+    internal init(name: String, operatorType: Type, exprType: Type, argument: Expression) {
+        self.name = name
+        self.argument = argument
+        self.operatorType = operatorType
+        self.exprType = exprType
+    }
+}
+
 class BinaryOperator: Expression, Equatable {
     
     var startCursor = Cursor()
@@ -22,7 +52,7 @@ class BinaryOperator: Expression, Equatable {
     }
     
     var debugDescription: String {
-        "[Operation] \(arguments.0)\n\t\(name)\n\t\(arguments.1)"
+        "[BinOp] { \(arguments.0) \(name) \(arguments.1) }"
     }
     
     var name: String
@@ -51,7 +81,7 @@ class ProcedureCall: Expression, Statement, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[Call] to \(name) -> \(exprType)"
+        var string = "[Call] \(name)->\(exprType)"
         arguments.forEach { string.append("\n\t\($0)") }
         return string
     }
@@ -77,7 +107,7 @@ class StringLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "[String Literal] \(value)"
+        "[String] \"\(value)\""
     }
     
     internal init(value: String) {
@@ -98,7 +128,7 @@ class IntLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "[Int Literal] \(value)"
+        "[Int] \(value)"
     }
     
     internal init(value: Int) {
@@ -120,7 +150,7 @@ class FloatLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "[Float Literal] \(value)"
+        "[Float] \(value)"
     }
     
     internal init(value: Float32) {
@@ -141,7 +171,7 @@ class BoolLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "[Bool Literal] \(value)"
+        "[Bool] \(value)"
     }
     
     internal init(value: Bool) {
