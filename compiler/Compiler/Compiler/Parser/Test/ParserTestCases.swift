@@ -21,14 +21,14 @@ e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; }
         printResultCase(
             code, result, Code([
                 main([
-    VariableDeclaration(name: "a", exprType: .string, flags: [], expression: nil),
-    VariableDeclaration(name: "b", exprType: .int, flags: [], expression: int(1)),
-    VariableDeclaration(name: "c", exprType: .string, flags: [.isConstant], expression: string("hello")),
-    VariableDeclaration(name: "d", exprType: .int, flags: [], expression: int(1)),
-    VariableDeclaration(name: "e", exprType: .bool, flags: [.isConstant], expression: bool(true)),
-    VariableDeclaration(name: "f", exprType: .float, flags: [], expression: float(1)),
-    VariableDeclaration(name: "g", exprType: .bool, flags: [.isConstant], expression: bool(false)),
-    VariableDeclaration(name: "h", exprType: .int64, flags: [.isConstant], expression: int(5_000_000_000_000)),
+                    vDecl("a", .string, nil),
+                    vDecl("b", .int, int(1)),
+                    vDecl("c", .string, string("hello"), const: true),
+                    vDecl("d", .int, int(1)),
+                    vDecl("e", .bool, bool(true), const: true),
+                    vDecl("f", .float, float(1)),
+                    vDecl("g", .bool, bool(false), const: true),
+                    vDecl("h", .int64, int(5_000_000_000_000), const: true),
                 ])
             ]))
     }
@@ -51,9 +51,7 @@ func print3() { x :: 1; }
                 returnType: .void, flags: [], scope: .empty),
             ProcedureDeclaration(
                 id: "__global_func_print3", name: "print3", arguments: [],
-                returnType: .void, flags: [], scope: Code([
-    VariableDeclaration(name: "x", exprType: .int, flags: [.isConstant], expression: int(1))
-                ])),
+                returnType: .void, flags: [], scope: Code([ vDecl("x", .int, int(1), const: true) ])),
         ]))
     }
     
@@ -65,12 +63,12 @@ func print3() { x :: 1; }
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([
-    VariableDeclaration(name: "x", exprType: .float, flags: [], expression: float(1)),
+            vDecl("x", .float, float(1)),
             StructDeclaration(name: "A", members: [
-    VariableDeclaration(name: "a", exprType: .string, flags: [], expression: nil),
-    VariableDeclaration(name: "b", exprType: .int, flags: .isConstant, expression: int(1)),
-    VariableDeclaration(name: "c", exprType: .int, flags: [], expression: Value(name: "b", exprType: .int)),
-    VariableDeclaration(name: "d", exprType: .float, flags: [], expression: Value(name: "x", exprType: .float)),
+                vDecl("a", .string, nil),
+                vDecl("b", .int, int(1), const: true),
+                vDecl("c", .int, val("b", .int)),
+                vDecl("d", .float, val("x", .float)),
             ])
         ]))
     }
@@ -97,10 +95,8 @@ struct Value { a := getInt(); b := getString(); }
                     Return(value: string("hello"))
                 ])),
             StructDeclaration(name: "Value", members: [
-                VariableDeclaration(name: "a", exprType: .int, flags: [], expression:
-                    ProcedureCall(name: "getInt", exprType: .int, arguments: [])),
-                VariableDeclaration(name: "b", exprType: .string, flags: [], expression:
-                    ProcedureCall(name: "getString", exprType: .string, arguments: []))
+                vDecl("a", .int, ProcedureCall(name: "getInt", exprType: .int, arguments: [])),
+                vDecl("b", .string, ProcedureCall(name: "getString", exprType: .string, arguments: []))
             ])
         ]))
     }
@@ -112,11 +108,8 @@ struct Value { a := getInt(); b := getString(); }
         
         printResultCase(
             code, result, Code([
-                VariableDeclaration(name: "c", exprType: .int, flags: [], expression: int(1)),
-                main([
-    VariableDeclaration(name: "a", exprType: .int, flags: [], expression: Value(name: "c", exprType: .int)),
-    VariableDeclaration(name: "b", exprType: .int, flags: [], expression: Value(name: "a", exprType: .int)),
-                ])
+                vDecl("c", .int, int(1)),
+                main([ vDecl("a", .int, val("c", .int)), vDecl("b", .int, val("a", .int)) ])
             ]))
     }
     
@@ -131,15 +124,12 @@ struct Value { a := getInt(); b := getString(); }
             code, result, Code([
                 main([
                     Condition(condition: bool(true), block: Code([
-                        VariableDeclaration(name: "a", exprType: .int, flags: [], expression:
-                            int(1)),
+                        vDecl("a", .int, int(1)),
                         Condition(condition: bool(false), block: Code([
-                            VariableDeclaration(name: "b", exprType: .int, flags: [], expression:
-                                Value(name: "a", exprType: .int)),
+                            vDecl("b", .int, val("a", .int)),
                         ]), elseBlock: .empty)
                     ]), elseBlock: Code([
-                        VariableDeclaration(name: "c", exprType: .unresolved(name: nil), flags: [], expression:
-                            Value(name: "a", exprType: .unresolved(name: nil))),
+                        vDecl("c", .unresolved(name: nil), val("a", .unresolved(name: nil)))
                     ])),
                 ])
             ]))
@@ -195,10 +185,9 @@ struct Value { a := getInt(); b := getString(); }
         
         printResultCase(code, result, Code([
             main([
-                VariableDeclaration(name: "a", exprType: .int, flags: [], expression: int(1)),
-                VariableDeclaration(name: "b", exprType: .int, flags: [], expression:
-                    UnaryOperator(name: "-", operatorType: .int, exprType: .int, argument:
-                        Value(name: "a", exprType: .int)))
+                vDecl("a", .int, int(1)),
+                vDecl("b", .int,
+                    UnaryOperator(name: "-", operatorType: .int, exprType: .int, argument: val("a", .int)))
             ])
         ]))
     }
@@ -221,9 +210,7 @@ struct Value { a := getInt(); b := getString(); }
         
         printResultCase(code, result, Code([
             main([
-                VariableDeclaration(name: "a", exprType: .int, flags: [], expression:
-                    int(1))
-                
+                vDecl("a", .int, int(1))
                 
             ])
         ]))
@@ -237,20 +224,10 @@ struct Value { a := getInt(); b := getString(); }
         
         printResultCase(code, result, Code([
             main([
-                VariableDeclaration(name: "a", exprType: .int, flags: [], expression:
-                    BinaryOperator(name: "+", operatorType: .int, exprType: .int, arguments: (
-                        int(1),
-                        BinaryOperator(name: "*", operatorType: .int, exprType: .int, arguments: (
-                            int(3), int(2))))
-                )),
-                VariableDeclaration(name: "b", exprType: .int, flags: [], expression:
-                    BinaryOperator(name: "-", operatorType: .int, exprType: .int, arguments: (
-                        Value(name: "a", exprType: .int), int(2))
-                )),
-                VariableDeclaration(name: "c", exprType: .int, flags: [], expression:
-                    BinaryOperator(name: "*", operatorType: .int, exprType: .int, arguments: (
-                        Value(name: "a", exprType: .int), Value(name: "b", exprType: .int)
-                    )))
+                vDecl("a", .int, binop("+", ret: .int, arg: .int,
+                                       (int(1), binop("*", ret: .int, arg: .int, (int(3), int(2)))))),
+                vDecl("b", .int, binop("-", ret: .int, arg: .int, (val("a", .int), int(2)))),
+                vDecl("c", .int, binop("*", ret: .int, arg: .int, (val("a", .int), val("b", .int))))
             ])
         ]))
     }

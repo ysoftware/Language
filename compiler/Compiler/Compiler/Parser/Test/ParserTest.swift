@@ -93,9 +93,18 @@ class ParserTest {
     func bool(_ val: Bool) -> BoolLiteral { BoolLiteral(value: val) }
     func string(_ val: String) -> StringLiteral { StringLiteral(value: val) }
     func float(_ val: Float) -> FloatLiteral { FloatLiteral(value: val) }
+    func val(_ name: String, _ type: Type) -> Value { Value(name: name, exprType: type) }
     
     func main(_ code: [Statement]) -> ProcedureDeclaration {
         ProcedureDeclaration(id: "__global_func_main", name: "main", arguments: [],
                               returnType: .void, flags: [], scope: Code(code))
+    }
+
+    func vDecl(_ name: String, _ type: Type, _ expr: Expression?, const: Bool = false) -> VariableDeclaration {
+        VariableDeclaration(name: name, exprType: type, flags: const ? [.isConstant] : [], expression: expr)
+    }
+    
+    func binop(_ name: String, ret: Type, arg: Type, _ arguments: (Expression, Expression)) -> BinaryOperator {
+        BinaryOperator(name: name, operatorType: ret, exprType: arg, arguments: arguments)
     }
 }
