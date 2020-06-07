@@ -343,7 +343,15 @@ extension Parser {
             var right: Expression!
             if let error = doExpression(in: scope, expectSemicolon: false, opPriority + 1)
                 .assign(&right) { return .failure(error) }
-            // @Todo: match arguments' types and also operation type
+            // @Todo: recursively convert int literals to float literals if needed
+            // (1+2)*0.3 should convert 1 and 2 and their operation to float types
+            // because they're in an operation with a float
+            guard result.exprType == right.exprType else {
+                return error(em.binopArgTypeMatch(result.exprType, r: right.exprType), result.startCursor, right.endCursor)
+            }
+            guard isAccepting(op.value, argType: result.exprType) else {
+                return error(em.binopArgTypeSupport(op.value, t: result.exprType), result.startCursor, right.endCursor)
+            }
             result = makeBinaryOperation(op.value, left: result, right: right, opTok)
         }
         
@@ -532,9 +540,8 @@ class Parser {
                 return error(em.notImplemented, token.startCursor, token.endCursor)
                     
             case is Identifier:
-                if matchWhile() {
-                    return error(em.loopNotExpectedAtGlobalScope)
-                }
+                if matchWhile() { return error(em.loopNotExpectedAtGlobalScope) }
+                
                 if matchVarDecl() {
                     if let error = doVarDecl(in: globalScope).then({ statements.append($0) }) { return .failure(error) }
                     break

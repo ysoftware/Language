@@ -61,15 +61,24 @@ extension Parser {
         
         // common
         let unexpectedEndOfFile = "Unexpected end of file."
-        var notImplemented: String { "Not implemented: \(p.token)" }
+        var notImplemented: String { "Token not implemented: \(p.token)." }
         let expectedSemicolon = "Expected ';' after an expression."
         let expectedExpression = "Expected expression."
         let expectedParentheses = "Parentheses are expected around the condition expression."
         let exprExpectedBrackets = "Expected closing bracket after expression."
         
+        // operation
+        func binopArgTypeMatch(_ l: Type, r: Type) -> String {
+            "Argument types don't match. Left is \(l), right is \(r)."
+        }
+        
+        func binopArgTypeSupport(_ n: String, t: Type) -> String {
+            "Operation \(n) doesn't support arguments of type \(t)."
+        }
+        
         func declarationConflict(_ d: Ast) -> String {
             // @Todo point to definition by cursor
-            "Declaration conflicts with another declaration with the same name: \(d)"
+            "Declaration conflicts with another declaration with the same name: \(d)."
         }
         
         // var assign
@@ -100,6 +109,7 @@ extension Parser {
         let callNotProcedure = "Trying to call something that's not a procedure."
         func callArgumentsCount(_ r: Int, _ g: Int) -> String { "Procedure requires \(r) argument\(plural(r)), \(g) given." }
         func callArgumentsVarCount(_ r: Int, _ g: Int) -> String { "Procedure requires at least \(r) arguments, \(g) given." }
+        
         func callArgumentTypeMismatch(_ a: String, e: String) -> String {
             "Argument of type \(e) is expected by the procedure, \(a) given."
         }

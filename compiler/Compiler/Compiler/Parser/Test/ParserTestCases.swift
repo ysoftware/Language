@@ -177,10 +177,6 @@ struct Value { a := getInt(); b := getString(); }
         ])]))
     }
     
-    
-//    [[[Int(1) + Int(3)] * [[Int(1) + Int(7)] / -{ [Int(5) + Int(3)] }]] % [Int(100) == Int(0)]]
-//    [[[[Int(1) + Int(3)] * [Int(1) + [Int(7) / -{ [Int(5) + Int(3)] }]]] % Int(100)] == Int(0)]
-    
     func testPrecedence() {
         // @Todo: this should result in a expression of type float (because of 0.5)
         // let code = "func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 - 0.5; }"
@@ -206,18 +202,24 @@ struct Value { a := getInt(); b := getString(); }
     }
     
     func testBinaryOperators() {
-        let code = "func main() { a := 2 * 3 + 2 * 2; b: = 1 + 2 * 2; }"
+        let code = "func getInt() -> Int { return 2; } func main() { a := 2 * 3 + 2 * getInt(); b: = 1 + 2 * 2; }"
         
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
         let mul1 = binop("*", .int, (int(2), int(3)))
-        let mul2 = binop("*", .int, (int(2), int(2)))
-        
-        printResultCase(code, result, Code([main([
-            vDecl("a", .int, binop("+", .int, (mul1, mul2))),
-            vDecl("b", .int, binop("+", .int, (int(1), mul2)))
-        ])]))
+        let mul2 = binop("*", .int, (int(2), call("getInt", .int)))
+        let mul3 = binop("*", .int, (int(2), int(2)))
+
+        printResultCase(code, result, Code([
+            ProcedureDeclaration(
+                id: "__global_func_getInt", name: "getInt", arguments: [],
+                returnType: .int, flags: [], scope: Code([ ret(int(2)) ])),
+            main([
+                vDecl("a", .int, binop("+", .int, (mul1, mul2))),
+                vDecl("b", .int, binop("+", .int, (int(1), mul3)))
+            ])
+        ]))
     }
     
     func testBrackets() {

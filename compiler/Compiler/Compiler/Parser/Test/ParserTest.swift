@@ -96,12 +96,13 @@ class ParserTest {
     func string(_ val: String) -> StringLiteral { StringLiteral(value: val) }
     func float(_ val: Float) -> FloatLiteral { FloatLiteral(value: val) }
     func val(_ name: String, _ type: Type) -> Value { Value(name: name, exprType: type) }
+    func ret(_ expr: Expression) -> Return { Return(value: expr) }
     
     func main(_ code: [Statement]) -> ProcedureDeclaration {
         ProcedureDeclaration(id: "__global_func_main", name: "main", arguments: [],
                               returnType: .void, flags: [], scope: Code(code))
     }
-
+    
     func vDecl(_ name: String, _ type: Type, _ expr: Expression?, const: Bool = false) -> VariableDeclaration {
         VariableDeclaration(name: name, exprType: type, flags: const ? [.isConstant] : [], expression: expr)
     }
@@ -112,5 +113,9 @@ class ParserTest {
     
     func unop(_ name: String, _ type: Type, _ argument: Expression) -> UnaryOperator {
         UnaryOperator(name: name, exprType: type, argument: argument)
+    }
+    
+    func call(_ name: String, _ exprType: Type, arguments: Expression...) -> ProcedureCall {
+        ProcedureCall(name: name, exprType: exprType, arguments: arguments)
     }
 }
