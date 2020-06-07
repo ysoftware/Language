@@ -8,7 +8,7 @@
 
 import Foundation
 
-class Code: Ast, Equatable {
+final class Code: Ast, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -36,7 +36,7 @@ class Code: Ast, Equatable {
 }
 
 /// A variable or constant passed by name.
-class Value: Expression, Equatable {
+final class Value: Expression, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()

@@ -493,7 +493,7 @@ extension Parser {
 
 // MARK: - Parser
 
-class Parser {
+final class Parser {
     
     init(fileName: String? = nil, _ tokens: [Token]) {
         self.fileName = fileName

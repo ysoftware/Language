@@ -32,12 +32,12 @@ struct ParserError: Error {
 
 class Context { }
 
-class ContextLoop: Context {
+final class ContextLoop: Context {
     internal init(label: String?) { self.label = label }
     let label: String?
 }
 
-class Scope {
+final class Scope {
     
     var declarations: [String: Ast]
     var contexts: [Context] = []
@@ -56,7 +56,7 @@ class Scope {
 
 extension Parser {
     
-    class ErrorMessage {
+    final class ErrorMessage {
         weak var p: Parser!
         
         // common

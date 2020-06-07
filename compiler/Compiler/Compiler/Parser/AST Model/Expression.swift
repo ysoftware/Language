@@ -8,7 +8,7 @@
 
 import Foundation
 
-class UnaryOperator: Expression, Equatable {
+final class UnaryOperator: Expression, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -37,7 +37,7 @@ class UnaryOperator: Expression, Equatable {
     }
 }
 
-class BinaryOperator: Expression, Equatable {
+final class BinaryOperator: Expression, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -67,7 +67,7 @@ class BinaryOperator: Expression, Equatable {
     }
 }
 
-class ProcedureCall: Expression, Statement, Equatable {
+final class ProcedureCall: Expression, Statement, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -95,7 +95,7 @@ class ProcedureCall: Expression, Statement, Equatable {
     }
 }
 
-class StringLiteral: LiteralExpr, Equatable {
+final class StringLiteral: LiteralExpr, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -116,7 +116,7 @@ class StringLiteral: LiteralExpr, Equatable {
     var value: String
 }
 
-class IntLiteral: LiteralExpr, Equatable {
+final class IntLiteral: LiteralExpr, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -138,7 +138,7 @@ class IntLiteral: LiteralExpr, Equatable {
     var value: Int
 }
 
-class FloatLiteral: LiteralExpr, Equatable {
+final class FloatLiteral: LiteralExpr, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -159,7 +159,7 @@ class FloatLiteral: LiteralExpr, Equatable {
     var value: Float32
 }
 
-class BoolLiteral: LiteralExpr, Equatable {
+final class BoolLiteral: LiteralExpr, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -180,7 +180,7 @@ class BoolLiteral: LiteralExpr, Equatable {
     var value: Bool
 }
 
-class VoidLiteral: LiteralExpr {
+final class VoidLiteral: LiteralExpr {
     
     var startCursor = Cursor()
     var endCursor = Cursor()

@@ -10,7 +10,7 @@ import Foundation
 
 fileprivate let PRINT_PASSES = false
 
-class ParserTest {
+final class ParserTest {
     fileprivate var failed = 0
     
     static func run() {

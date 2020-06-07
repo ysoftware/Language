@@ -21,7 +21,7 @@ fileprivate let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "
 fileprivate let numberRange = ClosedRange<Character>(uncheckedBounds: ("0", "9"))
 
 
-class Lexer {
+final class Lexer {
     
     internal init(fileName: String? = nil, _ string: String) {
         self.fileName = fileName

@@ -76,7 +76,7 @@ struct Comment: TokenValue, StringValueToken{ let value: String }
 struct Separator: TokenValue, StringValueToken { let value: String }
 struct TokenLiteral: TokenValue { let value: LiteralToken }
 
-class Token: Equatable, CustomDebugStringConvertible {
+final class Token: Equatable, CustomDebugStringConvertible {
     
     var tokenType: String {
         switch value {

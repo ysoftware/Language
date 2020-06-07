@@ -8,7 +8,7 @@
 
 import Foundation
 
-class ProcedureDeclaration: Statement, Declaration, Equatable {
+final class ProcedureDeclaration: Statement, Declaration, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -64,7 +64,7 @@ class ProcedureDeclaration: Statement, Declaration, Equatable {
     }
 }
 
-class StructDeclaration: Statement, Declaration, Equatable {
+final class StructDeclaration: Statement, Declaration, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -89,7 +89,7 @@ class StructDeclaration: Statement, Declaration, Equatable {
     }
 }
 
-class VariableDeclaration: Statement, Declaration, Equatable {
+final class VariableDeclaration: Statement, Declaration, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -128,7 +128,7 @@ class VariableDeclaration: Statement, Declaration, Equatable {
     }
 }
 
-class VariableAssignment: Statement, Equatable {
+final class VariableAssignment: Statement, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()

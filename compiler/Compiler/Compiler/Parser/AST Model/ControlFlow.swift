@@ -8,7 +8,7 @@
 
 import Foundation
 
-class Condition: Statement, Equatable {
+final class Condition: Statement, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -35,7 +35,7 @@ class Condition: Statement, Equatable {
     }
 }
 
-class WhileLoop: Statement, Equatable {
+final class WhileLoop: Statement, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -64,7 +64,7 @@ class WhileLoop: Statement, Equatable {
     }
 }
 
-class Break: Statement, Equatable {
+final class Break: Statement, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -87,7 +87,7 @@ class Break: Statement, Equatable {
     }
 }
 
-class Continue: Statement, Equatable {
+final class Continue: Statement, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
@@ -110,7 +110,7 @@ class Continue: Statement, Equatable {
     }
 }
 
-class Return: Statement, Equatable {
+final class Return: Statement, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
