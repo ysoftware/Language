@@ -202,7 +202,7 @@ struct Value { a := getInt(); b := getString(); }
     }
     
     func testBinaryOperators() {
-        let code = "func getInt() -> Int { return 2; } func main() { a := 2 * 3 + 2 * getInt(); b: = 1 + 2 * 2; }"
+        let code = "func getInt() -> Int { return 2; } func main() { a := 2 * 3 + 2 * getInt(); b: = a + 2 * 2; }"
         
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
@@ -217,7 +217,7 @@ struct Value { a := getInt(); b := getString(); }
                 returnType: .int, flags: [], scope: Code([ ret(int(2)) ])),
             main([
                 vDecl("a", .int, binop("+", .int, (mul1, mul2))),
-                vDecl("b", .int, binop("+", .int, (int(1), mul3)))
+                vDecl("b", .int, binop("+", .int, (val("a", .int), mul3)))
             ])
         ]))
     }
