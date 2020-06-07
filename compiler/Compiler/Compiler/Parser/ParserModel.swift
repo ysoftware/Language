@@ -65,6 +65,7 @@ extension Parser {
         let expectedSemicolon = "Expected ';' after an expression."
         let expectedExpression = "Expected expression."
         let expectedParentheses = "Parentheses are expected around the condition expression."
+        let exprExpectedBrackets = "Expected closing bracket after expression."
         
         func declarationConflict(_ d: Ast) -> String {
             // @Todo point to definition by cursor

@@ -12,6 +12,7 @@ class UnaryOperator: Expression, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
+    var operatorType: Type { argument.exprType }
     
     static func == (lhs: UnaryOperator, rhs: UnaryOperator) -> Bool {
         lhs.operatorType == rhs.operatorType
@@ -21,19 +22,18 @@ class UnaryOperator: Expression, Equatable {
     }
     
     var debugDescription: String {
-        "[UnOp] \(name){ \(argument) }"
+        if name == "()" { return "(\(argument))" }
+        return "'\(name)' { \(argument) }"
     }
     
     var name: String
     var instruction: Instruction { return .add } // @Todo: make it work
     var argument: Expression
-    var operatorType: Type
     var exprType: Type
     
-    internal init(name: String, operatorType: Type, exprType: Type, argument: Expression) {
+    internal init(name: String, exprType: Type, argument: Expression) {
         self.name = name
         self.argument = argument
-        self.operatorType = operatorType
         self.exprType = exprType
     }
 }
@@ -42,6 +42,7 @@ class BinaryOperator: Expression, Equatable {
     
     var startCursor = Cursor()
     var endCursor = Cursor()
+    var operatorType: Type { arguments.0.exprType }
     
     static func == (lhs: BinaryOperator, rhs: BinaryOperator) -> Bool {
         lhs.name == rhs.name
@@ -52,18 +53,16 @@ class BinaryOperator: Expression, Equatable {
     }
     
     var debugDescription: String {
-        "[BinOp] { \(arguments.0) \(name) \(arguments.1) }"
+        "[\(arguments.0) \(name) \(arguments.1)]"
     }
     
     var name: String
     var instruction: Instruction { return .add } // @Todo: I broke this
-    var operatorType: Type
     var exprType: Type
     var arguments: (Expression, Expression)
 
-    internal init(name: String, operatorType: Type, exprType: Type, arguments: (Expression, Expression)) {
+    internal init(name: String, exprType: Type, arguments: (Expression, Expression)) {
         self.name = name
-        self.operatorType = operatorType
         self.exprType = exprType
         self.arguments = arguments
     }
@@ -107,7 +106,7 @@ class StringLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "[String] \"\(value)\""
+        "String[\"\(value)\"]"
     }
     
     internal init(value: String) {
@@ -128,7 +127,7 @@ class IntLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "[Int] \(value)"
+        "Int[\(value)]"
     }
     
     internal init(value: Int) {
@@ -150,7 +149,7 @@ class FloatLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "[Float] \(value)"
+        "Float[\(value)]"
     }
     
     internal init(value: Float32) {
@@ -171,7 +170,7 @@ class BoolLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "[Bool] \(value)"
+        "Bool[\(value)]"
     }
     
     internal init(value: Bool) {
@@ -187,7 +186,7 @@ class VoidLiteral: LiteralExpr {
     var startCursor = Cursor()
     var endCursor = Cursor()
     
-    var debugDescription: String { "[Void] " }
+    var debugDescription: String { "[Void]" }
     
     var exprType: Type = .void
 }

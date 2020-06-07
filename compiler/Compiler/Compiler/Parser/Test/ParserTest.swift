@@ -17,8 +17,10 @@ class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
-        i.testUnaryOperators()
         i.testBinaryOperators()
+        i.testBrackets()
+        i.testPrecedence()
+        i.testUnaryOperators()
         i.testWhileLoopContinue()
         i.testWhileLoopBreak()
         i.testWhileLoop()
@@ -104,7 +106,11 @@ class ParserTest {
         VariableDeclaration(name: name, exprType: type, flags: const ? [.isConstant] : [], expression: expr)
     }
     
-    func binop(_ name: String, ret: Type, arg: Type, _ arguments: (Expression, Expression)) -> BinaryOperator {
-        BinaryOperator(name: name, operatorType: ret, exprType: arg, arguments: arguments)
+    func binop(_ name: String, _ type: Type, _ arguments: (Expression, Expression)) -> BinaryOperator {
+        BinaryOperator(name: name, exprType: type, arguments: arguments)
+    }
+    
+    func unop(_ name: String, _ type: Type, _ argument: Expression) -> UnaryOperator {
+        UnaryOperator(name: name, exprType: type, argument: argument)
     }
 }

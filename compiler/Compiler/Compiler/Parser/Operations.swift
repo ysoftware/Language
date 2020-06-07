@@ -23,18 +23,18 @@ enum BinaryPrecedence: Int, Comparable {
 
     case none           = 0
     
-    case multiplication = 3
-    case addition       = 4
-    case bitwiseShift   = 5
+    case multiplication = 12 // 3
+    case addition       = 11 // 4
+    case bitwiseShift   = 10 // 5
     
-    case comparison     = 6
-    case equality       = 7
+    case comparison     = 9  // 6
+    case equality       = 8  // 7
     
-    case bitAnd         = 8
-    case bitXor         = 9
-    case bitOr          = 10
-    case logicAnd       = 11
-    case logicOr        = 12
+    case bitAnd         = 7  // 8
+    case bitXor         = 6  // 9
+    case bitOr          = 5  // 10
+    case logicAnd       = 4  // 11
+    case logicOr        = 3  // 12
 }
 
 

@@ -64,7 +64,7 @@ let LoopBreakContinueAST = Code([
                             
                             // a = a + 1
                             VariableAssignment(receiverId: "global_func_main_variable_a", expression:
-                                BinaryOperator(name: "+", operatorType: .int, exprType: .int, arguments: (
+                                BinaryOperator(name: "+", exprType: .int, arguments: (
                                     Value(name: "global_func_main_variable_a", exprType: .int),
                                     IntLiteral(value: 1)
                                 ))
@@ -73,10 +73,7 @@ let LoopBreakContinueAST = Code([
                             // if a > 500 { break outerLoop }
                             Condition(
                                 condition: BinaryOperator(
-                                    name: ">",
-                                    operatorType: .int,
-                                    exprType: .bool,
-                                    arguments: (
+                                    name: ">", exprType: .bool, arguments: (
                                         Value(name: "global_func_main_variable_a", exprType: .int),
                                         IntLiteral(value: 500)
                                 )), block: Code([
@@ -86,10 +83,7 @@ let LoopBreakContinueAST = Code([
                             // if a == 100 { break }
                             Condition(
                                 condition: BinaryOperator(
-                                    name: "==",
-                                    operatorType: .int,
-                                    exprType: .bool,
-                                    arguments: (
+                                    name: "==", exprType: .bool, arguments: (
                                         Value(name: "global_func_main_variable_a", exprType: .int),
                                         IntLiteral(value: 100)
                                 )), block: Code([
@@ -100,10 +94,7 @@ let LoopBreakContinueAST = Code([
                             // else { printf("...", a)
                             Condition(
                                 condition: BinaryOperator(
-                                    name: ">",
-                                    operatorType: .int,
-                                    exprType: .bool,
-                                    arguments: (
+                                    name: ">", exprType: .bool, arguments: (
                                         Value(name: "global_func_main_variable_a", exprType: .int),
                                         IntLiteral(value: 1)
                                 )), block: Code([

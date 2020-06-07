@@ -53,7 +53,7 @@ func IfElseAST(_ value: Bool) -> Code {
                 VariableAssignment(
                     receiverId: "global_func_main_variable_b", expression:
                     BinaryOperator(
-                        name: instruction, operatorType: .int, exprType: .int, arguments: (
+                        name: instruction, exprType: .int, arguments: (
                             Value(name: "global_func_main_variable_a", exprType: .int),
                             Value(name: "global_func_main_variable_b", exprType: .int)
                     ))
@@ -61,7 +61,7 @@ func IfElseAST(_ value: Bool) -> Code {
                 
                 Condition(
                     condition: BinaryOperator(
-                        name: "==", operatorType: .int, exprType: .int,
+                        name: "==", exprType: .int,
                         arguments: (
                             Value(name: "global_func_main_variable_b", exprType: .int),
                             IntLiteral(value: 4)

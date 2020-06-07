@@ -12,7 +12,7 @@
 // @Todo: properly eat whitespaces
 
 fileprivate let punctuators = [".", ":", "(", ")", "{", "}", "[", "]", "->", "..."]
-fileprivate let operators = ["-", "+", "/", "*", "..", "=", ":=",
+fileprivate let operators = ["-", "+", "/", "*", "%", "..", "=", ":=",
                              "==", "!=", "<=", ">=", "&&", "||",
                              "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<="]
 

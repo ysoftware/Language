@@ -21,12 +21,9 @@ e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; }
         printResultCase(
             code, result, Code([
                 main([
-                    vDecl("a", .string, nil),
-                    vDecl("b", .int, int(1)),
-                    vDecl("c", .string, string("hello"), const: true),
-                    vDecl("d", .int, int(1)),
-                    vDecl("e", .bool, bool(true), const: true),
-                    vDecl("f", .float, float(1)),
+                    vDecl("a", .string, nil), vDecl("b", .int, int(1)),
+                    vDecl("c", .string, string("hello"), const: true), vDecl("d", .int, int(1)),
+                    vDecl("e", .bool, bool(true), const: true), vDecl("f", .float, float(1)),
                     vDecl("g", .bool, bool(false), const: true),
                     vDecl("h", .int64, int(5_000_000_000_000), const: true),
                 ])
@@ -187,13 +184,14 @@ struct Value { a := getInt(); b := getString(); }
             main([
                 vDecl("a", .int, int(1)),
                 vDecl("b", .int,
-                    UnaryOperator(name: "-", operatorType: .int, exprType: .int, argument: val("a", .int)))
+                    unop("-", .int, val("a", .int)))
             ])
         ]))
     }
     
     func testPrecedence() {
-        let code = "func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 - 0.5; }"
+        return
+        let code = "func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100; }"
         // 5 + 3
         // -(5 + 3)
         // 7 / -(5 + 3)
@@ -211,24 +209,39 @@ struct Value { a := getInt(); b := getString(); }
         printResultCase(code, result, Code([
             main([
                 vDecl("a", .int, int(1))
-                
             ])
         ]))
     }
     
     func testBinaryOperators() {
-        let code = "func main() { a := 1 + 3 * 2; b := a - 2; c := a * b; }"
+        let code = "func main() { a := 2 * 3 + 2 * 2; b := a - 2; c := a * b; }"
         
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([
             main([
-                vDecl("a", .int, binop("+", ret: .int, arg: .int,
-                                       (int(1), binop("*", ret: .int, arg: .int, (int(3), int(2)))))),
-                vDecl("b", .int, binop("-", ret: .int, arg: .int, (val("a", .int), int(2)))),
-                vDecl("c", .int, binop("*", ret: .int, arg: .int, (val("a", .int), val("b", .int))))
+                vDecl("a", .int, binop("+", .int,
+                                       (binop("*", .int, (int(2), int(3))),
+                                        binop("*", .int, (int(2), int(2)))))),
+                vDecl("b", .int, binop("-", .int, (val("a", .int), int(2)))),
+                vDecl("c", .int, binop("*", .int, (val("a", .int), val("b", .int))))
             ])
         ]))
+    }
+    
+    func testBrackets() {
+//        return
+        let code = "func main() { a := (1+2)*(3)+5; }"
+        
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+        
+        let binop1 = binop("+", .int, (int(1), int(2))) // 1 + 2
+        let binop2 = binop("*", .int, (binop1, int(3))) // (1+2) * (3)
+        let binop3 = binop("+", .int, (binop2, int(5))) // ((1+2)+(3)) + 5
+        
+        printResultCase(code, result, Code([
+            main([ vDecl("a", .int, binop3)]) ]))
     }
 }
