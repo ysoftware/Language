@@ -18,16 +18,13 @@ e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        printResultCase(
-            code, result, Code([
-                main([
-                    vDecl("a", .string, nil), vDecl("b", .int, int(1)),
-                    vDecl("c", .string, string("hello"), const: true), vDecl("d", .int, int(1)),
-                    vDecl("e", .bool, bool(true), const: true), vDecl("f", .float, float(1)),
-                    vDecl("g", .bool, bool(false), const: true),
-                    vDecl("h", .int64, int(5_000_000_000_000), const: true),
-                ])
-            ]))
+        printResultCase(code, result, Code([main([
+            vDecl("a", .string, nil), vDecl("b", .int, int(1)),
+            vDecl("c", .string, string("hello"), const: true), vDecl("d", .int, int(1)),
+            vDecl("e", .bool, bool(true), const: true), vDecl("f", .float, float(1)),
+            vDecl("g", .bool, bool(false), const: true),
+            vDecl("h", .int64, int(5_000_000_000_000), const: true),
+        ])]))
     }
     
     func testFunctionDeclaration() {
@@ -118,18 +115,16 @@ struct Value { a := getInt(); b := getString(); }
         let result = Parser(tokens).parse()
         
         printResultCase(
-            code, result, Code([
-                main([
-                    Condition(condition: bool(true), block: Code([
-                        vDecl("a", .int, int(1)),
-                        Condition(condition: bool(false), block: Code([
-                            vDecl("b", .int, val("a", .int)),
-                        ]), elseBlock: .empty)
-                    ]), elseBlock: Code([
-                        vDecl("c", .unresolved(name: nil), val("a", .unresolved(name: nil)))
-                    ])),
-                ])
-            ]))
+            code, result, Code([main([
+                Condition(condition: bool(true), block: Code([
+                    vDecl("a", .int, int(1)),
+                    Condition(condition: bool(false), block: Code([
+                        vDecl("b", .int, val("a", .int)),
+                    ]), elseBlock: .empty)
+                ]), elseBlock: Code([
+                    vDecl("c", .unresolved(name: nil), val("a", .unresolved(name: nil)))
+                ])),
+            ])]))
     }
     
     func testWhileLoop() {
@@ -148,15 +143,13 @@ struct Value { a := getInt(); b := getString(); }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        printResultCase(code, result, Code([
-            main([
-                WhileLoop(userLabel: "loop", condition: bool(true), block: Code([
-                    WhileLoop(userLabel: "loop1", condition: bool(true), block: Code([
-                        Break(userLabel: "loop")
-                    ]))
+        printResultCase(code, result, Code([main([
+            WhileLoop(userLabel: "loop", condition: bool(true), block: Code([
+                WhileLoop(userLabel: "loop1", condition: bool(true), block: Code([
+                    Break(userLabel: "loop")
                 ]))
-            ])
-        ]))
+            ]))
+        ])]))
     }
     
     func testWhileLoopContinue() {
@@ -164,15 +157,13 @@ struct Value { a := getInt(); b := getString(); }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
 
-        printResultCase(code, result, Code([
-            main([
-                WhileLoop(userLabel: "loop", condition: bool(true), block: Code([
-                    WhileLoop(userLabel: "loop1", condition: bool(true), block: Code([
-                        Continue(userLabel: "loop")
-                    ]))
+        printResultCase(code, result, Code([main([
+            WhileLoop(userLabel: "loop", condition: bool(true), block: Code([
+                WhileLoop(userLabel: "loop1", condition: bool(true), block: Code([
+                    Continue(userLabel: "loop")
                 ]))
-            ])
-        ]))
+            ]))
+        ])]))
     }
     
     func testUnaryOperators() {
@@ -180,58 +171,56 @@ struct Value { a := getInt(); b := getString(); }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        printResultCase(code, result, Code([
-            main([
-                vDecl("a", .int, int(1)),
-                vDecl("b", .int,
-                    unop("-", .int, val("a", .int)))
-            ])
-        ]))
+        printResultCase(code, result, Code([main([
+            vDecl("a", .int, int(1)),
+            vDecl("b", .int, unop("-", .int, val("a", .int)))
+        ])]))
     }
     
+    
+//    [[[Int(1) + Int(3)] * [[Int(1) + Int(7)] / -{ [Int(5) + Int(3)] }]] % [Int(100) == Int(0)]]
+//    [[[[Int(1) + Int(3)] * [Int(1) + [Int(7) / -{ [Int(5) + Int(3)] }]]] % Int(100)] == Int(0)]
+    
     func testPrecedence() {
-        return
-        let code = "func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100; }"
-        // 5 + 3
-        // -(5 + 3)
-        // 7 / -(5 + 3)
-        // 1 + (7 / -(5 + 3))
-        // ---
-        // 1 + 3
-        // (1 + 3) * (1 + (7 / -(5 + 3)))
-        // ---
-        // (1 + 3) * (1 + (7 / -(5 + 3))) % 100
-        // ((1 + 3) * (1 + (7 / -(5 + 3))) % 100) - 0.5   = 0
+        // @Todo: this should result in a expression of type float (because of 0.5)
+        // let code = "func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 - 0.5; }"
+        
+        let code = "func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 == 0; }"
+        
+        let op11 = binop("+", .int, (int(5), int(3)))
+        let op12 = unop("-", .int, op11)
+        let op13 = binop("/", .int, (int(7), op12))
+        let op14 = binop("+", .int, (int(1), op13))
+        
+        let op0 = binop("+", .int, (int(1), int(3)))
+        let op2 = binop("*", .int, (op0, op14))
+        let op3 = binop("%", .int, (op2, int(100)))
+        let op4 = binop("==", .bool, (op3, int(0)))
         
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        printResultCase(code, result, Code([
-            main([
-                vDecl("a", .int, int(1))
-            ])
-        ]))
+        printResultCase(code, result, Code([main([
+            vDecl("a", .bool, op4)
+        ])]))
     }
     
     func testBinaryOperators() {
-        let code = "func main() { a := 2 * 3 + 2 * 2; b := a - 2; c := a * b; }"
+        let code = "func main() { a := 2 * 3 + 2 * 2; b: = 1 + 2 * 2; }"
         
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        printResultCase(code, result, Code([
-            main([
-                vDecl("a", .int, binop("+", .int,
-                                       (binop("*", .int, (int(2), int(3))),
-                                        binop("*", .int, (int(2), int(2)))))),
-                vDecl("b", .int, binop("-", .int, (val("a", .int), int(2)))),
-                vDecl("c", .int, binop("*", .int, (val("a", .int), val("b", .int))))
-            ])
-        ]))
+        let mul1 = binop("*", .int, (int(2), int(3)))
+        let mul2 = binop("*", .int, (int(2), int(2)))
+        
+        printResultCase(code, result, Code([main([
+            vDecl("a", .int, binop("+", .int, (mul1, mul2))),
+            vDecl("b", .int, binop("+", .int, (int(1), mul2)))
+        ])]))
     }
     
     func testBrackets() {
-//        return
         let code = "func main() { a := (1+2)*(3)+5; }"
         
         let tokens = try! Lexer(code).analyze().get()
@@ -241,7 +230,6 @@ struct Value { a := getInt(); b := getString(); }
         let binop2 = binop("*", .int, (binop1, int(3))) // (1+2) * (3)
         let binop3 = binop("+", .int, (binop2, int(5))) // ((1+2)+(3)) + 5
         
-        printResultCase(code, result, Code([
-            main([ vDecl("a", .int, binop3)]) ]))
+        printResultCase(code, result, Code([ main([ vDecl("a", .int, binop3)]) ]))
     }
 }

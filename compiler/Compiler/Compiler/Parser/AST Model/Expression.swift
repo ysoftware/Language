@@ -22,8 +22,7 @@ class UnaryOperator: Expression, Equatable {
     }
     
     var debugDescription: String {
-        if name == "()" { return "(\(argument))" }
-        return "'\(name)' { \(argument) }"
+        "\(name){ \(argument) }"
     }
     
     var name: String
@@ -106,7 +105,7 @@ class StringLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "String[\"\(value)\"]"
+        "String(\"\(value)\")"
     }
     
     internal init(value: String) {
@@ -127,7 +126,7 @@ class IntLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "Int[\(value)]"
+        "Int(\(value))"
     }
     
     internal init(value: Int) {
@@ -149,7 +148,7 @@ class FloatLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "Float[\(value)]"
+        "Float(\(value))"
     }
     
     internal init(value: Float32) {
@@ -170,7 +169,7 @@ class BoolLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "Bool[\(value)]"
+        "Bool(\(value))"
     }
     
     internal init(value: Bool) {

@@ -17,9 +17,9 @@ class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
+        i.testPrecedence()
         i.testBinaryOperators()
         i.testBrackets()
-        i.testPrecedence()
         i.testUnaryOperators()
         i.testWhileLoopContinue()
         i.testWhileLoopBreak()

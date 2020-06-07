@@ -9,11 +9,7 @@
 import Foundation
 
 // with precedence level
-enum BinaryPrecedence: Int, Comparable {
-    
-    static func < (lhs: BinaryPrecedence, rhs: BinaryPrecedence) -> Bool {
-        lhs.rawValue < rhs.rawValue
-    }
+enum Precedence {
     
     // = 1  Function call, scope, array/member access
     // = 2  sizeof, cast, unary operators
@@ -21,42 +17,63 @@ enum BinaryPrecedence: Int, Comparable {
     // = 14 Assignment operators (right to left)
     // = 15 Comma operator
 
-    case none           = 0
+    static let none                 = 0
     
-    case multiplication = 12 // 3
-    case addition       = 11 // 4
-    case bitwiseShift   = 10 // 5
+    static let multiplication = 12 // 3
+    static let addition       = 11 // 4
+    static let bitwiseShift   = 10 // 5
     
-    case comparison     = 9  // 6
-    case equality       = 8  // 7
+    static let comparison     = 9  // 6
+    static let equality       = 8  // 7
     
-    case bitAnd         = 7  // 8
-    case bitXor         = 6  // 9
-    case bitOr          = 5  // 10
-    case logicAnd       = 4  // 11
-    case logicOr        = 3  // 12
+    static let bitAnd         = 7  // 8
+    static let bitXor         = 6  // 9
+    static let bitOr          = 5  // 10
+    static let logicAnd       = 4  // 11
+    static let logicOr        = 3  // 12
 }
 
-
-func precedence(of operation: String) -> BinaryPrecedence {
+func returnType(of operation: String, arg: Type) -> Type {
     switch operation {
     // MARK: - Expressions
-    case "*", "/", "%":   return .multiplication
-    case "+", "-":        return .addition
-    case "<<", ">>":      return .bitwiseShift
+    case "*", "/", "%":   return arg
+    case "+", "-":        return arg
+    case "<<", ">>":      return arg
     // equality
-    case "<", ">":        return .comparison
-    case "==", "!=":      return .equality
+    case "<", ">":        return .bool
+    case "==", "!=":      return .bool
     // boolean
-    case "&":             return .bitOr
-    case "^":             return .bitXor
-    case "|":             return .bitOr
-    case "&&":            return .logicAnd
-    case "||":            return .logicOr
+    case "&":             return arg
+    case "^":             return arg
+    case "|":             return arg
+    case "&&":            return .bool
+    case "||":            return .bool
         
     // MARK: - Not expressions
         
-    default: fatalError("incorrect operation")
+    default: fatalError()
+    }
+}
+
+func precedence(of operation: String) -> Int? {
+    switch operation {
+    // MARK: - Expressions
+    case "*", "/", "%":   return Precedence.multiplication
+    case "+", "-":        return Precedence.addition
+    case "<<", ">>":      return Precedence.bitwiseShift
+    // equality
+    case "<", ">":        return Precedence.comparison
+    case "==", "!=":      return Precedence.equality
+    // boolean
+    case "&":             return Precedence.bitOr
+    case "^":             return Precedence.bitXor
+    case "|":             return Precedence.bitOr
+    case "&&":            return Precedence.logicAnd
+    case "||":            return Precedence.logicOr
+        
+    // MARK: - Not expressions
+        
+    default: fatalError()
     }
 }
 

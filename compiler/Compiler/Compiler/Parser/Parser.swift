@@ -321,39 +321,34 @@ extension Parser {
     
     // MARK: - EXPRESSIONS -
     
+    func makeBinaryOperation(_ name: String, left: Expression, right: Expression, _ token: Token) -> BinaryOperator {
+        let exprType = returnType(of: name, arg: left.exprType)
+        let op = BinaryOperator(name: name, exprType: exprType, arguments: (left, right))
+        op.startCursor = token.startCursor
+        op.endCursor = token.endCursor
+        return op
+    }
+ 
     func doExpression(in scope: Scope,
                       expectSemicolon: Bool = true,
-                      _ priority: BinaryPrecedence = .none) -> Result<Expression, ParserError> {
+                      _ priority: Int = 0) -> Result<Expression, ParserError> {
         guard tokens.count > i else { return error(em.unexpectedEndOfFile, lastToken.endCursor) }
+
+        var result: Expression!
+        if let error = doExpr(in: scope).assign(&result) { return .failure(error) }
+        let opTok = token
         
-        var currentPriority = priority
-        var left: Expression!
-        if let error = doExpr(in: scope).assign(&left) { return .failure(error) }
-        
-        while let (opTok, op) = consumeOperator() {
-            let operationPriority = precedence(of: op.value)
+        while let op = token.value as? Operator, let opPriority = precedence(of: op.value), opPriority >= priority {
+            _ = consumeOperator()
             var right: Expression!
-            if operationPriority > currentPriority {
-                if let error = doExpr(in: scope).assign(&right) { return .failure(error) }
-            }
-            else {
-                if let error = doExpression(in: scope, expectSemicolon: false, operationPriority)
-                    .assign(&right) { return .failure(error) }
-            }
-            currentPriority = operationPriority
+            if let error = doExpression(in: scope, expectSemicolon: false, opPriority + 1)
+                .assign(&right) { return .failure(error) }
             // @Todo: match arguments' types and also operation type
-            let exprType = left.exprType // @Todo: check if it's a binary or logical or something operator
-            let op = BinaryOperator(name: op.value, exprType: exprType, arguments: (left, right))
-            op.startCursor = opTok.startCursor
-            op.endCursor = opTok.endCursor
-            left = op
+            result = makeBinaryOperation(op.value, left: result, right: right, opTok)
         }
         
-        if expectSemicolon {
-            if consumeSep(";") { return .success(left) }
-            else { return error(em.expectedSemicolon) }
-        }
-        return .success(left)
+        if expectSemicolon, !consumeSep(";") { return error(em.expectedSemicolon) }
+        return .success(result)
     }
     
     /// A single unit expression: `literal`, `value`, `procedure call`.
@@ -365,7 +360,7 @@ extension Parser {
 
         var arg: Expression!
         if consumePunct("(") {
-            if let error = doExpression(in: scope, expectSemicolon: false, .none)
+            if let error = doExpression(in: scope, expectSemicolon: false)
                 .assign(&arg) { return .failure(error) }
             if !consumePunct(")") { return error(em.ifExpectedBrackets) }
             return .success(arg)
@@ -411,9 +406,7 @@ extension Parser {
                 }
                 if !nextToken() { return error(em.unexpectedEndOfFile) }
             }
-        case let punct as Punctuator:
-//            if punct.value == ")" { break }
-            return error(em.expectedExpression)
+        case is Punctuator: return error(em.expectedExpression)
         case is Separator: return error(em.expectedExpression)
         default:
             print("Expression unknown: \(token)")
