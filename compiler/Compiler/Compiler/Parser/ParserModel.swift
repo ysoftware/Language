@@ -61,32 +61,32 @@ extension Parser {
         
         // common
         let unexpectedEndOfFile = "Unexpected end of file."
-        var notImplemented: String { "Token not implemented: \(p.token)." }
+        var notImplemented: String { "Token not implemented: '\(p.token)'." }
         let expectedSemicolon = "Expected ';' after an expression."
         let expectedExpression = "Expected expression."
         let expectedParentheses = "Parentheses are expected around the condition expression."
         let exprExpectedBrackets = "Expected closing bracket after expression."
         
         func returnTypeNotMatching(_ e: Type, _ g: Type) -> String {
-            "Return type is expected to be \(e), but expression provided evaluates to \(g)."
+            "Return type is expected to be '\(e)', but expression provided evaluates to '\(g)'."
         }
         
         // operation
         func binopArgTypeMatch(_ l: Type, r: Type) -> String {
-            "Argument types don't match. Left is \(l), right is \(r)."
+            "Argument types don't match. Left is '\(l)', right is '\(r)'."
         }
         
         func binopArgTypeSupport(_ n: String, t: Type) -> String {
-            "Operation \(n) doesn't support arguments of type \(t)."
+            "Operation \(n) doesn't support arguments of type '\(t)'."
         }
         
         func declarationConflict(_ d: Ast) -> String {
             // @Todo point to definition by cursor
-            "Declaration conflicts with another declaration with the same name: \(d)."
+            "Declaration conflicts with another declaration with the same name: '\(d)'."
         }
         
         // var assign
-        func assignPassedNotValue(_ s: Ast) -> String { "Expression is not a value: \(s)." }
+        func assignPassedNotValue(_ s: Ast) -> String { "Expression is not a value: '\(s)'." }
         
         // var decl
         let varDeclExpectedEquals = "Expected '=' or ':' for the variable or constant declaration."
@@ -115,7 +115,7 @@ extension Parser {
         func callArgumentsVarCount(_ r: Int, _ g: Int) -> String { "Procedure requires at least \(r) arguments, \(g) given." }
         
         func callArgumentTypeMismatch(_ a: String, e: String) -> String {
-            "Argument of type \(e) is expected by the procedure, \(a) given."
+            "Argument of type '\(e)' is expected by the procedure, '\(a)' given."
         }
         
         // procedure declaration
