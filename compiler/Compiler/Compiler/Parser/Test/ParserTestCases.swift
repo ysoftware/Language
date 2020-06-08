@@ -234,4 +234,16 @@ struct Value { a := getInt(); b := getString(); }
         
         printResultCase(code, result, Code([ main([ vDecl("a", .int, binop3)]) ]))
     }
+    
+    func testBinopLiteralConversion() {
+        let code = "func main() { a := 1 + -(1) + 1.5; }"
+        
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+        
+        let binop1 = binop("+", .float, (float(1), unop("-", .float, float(1))))
+        let binop2 = binop("+", .float, (binop1, float(1.5)))
+        
+        printResultCase(code, result, Code([ main([ vDecl("a", .float, binop2)]) ]))
+    }
 }

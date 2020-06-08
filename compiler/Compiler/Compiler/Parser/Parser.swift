@@ -321,21 +321,13 @@ extension Parser {
     
     // MARK: - EXPRESSIONS -
     
-    func makeBinaryOperation(_ name: String, left: Expression, right: Expression, _ token: Token) -> BinaryOperator {
-        let exprType = returnType(of: name, arg: left.exprType)
-        let op = BinaryOperator(name: name, exprType: exprType, arguments: (left, right))
-        op.startCursor = token.startCursor
-        op.endCursor = token.endCursor
-        return op
-    }
- 
     func doExpression(in scope: Scope,
                       expectSemicolon: Bool = true,
                       _ priority: Int = 0) -> Result<Expression, ParserError> {
         guard tokens.count > i else { return error(em.unexpectedEndOfFile, lastToken.endCursor) }
 
-        var result: Expression!
-        if let error = doExpr(in: scope).assign(&result) { return .failure(error) }
+        var left: Expression!
+        if let error = doExpr(in: scope).assign(&left) { return .failure(error) }
         let opTok = token
         
         while let op = token.value as? Operator, let opPriority = precedence(of: op.value), opPriority >= priority {
@@ -343,20 +335,21 @@ extension Parser {
             var right: Expression!
             if let error = doExpression(in: scope, expectSemicolon: false, opPriority + 1)
                 .assign(&right) { return .failure(error) }
-            // @Todo: recursively convert int literals to float literals if needed
-            // (1+2)*0.3 should convert 1 and 2 and their operation to float types
-            // because they're in an operation with a float
-            guard result.exprType == right.exprType else {
-                return error(em.binopArgTypeMatch(result.exprType, r: right.exprType), result.startCursor, right.endCursor)
+    
+            if left.exprType == .int, right.exprType == .float, let l = expressionToFloat(left) { left = l }
+            else if right.exprType == .int, left.exprType == .float, let r = expressionToFloat(right) { right = r }
+            
+            guard left.exprType == right.exprType else {
+                return error(em.binopArgTypeMatch(left.exprType, r: right.exprType), left.startCursor, right.endCursor)
             }
-            guard isAccepting(op.value, argType: result.exprType) else {
-                return error(em.binopArgTypeSupport(op.value, t: result.exprType), result.startCursor, right.endCursor)
+            guard isAccepting(op.value, argType: left.exprType) else {
+                return error(em.binopArgTypeSupport(op.value, t: left.exprType), left.startCursor, right.endCursor)
             }
-            result = makeBinaryOperation(op.value, left: result, right: right, opTok)
+            left = makeBinaryOperation(op.value, left: left, right: right, opTok)
         }
         
         if expectSemicolon, !consumeSep(";") { return error(em.expectedSemicolon) }
-        return .success(result)
+        return .success(left)
     }
     
     /// A single unit expression: `literal`, `value`, `procedure call`.

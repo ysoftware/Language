@@ -26,7 +26,7 @@ final class UnaryOperator: Expression, Equatable {
     }
     
     var name: String
-    var instruction: Instruction { return .add } // @Todo: make it work
+    var instruction: Instruction { return .add } // @Todo: make it work in IRGen
     var argument: Expression
     var exprType: Type
     
@@ -56,7 +56,7 @@ final class BinaryOperator: Expression, Equatable {
     }
     
     var name: String
-    var instruction: Instruction { return .add } // @Todo: I broke this
+    var instruction: Instruction { return .add } // @Todo: I broke this in IRGen
     var exprType: Type
     var arguments: (Expression, Expression)
 
@@ -136,6 +136,10 @@ final class IntLiteral: LiteralExpr, Equatable {
 
     var exprType: Type = .int
     var value: Int
+    
+    func toFloatLiteral() -> FloatLiteral {
+        FloatLiteral(value: Float32(value))
+    }
 }
 
 final class FloatLiteral: LiteralExpr, Equatable {

@@ -13,6 +13,34 @@ extension Parser {
     // @Todo: add append method the same as in Lexer
     // to auto-include the Cursor in the Ast
     
+    func expressionToFloat(_ expression: Expression, exprType: Type = .float) -> Expression? {
+        if let binop = expression as? BinaryOperator {
+            guard let left = expressionToFloat(binop.arguments.0, exprType: exprType),
+                let right = expressionToFloat(binop.arguments.1, exprType: exprType)
+                else { return nil }
+            return BinaryOperator(name: binop.name, exprType: .float, arguments: (left, right))
+        }
+        if let unop = expression as? UnaryOperator {
+            guard let arg = expressionToFloat(unop.argument, exprType: exprType) else { return nil }
+            return UnaryOperator(name: unop.name, exprType: .float, argument: arg)
+        }
+        if let int = expression as? IntLiteral {
+            return FloatLiteral(value: Float32(int.value))
+        }
+        if let float = expression as? FloatLiteral {
+            return float
+        }
+        return nil
+    }
+    
+    func makeBinaryOperation(_ name: String, left: Expression, right: Expression, _ token: Token) -> BinaryOperator {
+        let exprType = returnType(of: name, arg: left.exprType)
+        let op = BinaryOperator(name: name, exprType: exprType, arguments: (left, right))
+        op.startCursor = left.startCursor
+        op.endCursor = token.endCursor
+        return op
+    }
+    
     func appendUnresolved(_ dependency: String, _ statement: Ast) {
         if unresolved[dependency] == nil { unresolved[dependency] = [] }
         unresolved[dependency]!.append(statement)

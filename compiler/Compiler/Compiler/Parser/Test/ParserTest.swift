@@ -17,6 +17,7 @@ final class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
+        i.testBinopLiteralConversion()
         i.testPrecedence()
         i.testBinaryOperators()
         i.testBrackets()
