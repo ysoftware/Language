@@ -267,7 +267,9 @@ struct Value { a := getInt(); b := getString(); }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        // @Todo: implement error testing
-        printResultCase(code, result, Code([ ]))
+        let error = ParserError(startCursor: Cursor(character: 30),
+                                endCursor: Cursor(character: 37),
+                                message: em.returnTypeNotMatching(.float, .string))
+        printErrorCase(code, result, error)
     }
 }

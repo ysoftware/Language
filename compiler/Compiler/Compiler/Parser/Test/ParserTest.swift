@@ -8,10 +8,9 @@
 
 import Foundation
 
-fileprivate let PRINT_PASSES = false
-
 final class ParserTest {
     fileprivate var failed = 0
+    let em = Parser.ErrorMessage()
     
     static func run() {
         let i = ParserTest()
@@ -39,9 +38,36 @@ final class ParserTest {
         else { print("All parser tests have passed.") }
     }
     
-    func printErrorCase() {
+    func printErrorCase(caseName: String = #function, _ code: String,
+                        _ resultAST: Result<Code, ParserError>, _ expect: ParserError) {
+        
         // @Todo: error testing
         // @Todo: test exact cursors
+        
+        switch resultAST {
+        case .success(let result):
+            failed += 1
+            
+            print("❌ \(caseName)")
+            print("code: \"\(code)\"\n")
+            print("Expected error:", expect.message, "\n===")
+            print(result)
+            print("===\n\n")
+            
+        case .failure(let error):
+            if expect == error {
+                guard PRINT_PASSES else { return }
+                let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
+                print("OK \(name)")
+                return
+            }
+            print("❌ \(caseName)\n")
+            error.context.map { print("Error context: ", $0) }
+            print("code: \"\(code)\"\n")
+            print("Expected error:", expect.message, "\n===")
+            print("Received error:", error.message)
+            print("===\n\n")
+        }
     }
     
     func printResultCase(caseName: String = #function,

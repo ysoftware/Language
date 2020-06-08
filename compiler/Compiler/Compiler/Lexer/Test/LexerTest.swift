@@ -8,8 +8,6 @@
 
 import Foundation
 
-fileprivate let PRINT_PASSES = false
-
 final class LexerTest {
     fileprivate var failed = 0
     

@@ -8,6 +8,11 @@
 
 import Foundation
 
+let PRINT_PASSES = false
+
+LexerTest.run()
+ParserTest.run()
+
 //let index: Int = CommandLine.arguments
 //    .first { $0.starts(with: "-ast") }
 //    .map { String($0[$0.index($0.startIndex, offsetBy: 4)..<$0.endIndex]) }
@@ -25,8 +30,3 @@ import Foundation
 //
 //print(ir)
 //print("\n")
-
-
-
-LexerTest.run()
-ParserTest.run()

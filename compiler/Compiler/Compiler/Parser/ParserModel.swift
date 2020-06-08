@@ -8,25 +8,25 @@
 
 import Foundation
 
-struct ParserError: Error {
+struct ParserError: Error, Equatable {
     
     let fileName: String?
     let startCursor: Cursor
     let endCursor: Cursor
     let message: String
+    var context: String?
     
-    init(_ message: String) {
-        self.startCursor = Cursor()
-        self.endCursor = Cursor()
-        self.message = message
-        self.fileName = nil
-    }
-    
-    init(fileName: String? = nil, startCursor: Cursor, endCursor: Cursor, _ message: String) {
+    init(fileName: String? = nil, startCursor: Cursor, endCursor: Cursor,
+         message: String, context: String? = nil) {
         self.message = message
         self.startCursor = startCursor
         self.endCursor = endCursor
         self.fileName = fileName
+        self.context = context
+    }
+    
+    static func ==(lhs: ParserError, rhs: ParserError) -> Bool {
+        lhs.startCursor == rhs.startCursor && lhs.endCursor == rhs.endCursor && lhs.message == rhs.message
     }
 }
 
