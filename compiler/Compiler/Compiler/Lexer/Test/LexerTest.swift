@@ -49,6 +49,8 @@ final class LexerTest {
     func printErrorCase(caseName: String = #function, _ code: String,
                         _ resultR: Result<[Token], LexerError>, _ expected: LexerError) {
         
+        // @Todo: test exact cursors
+        
         switch resultR {
         case .failure(let error):
             if expected.message == error.message {

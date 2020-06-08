@@ -262,7 +262,7 @@ struct Value { a := getInt(); b := getString(); }
     }
     
     func testErrorReturnTypeNotMatching() {
-        let code = "func main() -> Float { return 1; }"
+        let code = "func main() -> Float { return \"string\"; }"
         
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()

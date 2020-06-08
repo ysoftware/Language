@@ -21,6 +21,7 @@ extension Parser {
     }
     
     func doVarDecl(in scope: Scope) -> Result<VariableDeclaration, ParserError> {
+        let start = token.startCursor
         guard let identifier = consumeIdent() else { assert(false) }
         assert(consumePunct(":"))
         
@@ -32,6 +33,7 @@ extension Parser {
         if consumePunct(":") { flags.insert(.isConstant) }
         else if !consumeOp("=") { expectingExpression = false }
         
+        let end = token.endCursor
         if expectingExpression {
             if let error = doExpression(in: scope).assign(&expr) { return .failure(error) }
             if let declaredType = suppliedTypeName, let exprType = expr?.exprType.name {
@@ -56,7 +58,8 @@ extension Parser {
         else { return error(em.varDeclRequiresType) } // @Todo: check cursors and if this error is even valid
         
         let varDecl = VariableDeclaration(
-            name: identifier.value.value, exprType: type, flags: flags, expression: expr)
+            name: identifier.value.value, exprType: type, flags: flags, expression: expr,
+            startCursor: start, endCursor: end)
         if case .resolved = type { appendUnresolved(type.name, varDecl) }
         if let e = verifyNameConflict(varDecl, in: scope) { return error(e) }
         appendDeclaration(varDecl, to: scope)
@@ -66,9 +69,11 @@ extension Parser {
     // MARK: - STRUCT DECLARATION -
 
     func doStructDecl() -> Result<StructDeclaration, ParserError> {
+        let start = token.startCursor
         assert(consumeKeyword(.struct))
         guard let name = consumeIdent()?.value
             else { return error(em.structExpectedName) }
+        let end = token.endCursor
         guard consumePunct("{")
             else { return error(em.structExpectedBrackets) }
         var members: [VariableDeclaration] = []
@@ -84,7 +89,8 @@ extension Parser {
                 else { return error(em.structExpectedBracketsEnd) }
             }
         }
-        let structDecl = StructDeclaration(name: name.value, members: members)
+        let structDecl = StructDeclaration(name: name.value, members: members,
+                                           startCursor: start, endCursor: end)
         if let e = verifyNameConflict(structDecl) { return error(e) }
         appendDeclaration(structDecl, to: globalScope)
         return .success(structDecl)
@@ -156,10 +162,10 @@ extension Parser {
 
     func doProcDecl(in scope: Scope) -> Result<ProcedureDeclaration, ParserError> {
         let start = token.startCursor
-        var end = token.endCursor
         assert(consumeKeyword(.func))
         guard let procName = consumeIdent()?.value else { return error(em.procExpectedName) }
         guard consumePunct("(") else { return error(em.expectedParentheses) }
+        let end = lastToken.endCursor
         let returnType: Type
         let name = procName.value
         var id = "__global_func_\(procName.value)"
@@ -192,7 +198,6 @@ extension Parser {
             else { return error(em.procReturnTypeExpected) }
         }
         else { returnType = .void }
-        end = lastToken.endCursor
         if let (directiveToken, directive) = consume(Directive.self) {
             switch directive.value {
             case "foreign": flags.insert(.isForeign)
@@ -202,7 +207,6 @@ extension Parser {
             default:
                 return error(em.procUndeclaredDirective, directiveToken.startCursor, directiveToken.endCursor)
             }
-            end = directiveToken.endCursor
         }
         else if consumePunct("{") {
             if flags.contains(.isForeign) { return error(em.procForeignUnexpectedBody) }
@@ -240,6 +244,7 @@ extension Parser {
     // MARK: - IF-ELSE -
     
     func doIf(in scope: Scope) -> Result<Condition, ParserError> {
+        let tok = token
         assert(consumeKeyword(.if))
         let hasParentheses = consumePunct("(")
         var condition: Expression!
@@ -258,7 +263,8 @@ extension Parser {
             if let error = doStatements(in: scope.next()).assign(&elseBody) { return .failure(error) }
             guard consumePunct("}") else { return error(em.ifExpectedBrackets) }
         }
-        let ifStatement = Condition(condition: condition, block: Code(ifBody), elseBlock: Code(elseBody))
+        let ifStatement = Condition(condition: condition, block: Code(ifBody), elseBlock: Code(elseBody),
+                                    startCursor: tok.startCursor, endCursor: tok.endCursor)
         return .success(ifStatement)
     }
     
@@ -272,9 +278,11 @@ extension Parser {
     }
     
     func doWhile(in scope: Scope) -> Result<WhileLoop, ParserError> {
+        let start = token.startCursor
         let labelIdent = consumeIdent()
         let label = labelIdent?.value.value
         if labelIdent != nil { assert(consumePunct(":")) }
+        let end = token.endCursor
         assert(consumeKeyword(.while))
         if let labelIdent = labelIdent {
             if scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == labelIdent.value.value })
@@ -291,7 +299,8 @@ extension Parser {
         if !consumePunct("{") { return error(em.loopExpectedBrackets) }
         if let error = doStatements(in: scope.next(as: ContextLoop(label: label))).assign(&loopBody) { return .failure(error) }
         guard consumePunct("}") else { return error(em.loopExpectedBrackets) }
-        let whileStatement = WhileLoop(userLabel: label, condition: condition, block: Code(loopBody))
+        let whileStatement = WhileLoop(userLabel: label, condition: condition, block: Code(loopBody),
+                                       startCursor: start, endCursor: end)
         return .success(whileStatement)
     }
     
@@ -308,7 +317,8 @@ extension Parser {
             if nil == scope.contexts.last(where: { $0 is ContextLoop })
                 { return error(em.breakContext, tok.startCursor, tok.endCursor) }
         }
-        return .success(Break(userLabel: labelIdent?.value.value))
+        let br = Break(userLabel: labelIdent?.value.value, startCursor: tok.startCursor, endCursor: tok.endCursor)
+        return .success(br)
     }
     
     func doContinue(in scope: Scope) -> Result<Continue, ParserError> {
@@ -324,7 +334,8 @@ extension Parser {
             if nil == scope.contexts.last(where: { $0 is ContextLoop })
                 { return error(em.continueContext, tok.startCursor, tok.endCursor) }
         }
-        return .success(Continue(userLabel: labelIdent?.value.value))
+        let cont = Continue(userLabel: labelIdent?.value.value, startCursor: tok.startCursor, endCursor: token.endCursor)
+        return .success(cont)
     }
     
     // MARK: - EXPRESSIONS -
@@ -459,9 +470,11 @@ extension Parser {
                     break
                 }
                 if consumeKeyword(.return) {
-                    var returnExpression: Expression?
+                    var returnExpression: Expression!
                     if let error = doExpression(in: scope).assign(&returnExpression) { return .failure(error) }
-                    let returnStatement = Return(value: returnExpression ?? VoidLiteral())
+                    let returnStatement = Return(
+                        value: returnExpression ?? VoidLiteral(),
+                        startCursor: lastToken.startCursor, endCursor: returnExpression.endCursor)
                     statements.append(returnStatement)
                     break
                 }

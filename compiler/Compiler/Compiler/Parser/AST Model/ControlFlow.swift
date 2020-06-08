@@ -10,8 +10,8 @@ import Foundation
 
 final class Condition: Statement, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: Condition, rhs: Condition) -> Bool {
         lhs.condition.equals(to: rhs.condition) && lhs.block == rhs.block && lhs.elseBlock == rhs.elseBlock
@@ -27,18 +27,21 @@ final class Condition: Statement, Equatable {
     let block: Code
     let elseBlock: Code
     
-    internal init(condition: Expression, block: Code, elseBlock: Code) {
+    internal init(condition: Expression, block: Code, elseBlock: Code,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.condition = condition
         
         self.block = block
         self.elseBlock = elseBlock
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }
 
 final class WhileLoop: Statement, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: WhileLoop, rhs: WhileLoop) -> Bool {
         lhs.userLabel == rhs.userLabel && lhs.condition.equals(to: rhs.condition) && lhs.block == rhs.block
@@ -57,17 +60,20 @@ final class WhileLoop: Statement, Equatable {
 
     internal init(userLabel:
     
-    String?, condition: Expression, block: Code) {
+    String?, condition: Expression, block: Code,
+             startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.userLabel = userLabel
         self.condition = condition
         self.block = block
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }
 
 final class Break: Statement, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: Break, rhs: Break) -> Bool {
         lhs.userLabel == rhs.userLabel
@@ -82,15 +88,18 @@ final class Break: Statement, Equatable {
     /// label set in the code
     let userLabel: String?
     
-    internal init(userLabel: String?) {
+    internal init(userLabel: String?,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.userLabel = userLabel
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }
 
 final class Continue: Statement, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: Continue, rhs: Continue) -> Bool {
         lhs.userLabel == rhs.userLabel
@@ -105,15 +114,18 @@ final class Continue: Statement, Equatable {
     /// label set in the code
     let userLabel: String?
     
-    internal init(userLabel: String?) {
+    internal init(userLabel: String?,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.userLabel = userLabel
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }
 
 final class Return: Statement, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: Return, rhs: Return) -> Bool {
         lhs.value.equals(to: rhs.value)
@@ -123,9 +135,14 @@ final class Return: Statement, Equatable {
         "Return \(value)"
     }
     
-    var value: Expression
+    var value: Expression {
+        didSet { endCursor = value.endCursor }
+    }
     
-    internal init(value: Expression) {
+    internal init(value: Expression,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.value = value
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }

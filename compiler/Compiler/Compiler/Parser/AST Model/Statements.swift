@@ -10,8 +10,8 @@ import Foundation
 
 final class ProcedureDeclaration: Statement, Declaration, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: ProcedureDeclaration, rhs: ProcedureDeclaration) -> Bool {
         lhs.id == rhs.id
@@ -54,20 +54,23 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     var scope: Code
     
     internal init(id: String, name: String, arguments: [Type],
-                  returnType: Type, flags: ProcedureDeclaration.Flags, scope: Code) {
+                  returnType: Type, flags: ProcedureDeclaration.Flags, scope: Code,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.id = id
         self.name = name
         self.arguments = arguments
         self.returnType = returnType
         self.flags = flags
         self.scope = scope
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }
 
 final class StructDeclaration: Statement, Declaration, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: StructDeclaration, rhs: StructDeclaration) -> Bool {
         lhs.name == rhs.name
@@ -83,16 +86,19 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     let name: String
     let members: [VariableDeclaration]
     
-    internal init(name: String, members: [VariableDeclaration]) {
+    internal init(name: String, members: [VariableDeclaration],
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.name = name
         self.members = members
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }
 
 final class VariableDeclaration: Statement, Declaration, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: VariableDeclaration, rhs: VariableDeclaration) -> Bool {
         lhs.name == rhs.name
@@ -120,18 +126,21 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     let flags: Flags
     let expression: Expression?
     
-    internal init(name: String, exprType: Type, flags: VariableDeclaration.Flags, expression: Expression?) {
+    internal init(name: String, exprType: Type, flags: VariableDeclaration.Flags, expression: Expression?,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.name = name
         self.exprType = exprType
         self.flags = flags
         self.expression = expression
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }
 
 final class VariableAssignment: Statement, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: VariableAssignment, rhs: VariableAssignment) -> Bool {
         lhs.receiverId == rhs.receiverId
@@ -145,8 +154,11 @@ final class VariableAssignment: Statement, Equatable {
     let receiverId: String
     let expression: Expression
     
-    internal init(receiverId: String, expression: Expression) {
+    internal init(receiverId: String, expression: Expression,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.receiverId = receiverId
         self.expression = expression
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }
