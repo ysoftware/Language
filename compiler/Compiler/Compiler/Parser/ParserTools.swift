@@ -13,19 +13,47 @@ extension Parser {
     // @Todo: add append method the same as in Lexer
     // to auto-include the Cursor in the Ast
     
+    func firstNotMatchingReturnStatement(in code: Code, to returnType: Type) -> Return? {
+        // @Todo: static analysis that all paths return a value
+        
+        for stat in code.statements {
+            if let returnStat = stat as? Return {
+                if returnStat.value.exprType != returnType {
+                    return returnStat
+                }
+            }
+            else if let ifStat = stat as? Condition {
+                if let r = firstNotMatchingReturnStatement(in: ifStat.block, to: returnType) {
+                    return r
+                }
+                if let r = firstNotMatchingReturnStatement(in: ifStat.elseBlock, to: returnType) {
+                    return r
+                }
+            }
+            else if let loop = stat as? WhileLoop {
+                if let r = firstNotMatchingReturnStatement(in: loop.block, to: returnType) {
+                    return r
+                }
+            }
+        }
+        return nil
+    }
+    
     func expressionToFloat(_ expression: Expression, exprType: Type = .float) -> Expression? {
         if let binop = expression as? BinaryOperator {
             guard let left = expressionToFloat(binop.arguments.0, exprType: exprType),
                 let right = expressionToFloat(binop.arguments.1, exprType: exprType)
                 else { return nil }
-            return BinaryOperator(name: binop.name, exprType: .float, arguments: (left, right))
+            return BinaryOperator(name: binop.name, exprType: .float, arguments: (left, right),
+                startCursor: binop.startCursor, endCursor: binop.endCursor)
         }
         if let unop = expression as? UnaryOperator {
             guard let arg = expressionToFloat(unop.argument, exprType: exprType) else { return nil }
-            return UnaryOperator(name: unop.name, exprType: .float, argument: arg)
+            return UnaryOperator(name: unop.name, exprType: .float, argument: arg,
+                                 startCursor: unop.startCursor, endCursor: unop.endCursor)
         }
         if let int = expression as? IntLiteral {
-            return FloatLiteral(value: Float32(int.value))
+            return FloatLiteral(intLiteral: int)
         }
         if let float = expression as? FloatLiteral {
             return float
@@ -37,7 +65,7 @@ extension Parser {
         let exprType = returnType(of: name, arg: left.exprType)
         let op = BinaryOperator(name: name, exprType: exprType, arguments: (left, right))
         op.startCursor = left.startCursor
-        op.endCursor = token.endCursor
+        op.endCursor = right.endCursor
         return op
     }
     

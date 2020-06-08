@@ -123,7 +123,7 @@ final class Return: Statement, Equatable {
         "Return \(value)"
     }
     
-    let value: Expression
+    var value: Expression
     
     internal init(value: Expression) {
         self.value = value

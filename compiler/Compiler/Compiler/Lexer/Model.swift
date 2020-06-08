@@ -138,9 +138,9 @@ struct LexerError: Error {
         // I should be able to add information from the context.
         // For example: "Unexpected character `¿`."
         
-        case unexpectedMinusInNumberLiteral = "Unexpected `-` in the middle of a number literal."
-        case unexpectedDotInFloatLiteral = "Only a single `.` is expected in a float literal."
-        case unexpectedEInFloatLiteral = "Only a single `e` is expected in a float literal."
+        case unexpectedMinusInNumberLiteral = "Unexpected '-' in the middle of a number literal."
+        case unexpectedDotInFloatLiteral = "Only a single '.' is expected in a float literal."
+        case unexpectedEInFloatLiteral = "Only a single 'e' is expected in a float literal."
         case newLineInStringLiteral = "String literal is not terminated before a new line"
         case unexpectedEndOfFile = "Unexpected end of file"
         case newlineExpectedBeforeMultilineStringLiteral = "Multiline string literal is expected to start from a new line."
@@ -148,8 +148,9 @@ struct LexerError: Error {
         case emptyDirectiveName = "Directive identifier is expected after #."
         case unexpectedDirectiveName = "Unexpected characters in a directive identifier after #."
         case unexpectedCharacter = "Unexpected character."
+        case invalidIdentifierUnderscore = "'_' is not a valid identifier."
     }
-    
+
     let fileName: String?
     let startCursor: Cursor
     let endCursor: Cursor

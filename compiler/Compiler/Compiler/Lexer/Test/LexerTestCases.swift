@@ -9,7 +9,12 @@
 import Foundation
 
 extension LexerTest {
-    
+
+    func testInvalidIdentifierUnderscore() {
+        let code = "_ := 1;"
+        printErrorCase(code, Lexer(code).analyze(), LexerError(.invalidIdentifierUnderscore))
+    }
+        
     func testBoolLiteral() {
         let code = "true false"
         

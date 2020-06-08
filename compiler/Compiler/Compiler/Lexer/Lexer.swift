@@ -109,7 +109,6 @@ final class Lexer {
                 while let next = consumeNext(where: {
                     lowercaseRange.contains($0) || uppercaseRange.contains($0)
                         || numberRange.contains($0) || $0 == "_" }) {
-                            // @Todo: is ___identifier valid?
                             value.append(next)
                 }
                 
@@ -121,7 +120,7 @@ final class Lexer {
                     append(Directive(value: value), start, cursor)
                 }
                 else {
-                    // @Todo: "_" is invalid identifier
+                    if value == "_" { return error(.invalidIdentifierUnderscore, start, cursor) }
                     append(Identifier(value: value), start, cursor)
                 }
                 
@@ -129,10 +128,8 @@ final class Lexer {
                 // NUMBER LITERALS
                 
                 let start = cursor
-                // @Todo: unary operator "-"?
                 
                 // if this and the next characters are both not numbers
-                // @Note: this will fail "---1", and maybe we don't need it
                 if !numberRange.contains(char), let next = peekNext(), !numberRange.contains(next) {
                     fallthrough
                 }

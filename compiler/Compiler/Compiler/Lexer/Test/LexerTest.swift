@@ -17,6 +17,7 @@ final class LexerTest {
         let i = LexerTest()
         i.failed = 0
         
+        i.testInvalidIdentifierUnderscore()
         i.testCursors()
         i.testNumbersFail4()
         i.testBoolLiteral()

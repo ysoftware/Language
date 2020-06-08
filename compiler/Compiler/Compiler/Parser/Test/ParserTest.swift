@@ -17,6 +17,9 @@ final class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
+        i.testErrorReturnTypeNotMatching()
+        
+        i.testReturnTypeLiteralConversion()
         i.testBinopLiteralConversion()
         i.testPrecedence()
         i.testBinaryOperators()

@@ -162,7 +162,7 @@ extension Parser {
         guard consumePunct("(") else { return error(em.expectedParentheses) }
         let returnType: Type
         let name = procName.value
-        var id = "__global_func_\(procName.value)" // @Todo: don't change the name of 'main'? or create a #main directive
+        var id = "__global_func_\(procName.value)"
         var arguments: [Type] = []
         var flags = ProcedureDeclaration.Flags()
         var scope: Code = .empty
@@ -192,8 +192,6 @@ extension Parser {
             else { return error(em.procReturnTypeExpected) }
         }
         else { returnType = .void }
-        // @Todo: check all return statements to match return value
-        // @Todo: static analysis of
         end = lastToken.endCursor
         if let (directiveToken, directive) = consume(Directive.self) {
             switch directive.value {
@@ -209,6 +207,16 @@ extension Parser {
         else if consumePunct("{") {
             if flags.contains(.isForeign) { return error(em.procForeignUnexpectedBody) }
             if let error = doStatements(in: globalScope.next()).then({ scope = Code($0) }) { return .failure(error) }
+
+            while let returnStat = firstNotMatchingReturnStatement(in: scope, to: returnType) {
+                 // @Todo: more types
+                if returnType == .float, let fixedExpr = expressionToFloat(returnStat.value, exprType: returnType) {
+                    returnStat.value = fixedExpr
+                    continue
+                }
+                return error(em.returnTypeNotMatching(returnType, returnStat.value.exprType),
+                             returnStat.value.startCursor, returnStat.value.endCursor)
+            }
         }
         else {
             return error(em.procExpectedBody)
@@ -336,6 +344,7 @@ extension Parser {
             if let error = doExpression(in: scope, expectSemicolon: false, opPriority + 1)
                 .assign(&right) { return .failure(error) }
     
+             // @Todo: more types
             if left.exprType == .int, right.exprType == .float, let l = expressionToFloat(left) { left = l }
             else if right.exprType == .int, left.exprType == .float, let r = expressionToFloat(right) { right = r }
             

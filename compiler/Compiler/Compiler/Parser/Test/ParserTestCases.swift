@@ -246,4 +246,28 @@ struct Value { a := getInt(); b := getString(); }
         
         printResultCase(code, result, Code([ main([ vDecl("a", .float, binop2)]) ]))
     }
+    
+    func testReturnTypeLiteralConversion() {
+        let code = "func float() -> Float { return 1; }"
+        
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+        
+        // @Todo: implement error testing
+        printResultCase(code, result, Code([
+            ProcedureDeclaration(
+                id: "__global_func_float", name: "float", arguments: [],
+                returnType: .float, flags: [], scope: Code([ Return(value: float(1) )]))
+        ]))
+    }
+    
+    func testErrorReturnTypeNotMatching() {
+        let code = "func main() -> Float { return 1; }"
+        
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+        
+        // @Todo: implement error testing
+        printResultCase(code, result, Code([ ]))
+    }
 }

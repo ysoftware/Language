@@ -10,8 +10,8 @@ import Foundation
 
 final class UnaryOperator: Expression, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     var operatorType: Type { argument.exprType }
     
     static func == (lhs: UnaryOperator, rhs: UnaryOperator) -> Bool {
@@ -30,17 +30,20 @@ final class UnaryOperator: Expression, Equatable {
     var argument: Expression
     var exprType: Type
     
-    internal init(name: String, exprType: Type, argument: Expression) {
+    internal init(name: String, exprType: Type, argument: Expression,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.name = name
         self.argument = argument
         self.exprType = exprType
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }
 
 final class BinaryOperator: Expression, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     var operatorType: Type { arguments.0.exprType }
     
     static func == (lhs: BinaryOperator, rhs: BinaryOperator) -> Bool {
@@ -60,17 +63,20 @@ final class BinaryOperator: Expression, Equatable {
     var exprType: Type
     var arguments: (Expression, Expression)
 
-    internal init(name: String, exprType: Type, arguments: (Expression, Expression)) {
+    internal init(name: String, exprType: Type, arguments: (Expression, Expression),
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.name = name
         self.exprType = exprType
         self.arguments = arguments
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }
 
 final class ProcedureCall: Expression, Statement, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: ProcedureCall, rhs: ProcedureCall) -> Bool {
         lhs.name == rhs.name
@@ -88,17 +94,20 @@ final class ProcedureCall: Expression, Statement, Equatable {
     var exprType: Type
     var arguments: [Expression]
     
-    internal init(name: String, exprType: Type, arguments: [Expression]) {
+    internal init(name: String, exprType: Type, arguments: [Expression],
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.name = name
         self.exprType = exprType
         self.arguments = arguments
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 }
 
 final class StringLiteral: LiteralExpr, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: StringLiteral, rhs: StringLiteral) -> Bool {
         lhs.value == rhs.value
@@ -108,8 +117,11 @@ final class StringLiteral: LiteralExpr, Equatable {
         "String(\"\(value)\")"
     }
     
-    internal init(value: String) {
+    internal init(value: String,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.value = value
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 
     var exprType: Type = .string
@@ -118,8 +130,8 @@ final class StringLiteral: LiteralExpr, Equatable {
 
 final class IntLiteral: LiteralExpr, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: IntLiteral, rhs: IntLiteral) -> Bool {
         lhs.value == rhs.value
@@ -129,9 +141,13 @@ final class IntLiteral: LiteralExpr, Equatable {
         "Int(\(value))"
     }
     
-    internal init(value: Int) {
+    internal init(value: Int,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.value = value
         if value > Int32.max { exprType = .int64 }
+        
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
 
     var exprType: Type = .int
@@ -144,8 +160,8 @@ final class IntLiteral: LiteralExpr, Equatable {
 
 final class FloatLiteral: LiteralExpr, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: FloatLiteral, rhs: FloatLiteral) -> Bool {
         lhs.value == rhs.value
@@ -155,8 +171,15 @@ final class FloatLiteral: LiteralExpr, Equatable {
         "Float(\(value))"
     }
     
-    internal init(value: Float32) {
+    internal init(value: Float32,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.value = value
+        self.startCursor = startCursor
+        self.endCursor = endCursor
+    }
+    
+    convenience init(intLiteral: IntLiteral) {
+        self.init(value: Float32(intLiteral.value),startCursor: intLiteral.startCursor, endCursor: intLiteral.endCursor)
     }
     
     var exprType: Type = .float
@@ -165,8 +188,8 @@ final class FloatLiteral: LiteralExpr, Equatable {
 
 final class BoolLiteral: LiteralExpr, Equatable {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     static func == (lhs: BoolLiteral, rhs: BoolLiteral) -> Bool {
         lhs.value == rhs.value
@@ -176,8 +199,11 @@ final class BoolLiteral: LiteralExpr, Equatable {
         "Bool(\(value))"
     }
     
-    internal init(value: Bool) {
+    internal init(value: Bool,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.value = value
+        self.startCursor = startCursor
+        self.endCursor = endCursor
     }
     
     var exprType: Type = .bool
@@ -186,10 +212,15 @@ final class BoolLiteral: LiteralExpr, Equatable {
 
 final class VoidLiteral: LiteralExpr {
     
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var startCursor: Cursor
+    var endCursor: Cursor
     
     var debugDescription: String { "[Void]" }
     
     var exprType: Type = .void
+    
+    internal init(startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+        self.startCursor = startCursor
+        self.endCursor = endCursor
+    }
 }
