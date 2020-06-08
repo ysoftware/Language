@@ -26,7 +26,6 @@ final class UnaryOperator: Expression, Equatable {
     }
     
     var name: String
-    var instruction: Instruction { return .add } // @Todo: make it work in IRGen
     var argument: Expression
     var exprType: Type
     
@@ -59,7 +58,6 @@ final class BinaryOperator: Expression, Equatable {
     }
     
     var name: String
-    var instruction: Instruction { return .add } // @Todo: I broke this in IRGen
     var exprType: Type
     var arguments: (Expression, Expression)
 

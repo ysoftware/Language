@@ -10,6 +10,14 @@ import Foundation
 
 indirect enum Type: Equatable, CustomDebugStringConvertible {
     
+    var isInteger: Bool {
+        self == Type.int || self == Type.int8 || self == Type.int16 || self == Type.int32 || self == Type.int64
+    }
+    
+    var isFloat: Bool {
+        self == Type.float || self == Type.float16 || self == Type.float32 || self == Type.float64
+    }
+    
     var debugDescription: String {
         switch self {
         case .resolved(let name): return "\(name)"

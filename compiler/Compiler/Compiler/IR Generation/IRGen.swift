@@ -160,7 +160,8 @@ final class IR {
                         fatalError("Unsupported character in string literal. Only supporting ascii for now.")
                     }
                     stringLiterals[variable.name] = literal
-                    emitGlobal("@\(variable.name) = private unnamed_addr constant [\(literal.value.count) x i8] c\"\(value)\"")
+                    // @Todo: properly check null termination for strings
+                    emitGlobal("@\(variable.name) = private unnamed_addr constant [\(literal.value.count + 1) x i8] c\"\(value)\"")
                 }
                 else {
                     let (expCode, expVal) = getExpressionResult(variable.expression!, ident: ident)

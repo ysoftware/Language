@@ -8,6 +8,8 @@
 
 // Constants
 
+// @Todo: propagate erros with exceptions?
+
 extension Parser {
     
     // MARK: - VARIABLE DECLARATION -
@@ -119,7 +121,8 @@ extension Parser {
         if let statement = scope.declarations[name.value] { // else - proceed
             if let procDecl = statement as? ProcedureDeclaration {
                 if case .resolved = procDecl.returnType { returnType = procDecl.returnType }
-                guard arguments.count >= procDecl.arguments.count else {
+                let minArgWithoutVararg = procDecl.arguments.count - (procDecl.flags.contains(.isVarargs) ? 1 : 0)
+                guard arguments.count >= minArgWithoutVararg else {
                     return error(em.callArgumentsCount(procDecl.arguments.count, arguments.count), start, end)
                 }
                 for i in 0..<arguments.count {
@@ -200,7 +203,9 @@ extension Parser {
         else { returnType = .void }
         if let (directiveToken, directive) = consume(Directive.self) {
             switch directive.value {
-            case "foreign": flags.insert(.isForeign)
+            case "foreign":
+                flags.insert(.isForeign)
+                id = procName.value
             case "main":
                 flags.insert(.main)
                 isForceEntry = true
@@ -482,6 +487,10 @@ extension Parser {
                 return error(em.notImplemented, token.startCursor, token.endCursor)
                 
             case is Identifier: // @Clean: this is a copy from the main loop
+                if matchProcedureCall() {
+                    if let error = doProcedureCall(in: scope).then({ statements.append($0) }) { return .failure(error) }
+                    break
+                }
                 if matchWhile() {
                     if let error = doWhile(in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break

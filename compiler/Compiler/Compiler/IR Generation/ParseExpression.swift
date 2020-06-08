@@ -70,7 +70,7 @@ internal extension IR {
                         }
                         
                         let argCount = count()
-                        let length = literal.value.count
+                        let length = literal.value.count + 1 // @Todo: properly check null termination for strings
                         code += "\(identation)%\(argCount) = getelementptr [\(length) x i8], [\(length) x i8]* @\(arg.name), i32 0, i32 0"
                         arguments.append("i8* %\(argCount)")
                     }
@@ -99,7 +99,12 @@ internal extension IR {
             let value = "%\(resultCount)"
             
             code += "\(identation); procedure \(procedure.name)\n"
-            code += "\(identation)\(value) = call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
+            if call.exprType == .void {
+                code += "\(identation)call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
+            }
+            else {
+                code += "\(identation)\(value) = call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
+            }
             return (code, value)
             
         case let op as BinaryOperator:
@@ -122,9 +127,9 @@ internal extension IR {
             }
             
             let resultCount = count()
-            let instruction: String = op.name
+            let instr: String = instruction(for: op.name, type: op.operatorType)
             let workingType = matchType(op.operatorType.name)
-            let result = "%\(resultCount) = \(instruction) \(workingType) \(lValue), \(rValue)"
+            let result = "%\(resultCount) = \(instr) \(workingType) \(lValue), \(rValue)"
             let value = "%\(resultCount)"
             
             var code = "\n"

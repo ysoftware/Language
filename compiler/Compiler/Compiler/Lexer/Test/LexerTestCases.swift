@@ -24,7 +24,7 @@ extension LexerTest {
         ]))
     }
     
-    func testCursors() { // @Todo more serious testing of cursors
+    func testCursors() {
         let code = "hello, world\n1\n\n123"
         
         printResultCase(code, Lexer(code).analyze(), [
@@ -197,7 +197,7 @@ bye
         // " ", ",", ";" or anything else. Not that it matters a lot, since
         // the parser will error on the expression in the test
         return
-                
+        
         let code = "12a23"
         printErrorCase(code, Lexer(code).analyze(), LexerError(.unexpectedCharacter))
     }
