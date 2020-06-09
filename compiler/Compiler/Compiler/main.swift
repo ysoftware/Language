@@ -48,32 +48,46 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
     }
     catch {
         if let le = error as? LexerError {
-            print("Unexpected error on line \(le.startCursor.lineNumber)")
-            print(le.message.rawValue, "\n")
+            let lineNumber = le.startCursor.lineNumber
+            print("Unexpected lexer error on line \(lineNumber)\n")
             
             // @Todo use endCursor
             
-            let lines = code.components(separatedBy: .newlines)
-            let line = lines[le.startCursor.lineNumber-1]
-            print("\"\(line)\"")
-            print("\(String(repeating: "_", count: le.startCursor.character + 1))^")
-            print("\n\n")
+            let lines = code.split(separator: "\n", omittingEmptySubsequences: false)
+            if lineNumber >= 3 { print("   >    \(lines[lineNumber-3])") }
+            if lineNumber >= 2 { print("   >    \(lines[lineNumber-2])") }
+            print("   >    \(lines[lineNumber-1])")
+            print("        \(String(repeating: " ", count: le.startCursor.character + 1))^")
+            
+            print("")
+            print(le.message.rawValue, "\n")
             exit(1)
         }
-        else if let pe = error as? LexerError {
-            let lines = code.split(separator: "\n")
-            let line = lines[pe.endCursor.lineNumber-1]
-            print("\(line)")
+        else if let pe = error as? ParserError {
+            let lineNumber = pe.startCursor.lineNumber
+            print("Unexpected parser error on line \(lineNumber)")
+            if let c = pe.context { print("Context: \(c)") }
+            print("")
+        
+            let lines = code.split(separator: "\n", omittingEmptySubsequences: false)
+            if lineNumber >= 3 { print("   >    \(lines[lineNumber-3])") }
+            if lineNumber >= 2 { print("   >    \(lines[lineNumber-2])") }
+            print("   >    \(lines[lineNumber-1])")
+
+//            NSLog("\u{001B}[0;33mhello")
+            
             if pe.startCursor.lineNumber == pe.endCursor.lineNumber {
                 let startCursor = String(repeating: " ", count: pe.startCursor.character) + "^"
                 let endCursor = String(repeating: "^", count: pe.endCursor.character-pe.startCursor.character)
-                print("\(startCursor)\(endCursor)")
+                print("        \(startCursor)\(endCursor)")
             }
             else {
                 // multiline expression error
                 print(String(repeating: "^", count: pe.endCursor.character))
             }
-            print("\n\n")
+            
+            print("")
+            print(pe.message, "\n")
             exit(1)
         }
         else {

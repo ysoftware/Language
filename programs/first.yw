@@ -1,18 +1,9 @@
-// import C printf
-func printf(format: String, arguments: Int, ...) #foreign;
-
-hello := """
-hello %d
-"""
-;   // @Todo: multiline expects /n after """, fails even if gets ;
-
+func printf(format: String, arguments: Int, ...) #foreign; 
+hello := "hello %d";
 func main() -> Int {
-
-    a : Int = 0;
-    while (a < 10002) {
-        a = a + 1;
-    }
-
+    b := true;
+    a : Int = b;
+    while (a < 10002) { a = a + 1; }
     printf(hello, a);
     return 0;
 }

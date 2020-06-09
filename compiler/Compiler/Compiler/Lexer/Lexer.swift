@@ -160,6 +160,8 @@ final class Lexer {
             case "/":
                 // COMMENTS
                 
+                // @Todo: // comments fuck up cursors
+                
                 // @Note: we fallthrough to here from the case above
                 // can expect ".", "e", "-" and number characters
                 

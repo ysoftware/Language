@@ -71,7 +71,7 @@ extension Parser {
                     literal.exprType = .resolved(name: declaredType.value.value)
                 }
                 else if declaredType.value.value != exprType {
-                    return error(em.varDeclTypeMismatch, expr!.startCursor, expr!.endCursor)
+                    return error(em.varDeclTypeMismatch, start, end)
                 }
             }
         }
