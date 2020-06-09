@@ -29,6 +29,9 @@ if CommandLine.arguments.count == 3 {
             let tokens = try Lexer(code).analyze().get()
             let result = try Parser(tokens).parse().get()
             let ir = IR().generateIR(globalScope: result)
+            
+            // @Todo: run lli from here
+            
             print(ir, "\n")
             exit(0)
         }
@@ -72,7 +75,7 @@ if CommandLine.arguments.count == 3 {
     }
 }
 
-if CommandLine.arguments[1] == "-ast" {
+if CommandLine.arguments.count > 1 && CommandLine.arguments[1].starts(with: "-ast") {
     let index: Int = CommandLine.arguments
         .first { $0.starts(with: "-ast") }
         .map { String($0[$0.index($0.startIndex, offsetBy: 4)..<$0.endIndex]) }
@@ -80,13 +83,15 @@ if CommandLine.arguments[1] == "-ast" {
     
     let asts = [
         /* 0 */ IfElseAST(false),
-                /* 1 */ IfElseAST(true),
-                        /* 2 */ WhileLoopAST,
-                                /* 3 */ LoopBreakContinueAST,
+        /* 1 */ IfElseAST(true),
+        /* 2 */ WhileLoopAST,
+        /* 3 */ LoopBreakContinueAST,
     ]
     
     let ast = asts[index]
     let ir = IR().generateIR(globalScope: ast)
+    
+    // @Todo: run lli from here
     
     print(ir)
     print("\n")

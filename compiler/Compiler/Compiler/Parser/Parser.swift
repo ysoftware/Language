@@ -12,6 +12,34 @@
 
 extension Parser {
     
+    // MARK: - VARIABLE ASSIGNMENT -
+    
+    func matchVarAssignment() -> Bool {
+        token.value is Identifier && (peekNext()?.value as? Operator)?.value == "="
+    }
+    
+    func doVarAssign(in scope: Scope) -> Result<VariableAssignment, ParserError> {
+        let start = token.startCursor
+        guard let identifier = consumeIdent()?.value.value else { assert(false) }
+        assert(consumeOp("="))
+        
+        // find variable in scope
+        guard let ast = scope.declarations[identifier] else { return error(em.assignUndeclared(identifier))}
+        guard let varDecl = ast as? VariableDeclaration else { return error(em.assignPassedNotValue(ast)) }
+        guard !varDecl.flags.contains(.isConstant) else { return error(em.assignConst(identifier)) }
+        
+        var expr: Expression!
+        if let error = doExpression(in: scope).assign(&expr) { return .failure(error) }
+        
+        // @Todo: refactor to "getType(...) -> Type"
+        guard expr.exprType.name == varDecl.exprType.name else {
+            return error(em.assignTypeMismatch(varDecl.exprType, g: expr.exprType))
+        }
+        let assign = VariableAssignment(
+            receiverId: identifier, expression: expr, startCursor: start, endCursor: expr.endCursor)
+        return .success(assign)
+    }
+    
     // MARK: - VARIABLE DECLARATION -
     
     func matchVarDecl() -> Bool {
@@ -487,6 +515,10 @@ extension Parser {
                 return error(em.notImplemented, token.startCursor, token.endCursor)
                 
             case is Identifier: // @Clean: this is a copy from the main loop
+                if matchVarAssignment() {
+                    if let error = doVarAssign(in: scope).then({ statements.append($0) }) { return .failure(error) }
+                    break
+                }
                 if matchProcedureCall() {
                     if let error = doProcedureCall(in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break

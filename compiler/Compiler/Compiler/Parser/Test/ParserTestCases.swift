@@ -10,20 +10,31 @@ import Foundation
 
 extension ParserTest {
     
-    func testVariableDeclaration() {
-        let code = """
-func main() { a : String; b := 1; c :: "hello"; d : Int = 1;
-e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; }
-"""
+        func testVariableDeclaration() {
+            let code = """
+    func main() { a : String; b := 1; c :: "hello"; d : Int = 1;
+    e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; }
+    """
+            let tokens = try! Lexer(code).analyze().get()
+            let result = Parser(tokens).parse()
+            
+            printResultCase(code, result, Code([main([
+                vDecl("a", .string, nil), vDecl("b", .int, int(1)),
+                vDecl("c", .string, string("hello"), const: true), vDecl("d", .int, int(1)),
+                vDecl("e", .bool, bool(true), const: true), vDecl("f", .float, float(1)),
+                vDecl("g", .bool, bool(false), const: true),
+                vDecl("h", .int64, int(5_000_000_000_000), const: true),
+            ])]))
+        }
+
+    func testVariableAssign() {
+        let code = "func main() { a := 1; a = a + 1; }"
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([main([
-            vDecl("a", .string, nil), vDecl("b", .int, int(1)),
-            vDecl("c", .string, string("hello"), const: true), vDecl("d", .int, int(1)),
-            vDecl("e", .bool, bool(true), const: true), vDecl("f", .float, float(1)),
-            vDecl("g", .bool, bool(false), const: true),
-            vDecl("h", .int64, int(5_000_000_000_000), const: true),
+            vDecl("a", .int, int(1)),
+            vAssign("a", binop("+", .int, (val("a", .int), int(1))))
         ])]))
     }
     
@@ -38,7 +49,7 @@ func print3() { x :: 1; }
         
         printResultCase(code, result, Code([
             ProcedureDeclaration(
-                id: "__global_func_print1", name: "print1", arguments: [.string, .int32],
+                id: "print1", name: "print1", arguments: [.string, .int32],
                 returnType: .void, flags: [.isVarargs, .isForeign], scope: .empty),
             ProcedureDeclaration(
                 id: "__global_func_print2", name: "print2", arguments: [.string, .int32],

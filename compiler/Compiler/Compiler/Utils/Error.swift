@@ -38,7 +38,7 @@ struct Cursor: Equatable, CustomDebugStringConvertible {
     }
     
     static func ==(lhs: Cursor, rhs: Cursor) -> Bool {
-        lhs.lineNumber == rhs.lineNumber && lhs.character == rhs.character
+        return lhs.lineNumber == rhs.lineNumber && lhs.character == rhs.character
     }
 }
 

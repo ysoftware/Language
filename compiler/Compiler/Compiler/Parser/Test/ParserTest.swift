@@ -16,8 +16,9 @@ final class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
+        i.testFunctionDeclaration()
+        i.testVariableAssign()
         i.testErrorReturnTypeNotMatching()
-        
         i.testReturnTypeLiteralConversion()
         i.testBinopLiteralConversion()
         i.testPrecedence()
@@ -31,7 +32,6 @@ final class ParserTest {
         i.testTypeInference()
         i.testTypeInferenceGlobalProc()
         i.testVariableDeclaration()
-        i.testFunctionDeclaration()
         i.testStructDeclaration()
         
         if i.failed != 0 { print("❌ \(i.failed) parser test\(plural(i.failed)) have failed!") }
@@ -136,6 +136,10 @@ final class ParserTest {
     
     func vDecl(_ name: String, _ type: Type, _ expr: Expression?, const: Bool = false) -> VariableDeclaration {
         VariableDeclaration(name: name, exprType: type, flags: const ? [.isConstant] : [], expression: expr)
+    }
+    
+    func vAssign(_ name: String, _ expr: Expression) -> VariableAssignment {
+        VariableAssignment(receiverId: name, expression: expr)
     }
     
     func binop(_ name: String, _ type: Type, _ arguments: (Expression, Expression)) -> BinaryOperator {

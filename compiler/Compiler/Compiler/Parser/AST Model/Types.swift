@@ -12,6 +12,11 @@ indirect enum Type: Equatable, CustomDebugStringConvertible {
     
     var isInteger: Bool {
         self == Type.int || self == Type.int8 || self == Type.int16 || self == Type.int32 || self == Type.int64
+            || self == Type.uint8 || self == Type.uint16 || self == Type.uint32 || self == Type.uint64
+    }
+    
+    var isSigned: Bool {
+        self == Type.int || self == Type.int8 || self == Type.int16 || self == Type.int32 || self == Type.int64
     }
     
     var isFloat: Bool {
