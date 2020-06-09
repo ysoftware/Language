@@ -13,7 +13,9 @@ I want to stumble into as many mistakes and problems as I can, and solve them on
 - [x] generate IR from some manually written and pre-typed AST
 - [x] develop lexer (tokenizer)
 - [ ] **parse code into AST**
-- [ ] type infer AST and hook it to IR generation
+- [x] hook up to IR generation
+- [ ] second pass type inference
+- [ ] testing AST and IR generation
 - [ ] IR generation for more complicated things (part 2)
 - [ ] static analyzer (all paths return a value, unused values)
 
