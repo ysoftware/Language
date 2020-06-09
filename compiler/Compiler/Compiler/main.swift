@@ -10,7 +10,6 @@ import Foundation
 
 let PRINT_PASSES = false
 
-
 if let i = CommandLine.arguments.firstIndex(of: "-file") {
     guard CommandLine.arguments.count > i + 1 else {
         print("usage: ./compiler -file <filename> (-run)")
@@ -40,10 +39,11 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
                 let output = try runCommand("./\(appname).app", [])
                 print(output)
             }
+            exit(0)
         }
         catch {
             print(error.localizedDescription)
-            exit(0)
+            exit(1)
         }
     }
     catch {
@@ -82,28 +82,6 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
         }
     }
 }
-
-//if CommandLine.arguments.count > 1 && CommandLine.arguments[1].starts(with: "-ast") {
-//    let index: Int = CommandLine.arguments
-//        .first { $0.starts(with: "-ast") }
-//        .map { String($0[$0.index($0.startIndex, offsetBy: 4)..<$0.endIndex]) }
-//        .flatMap { Int($0) } ?? 3
-//
-//    let asts = [
-//        /* 0 */ IfElseAST(false),
-//        /* 1 */ IfElseAST(true),
-//        /* 2 */ WhileLoopAST,
-//        /* 3 */ LoopBreakContinueAST,
-//    ]
-//
-//    let ast = asts[index]
-//    let ir = IR().generateIR(globalScope: ast)
-//
-//    do { try compileAndSave(ir: ir) }
-//    catch { print(error.localizedDescription) }
-//
-//    exit(0)
-//}
 
 // no arguments
 LexerTest.run()
