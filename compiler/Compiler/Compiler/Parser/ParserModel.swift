@@ -88,7 +88,7 @@ extension Parser {
         // var assign
         func assignPassedNotValue(_ s: Ast) -> String { "Expression is not a value: '\(s)'." }
         func assignUndeclared(_ n: String) -> String { "Undeclared variable '\(n)'." }
-        func assignConst(_ n: String) -> String { "Value referenced is declared as constant." }
+        func assignConst(_ n: String) -> String { "\(n) is declared as constant." }
         func assignTypeMismatch(_ e: Type, g: Type) -> String { "Variable is declared as \(e), but expression given evaluates to \(g)." }
 
         // var decl

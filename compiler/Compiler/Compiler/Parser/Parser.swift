@@ -20,13 +20,17 @@ extension Parser {
     
     func doVarAssign(in scope: Scope) -> Result<VariableAssignment, ParserError> {
         let start = token.startCursor
-        guard let identifier = consumeIdent()?.value.value else { assert(false) }
+        guard let (idToken, idVal) = consumeIdent() else { assert(false) }
+        let identifier = idVal.value
         assert(consumeOp("="))
         
         // find variable in scope
-        guard let ast = scope.declarations[identifier] else { return error(em.assignUndeclared(identifier))}
-        guard let varDecl = ast as? VariableDeclaration else { return error(em.assignPassedNotValue(ast)) }
-        guard !varDecl.flags.contains(.isConstant) else { return error(em.assignConst(identifier)) }
+        guard let ast = scope.declarations[identifier]
+            else { return error(em.assignUndeclared(identifier), idToken.startCursor, idToken.endCursor) }
+        guard let varDecl = ast as? VariableDeclaration
+            else { return error(em.assignPassedNotValue(ast), idToken.startCursor, idToken.endCursor) }
+        guard !varDecl.flags.contains(.isConstant)
+            else { return error(em.assignConst(identifier), idToken.startCursor, idToken.endCursor) }
         
         var expr: Expression!
         if let error = doExpression(in: scope).assign(&expr) { return .failure(error) }

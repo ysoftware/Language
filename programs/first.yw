@@ -1,9 +1,9 @@
 func printf(format: String, arguments: Int, ...) #foreign; 
 hello := "hello %d";
 func main() -> Int {
-    b := true;
-    a : Int = b;
-    while (a < 10002) { a = a + 1; }
+    b :: 3;
+    a := 1000 + b; 
+    while (a < 10002) { b = a + 1; }
     printf(hello, a);
     return 0;
 }
