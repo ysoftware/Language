@@ -1,0 +1,16 @@
+// import C printf
+func printf(format: String, arguments: Int, ...) #foreign;
+
+hello := "hello %d";
+
+func main() -> Int {
+
+    a : Int = 0;
+
+    while (a < 10000) {
+        a = a + 1;
+    }
+
+    printf(hello, a);
+    return 0;
+}

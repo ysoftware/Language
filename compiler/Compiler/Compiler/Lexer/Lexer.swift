@@ -13,7 +13,7 @@
 
 fileprivate let punctuators = [".", ":", "(", ")", "{", "}", "[", "]", "->", "..."]
 fileprivate let operators = ["-", "+", "/", "*", "%", "..", "=", ":=",
-                             "==", "!=", "<=", ">=", "&&", "||",
+                             "==", "!=", "<=", ">=", "&&", "||", ">", "<",
                              "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<="]
 
 fileprivate let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "z"))
@@ -225,6 +225,7 @@ final class Lexer {
                 }
                 else {
                     // for some reason?
+                    print(char)
                     return error(.unexpectedCharacter, cursor, cursor)
                 }
             }

@@ -42,7 +42,8 @@ if CommandLine.arguments.count == 3 {
                 
                 // @Todo use endCursor
                 
-                let line = code.split(separator: "\n")[le.startCursor.lineNumber-1]
+                let lines = code.components(separatedBy: .newlines)
+                let line = lines[le.startCursor.lineNumber-1]
                 print("\"\(line)\"")
                 print("\(String(repeating: "_", count: le.startCursor.character + 1))^")
                 print("\n\n")
