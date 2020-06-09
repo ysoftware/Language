@@ -157,7 +157,7 @@ final class IR {
                 if let literal = variable.expression as? StringLiteral {
                     guard let value = getCString(from: literal.value) else {
                         // @Todo: make sure we have to assert here
-                        fatalError("Unsupported character in string literal. Only supporting ascii for now.")
+                        report("Unsupported character in string literal. Only supporting ascii for now.")
                     }
                     stringLiterals[variable.name] = literal
                     // @Todo: properly check null termination for strings
@@ -185,7 +185,7 @@ final class IR {
                 emitLocal("ret \(matchType(ret.value.exprType.name)) \(expVal)")
                 
             default:
-                fatalError("Undefined expression:\n\(expression)")
+                report("Undefined expression:\n\(expression)")
             }
         }
         
@@ -204,13 +204,13 @@ final class IR {
         if let userLabel = userLabel {
             guard let loopContext = contexts.last(where:
                 { userLabel == ($0 as? LoopContext)?.userLabel }) as? LoopContext
-                else { fatalError("Undefined break label \(userLabel)") }
+                else { report("Undefined break label \(userLabel)") }
             return loopContext
         }
         else {
             guard let loopContext = contexts.last(where:
                 { $0 is LoopContext }) as? LoopContext
-                else { fatalError("Can not break outside of loop context") }
+                else { report("Can not break outside of loop context") }
             return loopContext
         }
     }

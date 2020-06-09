@@ -139,7 +139,7 @@ extension Parser {
     func doProcedureCall(in scope: Scope) -> Result<ProcedureCall, ParserError> {
         let start = token.startCursor
         guard let (identToken, name) = consumeIdent(), consumePunct("(")
-            else { fatalError("call matchProcedureCall required before calling this") }
+            else { report("call matchProcedureCall required before calling this") }
         var arguments: [Expression] = []
         while tokens.count > i { // PROCEDURE CALL ARGUMENTS
             if (token.value as? Punctuator)?.value == ")" { break }

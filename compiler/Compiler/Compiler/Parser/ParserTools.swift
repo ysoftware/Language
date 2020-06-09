@@ -110,7 +110,7 @@ extension Parser {
     }
     
     var lastToken: Token {
-        if i == 0 { fatalError("Do not call this at the first token") }
+        if i == 0 { report("Do not call this at the first token") }
         return tokens[i-1]
     }
     

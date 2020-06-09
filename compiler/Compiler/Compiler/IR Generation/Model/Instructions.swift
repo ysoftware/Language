@@ -53,5 +53,5 @@ func instruction(for operation: String, type: Type) -> String {
     }
     
     if i != "" { return i }
-    fatalError("IRGen Error: \(operation) is not yet supported for '\(type)'.")
+    report("IRGen Error: \(operation) is not yet supported for '\(type)'.")
 }

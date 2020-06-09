@@ -41,6 +41,7 @@ func returnType(of operation: String, arg: Type) -> Type {
     case "<<", ">>":      return arg
     // equality
     case "<", ">":        return .bool
+    case "<=", ">=":      return .bool
     case "==", "!=":      return .bool
     // boolean
     case "&":             return arg
@@ -49,9 +50,7 @@ func returnType(of operation: String, arg: Type) -> Type {
     case "&&":            return .bool
     case "||":            return .bool
         
-    // MARK: - Not expressions
-        
-    default: fatalError()
+    default: report("Operation \(operation) is not yet implemented.")
     }
 }
 
@@ -63,6 +62,7 @@ func precedence(of operation: String) -> Int? {
     case "<<", ">>":      return Precedence.bitwiseShift
     // equality
     case "<", ">":        return Precedence.comparison
+    case "<=", ">=":      return Precedence.comparison
     case "==", "!=":      return Precedence.equality
     // boolean
     case "&":             return Precedence.bitOr
@@ -71,9 +71,7 @@ func precedence(of operation: String) -> Int? {
     case "&&":            return Precedence.logicAnd
     case "||":            return Precedence.logicOr
         
-    // MARK: - Not expressions
-        
-    default: fatalError()
+    default: report("Operation \(operation) is not yet implemented.")
     }
 }
 
@@ -88,6 +86,7 @@ func isAccepting(_ operation: String, argType: Type) -> Bool {
     case "<<", ">>":      return math.contains(argType)
     // equality
     case "<", ">":        return math.contains(argType)
+    case "<=", ">=":      return math.contains(argType)
     case "==", "!=":      return true
     // boolean
     case "&":             return argType == .bool
@@ -96,8 +95,6 @@ func isAccepting(_ operation: String, argType: Type) -> Bool {
     case "&&":            return argType == .bool
     case "||":            return argType == .bool
     
-    // MARK: - Not expressions
-        
-    default: fatalError()
+    default: report("Operation \(operation) is not yet implemented.")
     }
 }

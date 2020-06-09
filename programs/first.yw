@@ -3,7 +3,7 @@ hello := "hello %d";
 func main() -> Int {
     b :: 3;
     a := 1000 + b; 
-    while (a < 10002) { b = a + 1; }
+    while (a <= 10002) { a = a * 2; }
     printf(hello, a);
     return 0;
 }
