@@ -69,3 +69,34 @@ extension Ast {
         }
     }
 }
+
+func compileAndSave(ir: String, output: String = "output") throws {
+    let path = FileManager.default.currentDirectoryPath
+    
+    let urlIR = URL(fileURLWithPath: path).appendingPathComponent("\(output).ll")
+    let urlO = URL(fileURLWithPath: path).appendingPathComponent("\(output).o")
+    
+    try ir.write(to: urlIR, atomically: true, encoding: .utf8)
+    
+    try runCommand("/usr/local/opt/llvm/bin/llc", ["-filetype=obj", urlIR.path])
+    try runCommand("/usr/bin/gcc", ["-o", "\(output).app", urlO.path])
+    
+    try FileManager.default.removeItem(atPath: urlIR.path)
+    try FileManager.default.removeItem(atPath: urlO.path)
+}
+
+@discardableResult
+func runCommand(_ app: String, _ arguments: [String]) throws -> String {
+    let task = Process()
+    task.executableURL = URL(fileURLWithPath: app)
+    task.arguments = arguments
+    let outputPipe = Pipe()
+    task.standardOutput = outputPipe
+    
+    try task.run()
+    task.waitUntilExit()
+    
+    let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+    let output = String(decoding: outputData, as: UTF8.self)
+    return output
+}

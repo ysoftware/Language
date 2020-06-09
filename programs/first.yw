@@ -1,13 +1,15 @@
 // import C printf
 func printf(format: String, arguments: Int, ...) #foreign;
 
-hello := "hello %d";
+hello := """
+hello %d
+"""
+;   // @Todo: multiline expects /n after """, fails even if gets ;
 
 func main() -> Int {
 
     a : Int = 0;
-
-    while (a < 10000) {
+    while (a < 10002) {
         a = a + 1;
     }
 
