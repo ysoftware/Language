@@ -21,7 +21,7 @@ extension Lexer {
     }
     
     /// advances the counter
-    func advance(_ count: Int = 1) {
+    @inline(__always) func advance(_ count: Int = 1) {
         i += count
         if char.isNewline {
             cursor.advanceLine()
@@ -31,8 +31,20 @@ extension Lexer {
         }
     }
     
+    @discardableResult // @Todo test
+    func eatSpaces(eatNewLines: Bool = true) -> Bool {
+        var didEat = false
+        repeat {
+            if char.isWhitespace || (eatNewLines && char.isNewline) {
+                didEat = true
+            }
+            if !nextChar() { break }
+        } while true
+        return didEat
+    }
+    
     /// advances the counter and sets `char` to the next character in string
-    @discardableResult
+    @discardableResult @inline(__always)
     func nextChar() -> Bool {
         advance()
         guard string.count > i else { return false }

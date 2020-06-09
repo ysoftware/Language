@@ -1,9 +1,26 @@
 func printf(format: String, arguments: Int, ...) #foreign; 
-hello := "hello %d";
+
+hello :: "a is %d";
+
+newline :: """
+
+
+"""
+;
+
+func printn() -> Int {
+    printf(newline, 0); 
+    return 1; 
+}
+
 func main() -> Int {
-    b :: 3;
-    a := 1000 + b; 
-    while (a <= 10002) { a = a * 2; }
-    printf(hello, a);
+    b :: 500;
+    a := 0; 
+
+    while (a < b) {
+        a = a + 1;
+        printf(hello, a);
+        printn();
+    }
     return 0;
 }

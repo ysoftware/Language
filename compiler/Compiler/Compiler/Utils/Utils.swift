@@ -81,8 +81,8 @@ func compileAndSave(ir: String, output: String = "output") throws {
     try runCommand("/usr/local/opt/llvm/bin/llc", ["-filetype=obj", urlIR.path])
     try runCommand("/usr/bin/gcc", ["-o", "\(output).app", urlO.path])
     
-    try FileManager.default.removeItem(atPath: urlIR.path)
-    try FileManager.default.removeItem(atPath: urlO.path)
+//    try FileManager.default.removeItem(atPath: urlIR.path)
+//    try FileManager.default.removeItem(atPath: urlO.path)
 }
 
 @discardableResult

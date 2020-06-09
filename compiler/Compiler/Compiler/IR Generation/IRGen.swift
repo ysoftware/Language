@@ -131,6 +131,7 @@ final class IR {
                 emitLocal("\(continueLabel):")
                 
             case let procedure as ProcedureDeclaration:
+                globalCounter = 0
                 procedures[procedure.id] = procedure
                 let arguments = getProcedureArgumentString(from: procedure)
                 let returnType = matchType(procedure.returnType.name)

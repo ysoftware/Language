@@ -8,6 +8,7 @@
 
 // Constants
 
+// @Todo: proc call doesn't fail without semicolon at the end
 // @Todo: propagate erros with exceptions?
 
 extension Parser {
@@ -203,7 +204,7 @@ extension Parser {
         let end = lastToken.endCursor
         let returnType: Type
         let name = procName.value
-        var id = "__global_func_\(procName.value)"
+        var id = "\(procName.value)"
         var arguments: [Type] = []
         var flags = ProcedureDeclaration.Flags()
         var scope: Code = .empty

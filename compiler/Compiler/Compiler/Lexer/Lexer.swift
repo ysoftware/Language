@@ -65,6 +65,7 @@ final class Lexer {
                             return error(.newlineExpectedAfterMultilineStringLiteral, start, cursor)
                         }
                         else if consume(string: "\n\"\"\"") {
+//                            eatSpaces()
                             if let next = peekNext(), next != "\n" {
                                 return error(.newlineExpectedAfterMultilineStringLiteral, start, cursor)
                             }

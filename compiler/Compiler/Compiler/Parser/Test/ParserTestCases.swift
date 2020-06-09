@@ -52,10 +52,10 @@ func print3() { x :: 1; }
                 id: "print1", name: "print1", arguments: [.string, .int32],
                 returnType: .void, flags: [.isVarargs, .isForeign], scope: .empty),
             ProcedureDeclaration(
-                id: "__global_func_print2", name: "print2", arguments: [.string, .int32],
+                id: "print2", name: "print2", arguments: [.string, .int32],
                 returnType: .void, flags: [], scope: .empty),
             ProcedureDeclaration(
-                id: "__global_func_print3", name: "print3", arguments: [],
+                id: "print3", name: "print3", arguments: [],
                 returnType: .void, flags: [], scope: Code([ vDecl("x", .int, int(1), const: true) ])),
         ]))
     }
@@ -92,10 +92,10 @@ struct Value { a := getInt(); b := getString(); }
         
         printResultCase(code, result, Code([
             ProcedureDeclaration(
-                id: "__global_func_getInt", name: "getInt", arguments: [],
+                id: "getInt", name: "getInt", arguments: [],
                 returnType: .int, flags: [], scope: Code([Return(value: int(1))])),
             ProcedureDeclaration(
-                id: "__global_func_getString", name: "getString", arguments: [],
+                id: "getString", name: "getString", arguments: [],
                 returnType: .string, flags: [], scope: Code([
                     Return(value: string("hello"))
                 ])),
@@ -224,7 +224,7 @@ struct Value { a := getInt(); b := getString(); }
 
         printResultCase(code, result, Code([
             ProcedureDeclaration(
-                id: "__global_func_getInt", name: "getInt", arguments: [],
+                id: "getInt", name: "getInt", arguments: [],
                 returnType: .int, flags: [], scope: Code([ ret(int(2)) ])),
             main([
                 vDecl("a", .int, binop("+", .int, (mul1, mul2))),
@@ -267,7 +267,7 @@ struct Value { a := getInt(); b := getString(); }
         // @Todo: implement error testing
         printResultCase(code, result, Code([
             ProcedureDeclaration(
-                id: "__global_func_float", name: "float", arguments: [],
+                id: "float", name: "float", arguments: [],
                 returnType: .float, flags: [], scope: Code([ Return(value: float(1) )]))
         ]))
     }

@@ -95,14 +95,15 @@ internal extension IR {
             let returnType = matchType(procedure.returnType.name)
             let argValues = arguments.joined(separator: ", ")
             let argumentsString = getProcedureArgumentString(from: procedure)
-            let resultCount = count()
-            let value = "%\(resultCount)"
             
+            var value = ""
             code += "\(identation); procedure \(procedure.name)\n"
             if call.exprType == .void {
                 code += "\(identation)call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
             }
             else {
+                let resultCount = count()
+                value = "%\(resultCount)"
                 code += "\(identation)\(value) = call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
             }
             return (code, value)

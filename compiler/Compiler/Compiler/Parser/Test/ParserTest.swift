@@ -130,7 +130,7 @@ final class ParserTest {
     func ret(_ expr: Expression) -> Return { Return(value: expr) }
     
     func main(_ code: [Statement]) -> ProcedureDeclaration {
-        ProcedureDeclaration(id: "__global_func_main", name: "main", arguments: [],
+        ProcedureDeclaration(id: "main", name: "main", arguments: [],
                               returnType: .void, flags: [], scope: Code(code))
     }
     
