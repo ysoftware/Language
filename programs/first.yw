@@ -1,11 +1,10 @@
 func printf(format: String, arguments: Int, ...) #foreign; 
 
-hello :: "a is %";
+hello :: "a is %d\nnewline!";
 
 func main() -> Int {
     a : Int = 0;
-    b : Float : 10.0;
-
+    b := 50;
     a = a + b;
 
     printf(hello, a);

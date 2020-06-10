@@ -59,6 +59,23 @@ final class Lexer {
                 while string.count > i {
                     if char == "\n" { }
                     
+                    if consume(string: "\\") {
+                        guard let next = peekNext()
+                            else { return error(.unexpectedEndOfFile, cursor, cursor) }
+                        
+                        switch next {
+                        case "0":  value.append(Character(UnicodeScalar(0)))
+                        case "n":  value.append("\n")
+                        case "r":  value.append("\r")
+                        case "\\": value.append("\\")
+                        case "t":  value.append("\t")
+                        case "\"": value.append("\"")
+                        default: return error(.unexpectedCharacterToEscape, cursor, cursor)
+                        }
+                        if !nextChar() || !nextChar() { return error(.unexpectedEndOfFile, cursor, cursor) }
+                        continue
+                    }
+                    
                     if isMultiline {
                         if peekNext() == nil { return error(.unexpectedEndOfFile, cursor, cursor) }
                         else if consume(string: "\"\"\"") {
