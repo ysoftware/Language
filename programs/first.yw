@@ -1,26 +1,13 @@
 func printf(format: String, arguments: Int, ...) #foreign; 
 
-hello :: "a is %d";
-
-newline :: """
-
-
-"""
-;
-
-func printn() -> Int {
-    printf(newline, 0); 
-    return 1; 
-}
+hello :: "a is %";
 
 func main() -> Int {
-    b :: 500;
-    a := 0; 
+    a : Int = 0;
+    b : Float : 10.0;
 
-    while (a < b) {
-        a = a + 1;
-        printf(hello, a);
-        printn();
-    }
+    a = a + b;
+
+    printf(hello, a);
     return 0;
 }

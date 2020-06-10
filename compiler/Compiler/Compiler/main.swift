@@ -9,6 +9,7 @@
 import Foundation
 
 let PRINT_PASSES = false
+let ColorCode = !CommandLine.arguments.contains("--no-color")
 
 if let i = CommandLine.arguments.firstIndex(of: "-file") {
     guard CommandLine.arguments.count > i + 1 else {
@@ -56,14 +57,23 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             let lines = code.split(separator: "\n", omittingEmptySubsequences: false)
             if lineNumber >= 3 { print("   >    \(lines[lineNumber-3])") }
             if lineNumber >= 2 { print("   >    \(lines[lineNumber-2])") }
-            print("   >    \(lines[lineNumber-1])")
-            print("        \(String(repeating: " ", count: le.startCursor.character + 1))^")
+            
+            if !ColorCode {
+                print("   >    \(lines[lineNumber-1])")
+                print("        \(String(repeating: " ", count: le.startCursor.character + 1))^")
+            }
+            else {
+                print("   >    \(lines[lineNumber-1])")
+                print("        \(String(repeating: " ", count: le.startCursor.character + 1))^")
+            }
             
             print("")
             print(le.message.rawValue, "\n")
             exit(1)
         }
         else if let pe = error as? ParserError {
+            // @Todo: refactor out and clean up
+            
             let lineNumber = pe.startCursor.lineNumber
             print("Unexpected parser error on line \(lineNumber)")
             if let c = pe.context { print("Context: \(c)") }
@@ -72,18 +82,46 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             let lines = code.split(separator: "\n", omittingEmptySubsequences: false)
             if lineNumber >= 3 { print("   >    \(lines[lineNumber-3])") }
             if lineNumber >= 2 { print("   >    \(lines[lineNumber-2])") }
-            print("   >    \(lines[lineNumber-1])")
 
-//            NSLog("\u{001B}[0;33mhello")
-            
-            if pe.startCursor.lineNumber == pe.endCursor.lineNumber {
-                let startCursor = String(repeating: " ", count: pe.startCursor.character) + "^"
-                let endCursor = String(repeating: "^", count: pe.endCursor.character-pe.startCursor.character)
-                print("        \(startCursor)\(endCursor)")
+            if !ColorCode {
+                print("   >    \(lines[lineNumber-1])")
+                if pe.startCursor.lineNumber == pe.endCursor.lineNumber {
+                    let startCursor = String(repeating: " ", count: pe.startCursor.character) + "^"
+                    let endCursor = String(repeating: "^", count: pe.endCursor.character-pe.startCursor.character)
+                    print("        \(startCursor)\(endCursor)")
+                }
+                else {
+                    print(String(repeating: "^", count: pe.endCursor.character))
+                }
             }
             else {
-                // multiline expression error
-                print(String(repeating: "^", count: pe.endCursor.character))
+                let errorLine = lines[lineNumber-1]
+                
+                if pe.startCursor.lineNumber == pe.endCursor.lineNumber {
+                    let start = errorLine.index(errorLine.startIndex, offsetBy: pe.startCursor.character)
+                    let end = errorLine.index(errorLine.startIndex, offsetBy: pe.endCursor.character)
+                    
+                    let end2: String.Index
+                    let error: Substring
+                    if errorLine.count <= pe.endCursor.character {
+                        end2 = errorLine.endIndex
+                         error = errorLine[start..<end]
+                    }
+                    else {
+                        end2 = errorLine.index(errorLine.startIndex, offsetBy: pe.endCursor.character + 1)
+                        error = errorLine[start...end]
+                    }
+
+                    let beforeError = errorLine[errorLine.startIndex..<start]
+                    let afterError = errorLine[end2..<errorLine.endIndex]
+                    print("   >    \(String(beforeError))\u{001B}[0;31m\(String(error))\u{001B}[0;0m\(String(afterError))")
+                    let startCursor = String(repeating: " ", count: pe.startCursor.character) + "^"
+                    let endCursor = String(repeating: "^", count: pe.endCursor.character-pe.startCursor.character)
+                    print("        \u{001B}[0;31m\(startCursor)\(endCursor)\u{001B}[0;0m")
+                }
+                else {
+                    print("Unable to print an error")
+                }
             }
             
             print("")

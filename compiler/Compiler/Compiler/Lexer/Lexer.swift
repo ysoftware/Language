@@ -49,10 +49,10 @@ final class Lexer {
                 
                 let isMultiline = consume(string: "\"\"\"")
                 if isMultiline, !consumeNext("\n") {
-                    return error(.newlineExpectedBeforeMultilineStringLiteral, start, cursor)
+                    return error(.newlineExpectedBeforeMultilineStringLiteral, cursor, cursor)
                 }
                 else if !nextChar() {
-                    return error(.unexpectedEndOfFile, start, cursor)
+                    return error(.newLineInStringLiteral, cursor, cursor)
                 }
                 
                 var value = ""
@@ -60,14 +60,13 @@ final class Lexer {
                     if char == "\n" { }
                     
                     if isMultiline {
-                        if peekNext() == nil { return error(.unexpectedEndOfFile, start, cursor) }
+                        if peekNext() == nil { return error(.unexpectedEndOfFile, cursor, cursor) }
                         else if consume(string: "\"\"\"") {
-                            return error(.newlineExpectedAfterMultilineStringLiteral, start, cursor)
+                            return error(.newlineExpectedAfterMultilineStringLiteral, cursor, cursor)
                         }
                         else if consume(string: "\n\"\"\"") {
-//                            eatSpaces()
-                            if let next = peekNext(), next != "\n" {
-                                return error(.newlineExpectedAfterMultilineStringLiteral, start, cursor)
+                            if let next = peekNext(), next != "\n", next != ";" {
+                                return error(.newlineExpectedAfterMultilineStringLiteral, cursor, cursor)
                             }
                             else {
                                 append(TokenLiteral(value: .string(value: value)), start, cursor)
@@ -80,11 +79,11 @@ final class Lexer {
                             append(TokenLiteral(value: .string(value: value)), start, cursor)
                             break
                         }
-                        else if consume(string: "\n") { return error(.newLineInStringLiteral, start, cursor) }
+                        else if peekNext() == "\n" { return error(.newLineInStringLiteral, cursor, cursor) }
                     }
                     
                     value.append(char)
-                    if !nextChar() { return error(.unexpectedEndOfFile, start, cursor) }
+                    if !nextChar() { return error(.unexpectedEndOfFile, cursor, cursor) }
                 }
                 
             case ";",  ",":

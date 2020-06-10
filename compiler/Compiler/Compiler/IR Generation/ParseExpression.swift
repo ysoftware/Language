@@ -143,7 +143,7 @@ internal extension IR {
             return (code, value)
             
         default:
-            report("Unsupported expression\n\(expression)")
+            report("Unsupported expression:\n\(expression)")
         }
     }
     
