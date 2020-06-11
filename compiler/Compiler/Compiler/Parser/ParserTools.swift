@@ -13,12 +13,23 @@ extension Parser {
     // @Todo: add append method the same as in Lexer
     // to auto-include the Cursor in the Ast
     
+    func resolveType(_ name: String) -> Type {
+        let type = Type.named(name)
+        
+        if let custom = type as? CustomType {
+            let decl = globalScope.declarations[name]
+            let resolved = decl is StructDeclaration
+            return CustomType(name: name, resolved: resolved)
+        }
+        return type
+    }
+    
     func firstNotMatchingReturnStatement(in code: Code, to returnType: Type) -> Return? {
         // @Todo: static analysis that all paths return a value
         
         for stat in code.statements {
             if let returnStat = stat as? Return {
-                if returnStat.value.exprType != returnType {
+                if !returnStat.value.exprType.equals(to: returnType) {
                     return returnStat
                 }
             }

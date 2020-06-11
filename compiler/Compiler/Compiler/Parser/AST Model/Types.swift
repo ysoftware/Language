@@ -8,81 +8,180 @@
 
 import Foundation
 
-indirect enum Type: Equatable, CustomDebugStringConvertible {
+class Type {
+}
+
+class IntType: Type, Equatable {
     
-    var isInteger: Bool {
-        self == Type.int || self == Type.int8 || self == Type.int16 || self == Type.int32 || self == Type.int64
-            || self == Type.uint8 || self == Type.uint16 || self == Type.uint32 || self == Type.uint64
+    let size: Int // @Todo: I can make this any bit width from 1 bit to (2^23)-1 (about 8 million)
+    let isSigned: Bool // @Todo: LLVM: unsigned?
+    
+    internal init(size: Int = 32, isSigned: Bool = false) {
+        self.size = size
+        self.isSigned = isSigned
     }
     
-    var isSigned: Bool {
-        self == Type.int || self == Type.int8 || self == Type.int16 || self == Type.int32 || self == Type.int64
+    static func == (lhs: IntType, rhs: IntType) -> Bool {
+        lhs.size == rhs.size && lhs.isSigned == rhs.isSigned
+    }
+}
+
+class FloatType: Type, Equatable {
+
+    let size: Int
+    
+    internal init(size: Int = 32) {
+        self.size = size
     }
     
-    var isFloat: Bool {
-        self == Type.float || self == Type.float16 || self == Type.float32 || self == Type.float64
+    static func == (lhs: FloatType, rhs: FloatType) -> Bool {
+        lhs.size == rhs.size
+    }
+}
+
+class PointerType: Type, Equatable {
+    
+    let pointeeType: Type
+    
+    internal init(pointeeType: Type) {
+        self.pointeeType = pointeeType
     }
     
-    var debugDescription: String {
-        switch self {
-        case .resolved(let name): return "\(name)"
-        case .predicted(let type): return "\(type) [!]"
-        case .unresolved(let name): return name.map { "\($0) [?]" } ?? "unresolved"
-        }
+    static func == (lhs: PointerType, rhs: PointerType) -> Bool {
+        lhs.pointeeType.equals(to: rhs.pointeeType)
+    }
+}
+
+class ArrayType: Type, Equatable {
+    
+    let elementType: Type
+    let size: Int
+    
+    internal init(elementType: Type, size: Int) {
+        self.elementType = elementType
+        self.size = size
     }
     
-    case resolved(name: String)
-    case unresolved(name: String?)
-    case predicted(name: String) // @Todo I need to formalize what predicted is and decide if I need it
+    static func == (lhs: ArrayType, rhs: ArrayType) -> Bool {
+        lhs.elementType.equals(to: rhs.elementType) && lhs.size == rhs.size
+    }
+}
+
+class CustomType: Type, Equatable {
     
-    static func == (lhs: Type, rhs: Type) -> Bool {
-        switch (lhs, rhs) {
-        case (.resolved(let v1), .resolved(let v2)): return v1 == v2
-        case (.unresolved(let v1), .unresolved(let v2)): return v1 == v2
-        case (.predicted(let v1), .predicted(let v2)): return v1 == v2
+    let name: String
+    let isResolved: Bool
+    
+    internal init(name: String, resolved: Bool = false) {
+        self.name = name
+        self.isResolved = resolved
+    }
+    
+    static func == (lhs: CustomType, rhs: CustomType) -> Bool {
+        lhs.name == rhs.name
+    }
+}
+
+class PredictedType: Type, Equatable {
+    
+    let requirement: Type
+    
+    internal init(requirement: Type) {
+        self.requirement = requirement
+    }
+    
+    static func ==(lhs: PredictedType, rhs: PredictedType) -> Bool {
+        lhs.requirement.equals(to: rhs.requirement)
+    }
+}
+
+class VoidType: Type { }
+
+extension Type {
+    
+    func equals(to value: Type) -> Bool {
+        switch (self, value) {
+        case (let a as IntType, let b as IntType): return a == b
+        case (let a as FloatType, let b as FloatType): return a == b
+        case (let a as PointerType, let b as PointerType): return a == b
+        case (let a as ArrayType, let b as ArrayType): return a == b
+        case (let a as PredictedType, let b as PredictedType): return a == b
+        case (let a as CustomType, let b as CustomType): return a == b
+        case (is VoidType, is VoidType): return true
         default: return false
         }
     }
     
-    var name: String {
-        if case let .resolved(name) = self {
-            return name
+    var typeName: String {
+        switch self {
+        case let a as IntType: return "Int\(a.size)"
+        case let a as FloatType: return "Float\(a.size)"
+        case let a as PointerType: return "\(a.pointeeType.typeName)*"
+        case let a as ArrayType: return "[\(a.elementType.typeName)]"
+        case is VoidType: return "Void"
+        case let a as PredictedType: return a.requirement.typeName
+        case let a as CustomType: return a.name
+        default: fatalError("typeName: Unknown type \(self)")
         }
-        report("Unresolved type \(self)")
     }
+     
+    /// Always returns`custom types` as `unresolved`
+    static func named(_ identifier: String) -> Type {
+        switch identifier {
+        case "Int": return .int
+        case "Bool": return .bool
+        case "Int8": return .int8
+        case "Int16": return .int16
+        case "Int32": return .int32
+        case "Int64": return .int64
+        case "Int128": return IntType(size: 128)
+
+        case "Float": return .float
+        case "Float16": return .half
+        case "Float32": return .float
+        case "Float64": return .double
+        case "Float128": return FloatType(size: 128)
+
+        case "String": return PointerType(pointeeType: .int8)
+        case "Void": return .void
+    
+        default:
+            if identifier.hasSuffix("*") {
+                let name = String(identifier[..<identifier.endIndex(offsetBy: -1)])
+                return PointerType(pointeeType: named(name))
+            }
+            return CustomType(name: identifier, resolved: false)
+        }
+    }
+
+    static let half = FloatType(size: 16)
+    static let float = FloatType()
+    static let double = FloatType(size: 64)
+    static let int = IntType()
+    static let bool = IntType(size: 1)
+    static let int8 = IntType(size: 8)
+    static let int16 = IntType(size: 16)
+    static let int32 = IntType(size: 32)
+    static let int64 = IntType(size: 64)
+    static let string = PointerType(pointeeType: Type.int8)
+    static let void = VoidType()
+    static let unresolved = CustomType(name: "")
 }
 
-extension Type {
+extension Array where Element: Type {
     
-    static let signedIntegers = ["Int", "Int8", "Int16", "Int32", "Int64"]
-    static let unsignedIntegers = ["UInt", "UInt8", "UInt16", "UInt32", "UInt64"]
-    static let floats = ["Float", "Float16", "Float32", "Float64"]
-    static let integers = signedIntegers + unsignedIntegers
-    static let primitives = ["String", "Void"] + integers + floats
-    
-    static func isPrimitive(_ name: String) -> Bool {
-        primitives.contains(name)
+    func contains(_ type: Type) -> Bool {
+        for s in self {
+            if s.equals(to: type) { return true }
+        }
+        return false
     }
     
-    static func type(name: String) -> Type {
-        .resolved(name: name)
+    func equals(to array: [Type]) -> Bool {
+        guard count == array.count else { return false }
+        for i in 0..<count {
+            if !self[i].equals(to: array[i]) { return false }
+        }
+        return true
     }
-    
-    static let float = type(name: "Float")
-    static let int = type(name: "Int")
-    static let bool = type(name: "Bool")
-    static let int8 = type(name: "Int8")
-    static let int16 = type(name: "Int16")
-    static let int32 = type(name: "Int32")
-    static let int64 = type(name: "Int64")
-    static let uint8 = type(name: "UInt8")
-    static let uint16 = type(name: "UInt16")
-    static let uint32 = type(name: "UInt32")
-    static let uint64 = type(name: "UInt64")
-    static let float16 = type(name: "Float16")
-    static let float32 = type(name: "Float32")
-    static let float64 = type(name: "Float64")
-    static let string = type(name: "String")
-    static let void = type(name: "Void")
 }
-

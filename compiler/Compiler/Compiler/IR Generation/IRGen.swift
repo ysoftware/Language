@@ -134,7 +134,7 @@ final class IR {
                 globalCounter = 0
                 procedures[procedure.id] = procedure
                 let arguments = getProcedureArgumentString(from: procedure)
-                let returnType = matchType(procedure.returnType.name)
+                let returnType = matchType(procedure.returnType)
                 
                 if procedure.flags.contains(.isForeign) {
                     emitGlobal("declare \(returnType) @\(procedure.name) (\(arguments))")
@@ -169,7 +169,7 @@ final class IR {
                     emitLocal(expCode)
                     // @Todo: support constant variables
                     // do it at ast building?
-                    let type = matchType(variable.exprType.name)
+                    let type = matchType(variable.exprType)
                     emitLocal("%\(variable.name) = alloca \(type)")
                     emitLocal("store \(type) \(expVal), \(type)* %\(variable.name)")
                 }
@@ -177,13 +177,13 @@ final class IR {
             case let variable as VariableAssignment:
                 let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
                 emitLocal(expCode)
-                let type = matchType(variable.expression.exprType.name)
+                let type = matchType(variable.expression.exprType)
                 emitLocal("store \(type) \(expVal), \(type)* %\(variable.receiverId)")
                 
             case let ret as Return:
                 let (expCode, expVal) = getExpressionResult(ret.value, ident: ident)
                 emitLocal(expCode)
-                emitLocal("ret \(matchType(ret.value.exprType.name)) \(expVal)")
+                emitLocal("ret \(matchType(ret.value.exprType)) \(expVal)")
                 
             default:
                 report("Undefined expression:\n\(expression)")

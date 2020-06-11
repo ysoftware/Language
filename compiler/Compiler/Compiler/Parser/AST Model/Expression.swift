@@ -15,9 +15,9 @@ final class UnaryOperator: Expression, Equatable {
     var operatorType: Type { argument.exprType }
     
     static func == (lhs: UnaryOperator, rhs: UnaryOperator) -> Bool {
-        lhs.operatorType == rhs.operatorType
+        lhs.operatorType.equals(to: rhs.operatorType)
             && lhs.name == rhs.name
-            && lhs.exprType == rhs.exprType
+            && lhs.exprType.equals(to: rhs.exprType)
             && lhs.argument.equals(to: rhs.argument)
     }
     
@@ -47,8 +47,8 @@ final class BinaryOperator: Expression, Equatable {
     
     static func == (lhs: BinaryOperator, rhs: BinaryOperator) -> Bool {
         lhs.name == rhs.name
-            && lhs.operatorType == rhs.operatorType
-            && lhs.exprType == rhs.exprType
+            && lhs.operatorType.equals(to: rhs.operatorType)
+            && lhs.exprType.equals(to: rhs.exprType)
             && lhs.arguments.0.equals(to: rhs.arguments.0)
             && lhs.arguments.1.equals(to: rhs.arguments.1)
     }
@@ -78,7 +78,7 @@ final class ProcedureCall: Expression, Statement, Equatable {
     
     static func == (lhs: ProcedureCall, rhs: ProcedureCall) -> Bool {
         lhs.name == rhs.name
-            && lhs.exprType == rhs.exprType
+            && lhs.exprType.equals(to: rhs.exprType)
             && lhs.arguments.elementsEqual(rhs.arguments) { $0.equals(to: $1) }
     }
     

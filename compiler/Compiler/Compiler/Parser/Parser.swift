@@ -37,8 +37,8 @@ extension Parser {
         if let error = doExpression(in: scope).assign(&expr) { return .failure(error) }
         
         // @Todo: refactor to "getType(...) -> Type"
-        guard expr.exprType.name == varDecl.exprType.name else {
-            return error(em.assignTypeMismatch(varDecl.exprType, g: expr.exprType))
+        guard expr.exprType.equals(to: varDecl.exprType) else {
+            return error(em.assignTypeMismatch(varDecl.exprType, expr.exprType))
         }
         let assign = VariableAssignment(
             receiverId: identifier, expression: expr, startCursor: start, endCursor: expr.endCursor)
@@ -71,12 +71,13 @@ extension Parser {
         let end = token.endCursor
         if expectingExpression {
             if let error = doExpression(in: scope).assign(&expr) { return .failure(error) }
-            if let declaredType = suppliedTypeName, let exprType = expr?.exprType.name {
-                if let literal = expr as? LiteralExpr, literal.isCompliable(with: declaredType.value.value) {
-                    literal.exprType = .resolved(name: declaredType.value.value)
+            if let declaredTypeName = suppliedTypeName?.value.value, let exprType = expr?.exprType {
+                let declaredType = Type.named(declaredTypeName)
+                if let literal = expr as? LiteralExpr, literal.isCompliable(with: declaredType) {
+                    literal.exprType = declaredType
                 }
-                else if declaredType.value.value != exprType {
-                    return error(em.varDeclTypeMismatch, start, end)
+                else if !declaredType.equals(to: exprType) {
+                    return error(em.varDeclTypeMismatch(exprType, declaredType), start, end)
                 }
             }
         }
@@ -85,17 +86,18 @@ extension Parser {
         // variable type inference
         let type: Type
         if let t = expr?.exprType { type = t }
+            
         else if let name = suppliedTypeName?.value.value {
-            // @Todo: refactor to "getType(...) -> Type" that will resolve type depending on the currently known set of types
-            if Type.isPrimitive(name) { type = .type(name: name) }
-            else { type = .unresolved(name: name) }
+            type = resolveType(name)
         }
         else { return error(em.varDeclRequiresType) } // @Todo: check cursors and if this error is even valid
         
         let varDecl = VariableDeclaration(
             name: identifier.value.value, exprType: type, flags: flags, expression: expr,
             startCursor: start, endCursor: end)
-        if case .resolved = type { appendUnresolved(type.name, varDecl) }
+        
+        if let custom = type as? CustomType { appendUnresolved(custom.name, varDecl) }
+        
         if let e = verifyNameConflict(varDecl, in: scope) { return error(e) }
         appendDeclaration(varDecl, to: scope)
         return .success(varDecl)
@@ -150,10 +152,12 @@ extension Parser {
         guard consumePunct(")") else { return error(em.callExpectedClosingParentheses,
                                                     lastToken.endCursor.advancingCharacter()) }
         let end = lastToken.endCursor
-        var returnType: Type = .unresolved(name: nil)
+        var returnType: Type = .unresolved
         if let statement = scope.declarations[name.value] { // else - proceed
+            
             if let procDecl = statement as? ProcedureDeclaration {
-                if case .resolved = procDecl.returnType { returnType = procDecl.returnType }
+                returnType = procDecl.returnType
+                
                 let minArgWithoutVararg = procDecl.arguments.count - (procDecl.flags.contains(.isVarargs) ? 1 : 0)
                 guard arguments.count >= minArgWithoutVararg else {
                     return error(em.callArgumentsCount(procDecl.arguments.count, arguments.count), start, end)
@@ -170,17 +174,13 @@ extension Parser {
                         }
                     }
                     let declArgument = procDecl.arguments.count > i ? procDecl.arguments[i] : procDecl.arguments.last!
-                    switch arguments[i].exprType {
-                        // @Todo: refactor to "getType(...) -> Type"
-                    case .resolved(let name), .predicted(let name):
-                        if name != declArgument.name {
-                            return error(em.callArgumentTypeMismatch(name, e: declArgument.name),
-                                         arguments[i].startCursor, arguments[i].endCursor)
-                        }
-                    case .unresolved(let name):
-                        // @Todo: match with structs if not primitive (the block inside if)
-                        if let name = name { arguments[i].exprType = .type(name: name) }
-                        else { arguments[i].exprType = .predicted(name: declArgument.name) }
+                    
+                    if let custom = declArgument as? CustomType, !custom.isResolved {
+                        arguments[i].exprType = resolveType(custom.name)
+                    }
+                    else if !declArgument.equals(to: arguments[i].exprType) {
+                        return error(em.callArgumentTypeMismatch(declArgument.typeName, arguments[i].exprType.typeName),
+                                     arguments[i].startCursor, arguments[i].endCursor)
                     }
                 }
             }
@@ -190,7 +190,9 @@ extension Parser {
         let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments)
         call.startCursor = start
         call.endCursor = end
-        if case .resolved = returnType { appendUnresolved(returnType.name, call) }
+        if let custom = returnType as? CustomType, !custom.isResolved {
+            appendUnresolved(custom.name, call)
+        }
         return .success(call)
     }
     
@@ -224,13 +226,13 @@ extension Parser {
                     let argType = consumeIdent()?.value
                     else { return error(em.procExpectedArgumentType) }
                 // @Todo: change argument from Type to something that will also contain argument name and label
-                arguments.append(.type(name: argType.value))
+                arguments.append(.named(argType.value))
             }
             if !consumeSep(",") { break }
         }
         if !consumePunct(")") { return error(em.procArgumentParentheses) }
         if consumePunct("->") {
-            if let type = consume(Identifier.self)?.value { returnType = .type(name: type.value) }
+            if let type = consume(Identifier.self)?.value { returnType = .named(type.value) }
             else { return error(em.procReturnTypeExpected) }
         }
         else { returnType = .void }
@@ -252,7 +254,7 @@ extension Parser {
 
             while let returnStat = firstNotMatchingReturnStatement(in: scope, to: returnType) {
                  // @Todo: more types
-                if returnType == .float, let fixedExpr = expressionToFloat(returnStat.value, exprType: returnType) {
+                if returnType.equals(to: .float), let fixedExpr = expressionToFloat(returnStat.value, exprType: returnType) {
                     returnStat.value = fixedExpr
                     continue
                 }
@@ -394,10 +396,10 @@ extension Parser {
                 .assign(&right) { return .failure(error) }
     
              // @Todo: more types
-            if left.exprType == .int, right.exprType == .float, let l = expressionToFloat(left) { left = l }
-            else if right.exprType == .int, left.exprType == .float, let r = expressionToFloat(right) { right = r }
+            if left.exprType.equals(to: .int), right.exprType.equals(to: .float), let l = expressionToFloat(left) { left = l }
+            else if right.exprType.equals(to: .int), left.exprType.equals(to: .float), let r = expressionToFloat(right) { right = r }
             
-            guard left.exprType == right.exprType else {
+            guard left.exprType.equals(to: right.exprType) else {
                 return error(em.binopArgTypeMatch(left.exprType, r: right.exprType), left.startCursor, right.endCursor)
             }
             guard isAccepting(op.value, argType: left.exprType) else {
@@ -452,13 +454,13 @@ extension Parser {
                 expression = ex
             }
             else {
-                expression = Value(name: identifier.value, exprType: .unresolved(name: nil))
+                expression = Value(name: identifier.value, exprType: .unresolved)
                 if let statement = scope.declarations[identifier.value] {
                     if let variable = statement as? VariableDeclaration {
                         expression.exprType = variable.exprType
-                        switch variable.exprType {
-                        case .resolved: break
-                        default: appendUnresolved(identifier.value, expression)
+                        
+                        if let custom = variable.exprType as? CustomType, !custom.isResolved {
+                                appendUnresolved(identifier.value, expression)
                         }
                     }
                     else { return error(em.assignPassedNotValue(statement), tok.startCursor, tok.endCursor) }

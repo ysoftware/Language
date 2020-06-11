@@ -77,7 +77,7 @@ func precedence(of operation: String) -> Int? {
 
 func isAccepting(_ operation: String, argType: Type) -> Bool {
     // @Todo: if we do operator overload, we will then add an overload table and check it here
-    let math: [Type] = [.int, .int8, .int16, .int32, .int64, .float, .float16, .float32, .float64]
+    let math: [Type] = [.int, .int8, .int16, .int32, .int64, .float, .double, .half]
     
     switch operation {
     // MARK: - Expressions
@@ -89,11 +89,11 @@ func isAccepting(_ operation: String, argType: Type) -> Bool {
     case "<=", ">=":      return math.contains(argType)
     case "==", "!=":      return true
     // boolean
-    case "&":             return argType == .bool
-    case "^":             return argType == .bool
-    case "|":             return argType == .bool
-    case "&&":            return argType == .bool
-    case "||":            return argType == .bool
+    case "&":             return argType.equals(to: .bool)
+    case "^":             return argType.equals(to: .bool)
+    case "|":             return argType.equals(to: .bool)
+    case "&&":            return argType.equals(to: .bool)
+    case "||":            return argType.equals(to: .bool)
     
     default: report("Operation \(operation) is not yet implemented.")
     }

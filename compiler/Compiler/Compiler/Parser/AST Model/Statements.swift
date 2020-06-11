@@ -16,8 +16,8 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     static func == (lhs: ProcedureDeclaration, rhs: ProcedureDeclaration) -> Bool {
         lhs.id == rhs.id
             && lhs.name == rhs.name
-            && lhs.arguments == rhs.arguments
-            && lhs.returnType == rhs.returnType
+            && lhs.arguments.equals(to: rhs.arguments)
+            && lhs.returnType.equals(to: rhs.returnType)
             && lhs.flags == rhs.flags
             && lhs.scope.equals(to: rhs.scope)
     }
@@ -102,7 +102,7 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     
     static func == (lhs: VariableDeclaration, rhs: VariableDeclaration) -> Bool {
         lhs.name == rhs.name
-            && lhs.exprType == rhs.exprType
+            && lhs.exprType.equals(to: rhs.exprType)
             && lhs.flags == rhs.flags
             && ((lhs.expression == nil && rhs.expression == nil) || (lhs.expression?.equals(to: rhs.expression) ?? false))
     }

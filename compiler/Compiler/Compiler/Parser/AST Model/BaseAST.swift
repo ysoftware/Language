@@ -43,7 +43,7 @@ final class Value: Expression, Equatable {
     
     static func == (lhs: Value, rhs: Value) -> Bool {
         lhs.name == rhs.name
-            && lhs.exprType == rhs.exprType
+            && lhs.exprType.equals(to: rhs.exprType)
     }
     
     var debugDescription: String {

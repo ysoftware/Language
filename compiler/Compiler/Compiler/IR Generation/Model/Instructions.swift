@@ -31,9 +31,9 @@
 func instruction(for operation: String, type: Type) -> String {
     var i = ""
     
-    let int = type.isInteger
-    let sgn = type.isSigned
-    let flt = type.isFloat
+    let int = type is IntType
+    let sgn = (type as? IntType)?.isSigned ?? false
+    let flt = type is FloatType
     
     switch operation {
     // MARK: - Expressions

@@ -10,9 +10,8 @@ import Foundation
 
 extension LiteralExpr {
 
-    func isCompliable(with typeName: String) -> Bool {
-        guard Type.isPrimitive(exprType.name) else { return false }
-        return exprType.isCompatible(with: .resolved(name: typeName))
+    func isCompliable(with type: Type) -> Bool {
+        return exprType.isCompatible(with: type)
     }
 }
 
@@ -25,28 +24,27 @@ extension Type {
     
     /// returns true if self can be converted to the given type
     func isCompatible(with type: Type) -> Bool {
-        func bothContained(in array: [String]) -> Bool { array.contains(name) && array.contains(type.name) }
-        return bothContained(in: Type.integers) || bothContained(in: Type.floats)
+        (self is IntType && type is IntType) || (self is FloatType && type is FloatType)
     }
 }
 
-func matchType(_ typeName: String) -> String {
-    switch typeName {
-    case "Int": return matchType(Type.int32.name)
-    case "Bool": return "i1"
-    case "Int8": return "i8"
-    case "Int16": return "i16"
-    case "Int32": return "i32"
-    case "Int64": return "i64"
-    case "UInt8": return "ui8"
-    case "UInt16": return "ui16"
-    case "UInt32": return "ui32"
-    case "UInt64": return "ui64"
-    case "Float": return matchType(Type.float32.name)
-    case "String": return "i8*"
-    case "Array": return "array"
-    case "Pointer": return "pointer"
-    case "Void": return "void"
-    default: report("Undefined type \(typeName)")
+func matchType(_ type: Type) -> String {
+    switch type {
+    case let a as IntType: return "i\(a.size)"
+    case let a as ArrayType: return "[\(a.size) x \(matchType(a.elementType))]"
+    case let a as PointerType:
+        if a.pointeeType.equals(to: .void) { return "i8*" }
+        return "\(matchType(a.pointeeType))*"
+    case let a as FloatType:
+        switch a.size {
+        case 16: return "half"
+        case 32: return "float"
+        case 64: return "double"
+        case 128: return "fp128"
+        default: fatalError("Unsupported floating point with \(a.size) bits")
+        }
+    case is VoidType: return "void"
+    case is CustomType: fatalError("Structures are not yet implemented.")
+    default: fatalError("Unsupported type \(type)")
     }
 }

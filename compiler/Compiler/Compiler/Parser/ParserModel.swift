@@ -89,11 +89,11 @@ extension Parser {
         func assignPassedNotValue(_ s: Ast) -> String { "Expression is not a value: '\(s)'." }
         func assignUndeclared(_ n: String) -> String { "Undeclared variable '\(n)'." }
         func assignConst(_ n: String) -> String { "\(n) is declared as constant." }
-        func assignTypeMismatch(_ e: Type, g: Type) -> String { "Variable is declared as \(e), but expression given evaluates to \(g)." }
+        func assignTypeMismatch(_ e: Type, _ g: Type) -> String { "Variable is declared as \(e), but expression given evaluates to \(g)." }
 
         // var decl
         let varDeclExpectedEquals = "Expected '=' or ':' for the variable or constant declaration."
-        let varDeclTypeMismatch = "Type supplied does not match the type of expression." // @Todo: print types
+        func varDeclTypeMismatch(_ e: Type, _ g: Type) -> String { "Type supplied '\(g)' does not match the type '\(e)' as specified." }
         let varDeclRequiresType = "Variable declaration without expression requires type to be specified."
         
         // if
@@ -117,8 +117,8 @@ extension Parser {
         func callArgumentsCount(_ r: Int, _ g: Int) -> String { "Procedure requires \(r) argument\(plural(r)), \(g) given." }
         func callArgumentsVarCount(_ r: Int, _ g: Int) -> String { "Procedure requires at least \(r) arguments, \(g) given." }
         
-        func callArgumentTypeMismatch(_ a: String, e: String) -> String {
-            "Argument of type '\(e)' is expected by the procedure, '\(a)' given."
+        func callArgumentTypeMismatch(_ e: String, _ g: String) -> String {
+            "Argument of type '\(e)' is expected by the procedure, '\(g)' given."
         }
         
         // procedure declaration

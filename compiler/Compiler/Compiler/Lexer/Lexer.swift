@@ -51,9 +51,7 @@ final class Lexer {
                 if isMultiline, !consumeNext("\n") {
                     return error(.newlineExpectedBeforeMultilineStringLiteral, cursor, cursor)
                 }
-                else if !nextChar() {
-                    return error(.newLineInStringLiteral, cursor, cursor)
-                }
+                if !nextChar() { return error(.unexpectedEndOfFile, cursor, cursor) }
                 
                 var value = ""
                 while string.count > i {

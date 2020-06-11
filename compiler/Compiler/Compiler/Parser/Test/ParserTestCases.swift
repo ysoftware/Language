@@ -133,7 +133,7 @@ struct Value { a := getInt(); b := getString(); }
                         vDecl("b", .int, val("a", .int)),
                     ]), elseBlock: .empty)
                 ]), elseBlock: Code([
-                    vDecl("c", .unresolved(name: nil), val("a", .unresolved(name: nil)))
+                    vDecl("c", .unresolved, val("a", .unresolved))
                 ])),
             ])]))
     }

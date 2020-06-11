@@ -44,7 +44,7 @@ internal extension IR {
             var arguments: [String] = []
             
             for arg in call.arguments {
-                code += "\(identation); argument \(arg.exprType.name)\n"
+                code += "\(identation); argument \(matchType(arg.exprType))\n"
 
                 // @Todo: don't load the same value argument
                 // if passed twice, like a = add(a, a)
@@ -53,7 +53,7 @@ internal extension IR {
                 // for now, doing that manually
                 
                 if let arg = arg as? Value {
-                    if arg.exprType == .string {
+                    if arg.exprType.equals(to: .string) {
                         
                         // @Todo: make it work with dynamic strings somehow
                         // I don't think we have to calculate its length before doing this?
@@ -76,7 +76,7 @@ internal extension IR {
                     }
                     else {
                         let argCount = count()
-                        let type = matchType(arg.exprType.name)
+                        let type = matchType(arg.exprType)
                         code += "\(identation)%\(argCount) = load \(type), \(type)* %\(arg.name)"
                         arguments.append("\(type) %\(argCount)")
                     }
@@ -87,18 +87,18 @@ internal extension IR {
                         code += "\(identation); argument\n"
                         code += "\(identation)\(eCode)"
                     }
-                    arguments.append("\(matchType(arg.exprType.name)) \(eValue)")
+                    arguments.append("\(matchType(arg.exprType)) \(eValue)")
                 }
                 code += "\n"
             }
             
-            let returnType = matchType(procedure.returnType.name)
+            let returnType = matchType(procedure.returnType)
             let argValues = arguments.joined(separator: ", ")
             let argumentsString = getProcedureArgumentString(from: procedure)
             
             var value = ""
             code += "\(identation); procedure \(procedure.name)\n"
-            if call.exprType == .void {
+            if call.exprType.equals(to: .void) {
                 code += "\(identation)call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
             }
             else {
@@ -118,18 +118,18 @@ internal extension IR {
             if l is IntLiteral { lValue = lExpVal }
             else {
                 lValue = "%\(count())"
-                loadL = "\(lValue) = load \(matchType(l.exprType.name)), \(matchType(l.exprType.name))* \(lExpVal)"
+                loadL = "\(lValue) = load \(matchType(l.exprType)), \(matchType(l.exprType))* \(lExpVal)"
             }
             
             if r is IntLiteral { rValue = rExpVal }
             else {
                 rValue = "%\(count())"
-                loadR = "\(rValue) = load \(matchType(r.exprType.name)), \(matchType(r.exprType.name))* \(rExpVal)"
+                loadR = "\(rValue) = load \(matchType(r.exprType)), \(matchType(r.exprType))* \(rExpVal)"
             }
             
             let resultCount = count()
             let instr: String = instruction(for: op.name, type: op.operatorType)
-            let workingType = matchType(op.operatorType.name)
+            let workingType = matchType(op.operatorType)
             let result = "%\(resultCount) = \(instr) \(workingType) \(lValue), \(rValue)"
             let value = "%\(resultCount)"
             
@@ -148,7 +148,7 @@ internal extension IR {
     }
     
     func getProcedureArgumentString(from procedure: ProcedureDeclaration) -> String {
-        var argumentNames = procedure.arguments.map(\.name).map(matchType)
+        var argumentNames = procedure.arguments.map(matchType)
         if procedure.flags.contains(.isVarargs) {
             argumentNames.append("...")
         }
