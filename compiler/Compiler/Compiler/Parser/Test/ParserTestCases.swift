@@ -13,7 +13,7 @@ extension ParserTest {
         func testVariableDeclaration() {
             let code = """
     func main() { a : String; b := 1; c :: "hello"; d : Int = 1;
-    e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; }
+    e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; i : Int8*; }
     """
             let tokens = try! Lexer(code).analyze().get()
             let result = Parser(tokens).parse()
@@ -24,6 +24,7 @@ extension ParserTest {
                 vDecl("e", .bool, bool(true), const: true), vDecl("f", .float, float(1)),
                 vDecl("g", .bool, bool(false), const: true),
                 vDecl("h", .int64, int(5_000_000_000_000), const: true),
+                vDecl("i", .pointer(.int8), nil)
             ])]))
         }
 

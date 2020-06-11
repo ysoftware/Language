@@ -166,6 +166,10 @@ extension Type {
     static let string = PointerType(pointeeType: Type.int8)
     static let void = VoidType()
     static let unresolved = CustomType(name: "")
+    
+    static func pointer(_ type: Type) -> PointerType {
+        PointerType(pointeeType: type)
+    }
 }
 
 extension Array where Element: Type {

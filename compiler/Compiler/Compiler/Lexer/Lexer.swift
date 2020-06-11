@@ -123,7 +123,7 @@ final class Lexer {
                 var value = String(char)
                 while let next = consumeNext(where: {
                     lowercaseRange.contains($0) || uppercaseRange.contains($0)
-                        || numberRange.contains($0) || $0 == "_" }) {
+                        || numberRange.contains($0) || $0 == "_" || $0 == "*" }) {
                             value.append(next)
                 }
                 
