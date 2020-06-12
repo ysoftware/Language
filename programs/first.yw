@@ -1,15 +1,18 @@
-func printf(format: String, arguments: Int, ...) #foreign; 
+func printf(format: String, arguments: Int8, ...) #foreign; 
 
 single :: "%d argument is given.\n";
 plural :: "%d arguments are given.\n";
 test   :: "test: %d.\n";
 
-func main(count: Int, arguments: Int8**) -> Int {
+func main(count: Int, argument: Int8**) -> Int {
+
+    a := **argument;
+
     if (count == 1) {
-        printf(single, count);
+        printf(single, a);
     }
     else {
-        printf(plural, count);
+        printf(plural, a);
     }
     return 0;
 }

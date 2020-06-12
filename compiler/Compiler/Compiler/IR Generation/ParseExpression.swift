@@ -118,6 +118,25 @@ internal extension IR {
             }
             return (code, value)
             
+        case let op as UnaryOperator:
+            let (load, val) = getExpressionResult(op.argument, ident: ident)
+            
+            var code = "\n"
+            code += "\(identation); unary operator: \(op.name)\n"
+            let counter = count()
+            let value = "%\(counter)"
+            
+            // pointer dereference (*a)
+            if op.name == "*" {
+                load.map { code += "\(identation)\($0)\n" }
+                code += "\(identation)\(value) = load \(matchType(op.exprType)), \(matchType(op.operatorType)) \(val)"
+            }
+            else {
+                report("Unsupported expression:\n\(expression)")
+            }
+            
+            return (code, value)
+            
         case let op as BinaryOperator:
             var lValue = "", rValue = ""
             var loadL: String?, loadR: String?

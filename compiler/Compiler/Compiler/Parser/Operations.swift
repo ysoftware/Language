@@ -35,8 +35,11 @@ enum Precedence {
 
 func returnType(ofUnaryOperation operation: String, arg: Type) -> Type {
     switch operation {
-    case "-":   return arg
-    case "*":   return PointerType(pointeeType: arg)
+    case "-":
+        return arg
+    case "*":
+        guard let ptr = arg as? PointerType else { fatalError("Value we're trying to dereference is not a pointer.") }
+        return ptr.pointeeType
         
     default: report("Unary operation \(operation) is not yet implemented.")
     }

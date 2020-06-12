@@ -8,7 +8,9 @@
 
 import Foundation
 
-class Type {
+class Type: CustomDebugStringConvertible {
+    
+    var debugDescription: String { typeName }
     
     var isResolved: Bool { !(self is UnresolvedType || self is PredictedType) }
     var predictedType: Type? { (self as? PredictedType)?.predictedType }
