@@ -47,7 +47,7 @@ func returnType(ofUnaryOperation operation: String, arg: Type) -> Type {
 
 func returnType(ofBinaryOperation operation: String, arg: Type) -> Type {
     switch operation {
-    // MARK: - Expressions
+    // math
     case "*", "/", "%":   return arg
     case "+", "-":        return arg
     case "<<", ">>":      return arg
@@ -68,7 +68,7 @@ func returnType(ofBinaryOperation operation: String, arg: Type) -> Type {
 
 func precedence(of operation: String) -> Int? {
     switch operation {
-    // MARK: - Expressions
+    // math
     case "*", "/", "%":   return Precedence.multiplication
     case "+", "-":        return Precedence.addition
     case "<<", ">>":      return Precedence.bitwiseShift
@@ -92,7 +92,7 @@ func isAccepting(_ operation: String, argType: Type) -> Bool {
     let math: [Type] = [.int, .int8, .int16, .int32, .int64, .float, .double, .half]
     
     switch operation {
-    // MARK: - Expressions
+    // math
     case "*", "/", "%":   return math.contains(argType)
     case "+", "-":        return math.contains(argType)
     case "<<", ">>":      return math.contains(argType)

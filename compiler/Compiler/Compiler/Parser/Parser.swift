@@ -403,7 +403,7 @@ extension Parser {
             if let error = doExpression(in: scope, expectSemicolon: false, opPriority + 1)
                 .assign(&right) { return .failure(error) }
     
-             // @Todo: more types
+            // @Todo: do the AnyNumber thing
             if left.exprType.equals(to: .int), right.exprType.equals(to: .float), let l = expressionToFloat(left) { left = l }
             else if right.exprType.equals(to: .int), left.exprType.equals(to: .float), let r = expressionToFloat(right) { right = r }
             
