@@ -96,7 +96,7 @@ extension Parser {
             name: identifier.value.value, exprType: type, flags: flags, expression: expr,
             startCursor: start, endCursor: end)
         
-        if let custom = type as? CustomType { appendUnresolved(custom.name, varDecl) }
+        if let custom = type as? StructureType { appendUnresolved(custom.name, varDecl) }
         
         if let e = verifyNameConflict(varDecl, in: scope) { return error(e) }
         appendDeclaration(varDecl, to: scope)
@@ -175,8 +175,8 @@ extension Parser {
                     }
                     let declArgument = procDecl.arguments.count > i ? procDecl.arguments[i] : procDecl.arguments.last!
                     
-                    if let custom = declArgument.exprType as? CustomType, !custom.isResolved {
-                        arguments[i].exprType = resolveType(custom.name)
+                    if !declArgument.exprType.isResolved {
+                        arguments[i].exprType = resolveType(declArgument.exprType.typeName)
                     }
                     else if !declArgument.exprType.equals(to: arguments[i].exprType) {
                         return error(em.callArgumentTypeMismatch(
@@ -191,8 +191,8 @@ extension Parser {
         let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments)
         call.startCursor = start
         call.endCursor = end
-        if let custom = returnType as? CustomType, !custom.isResolved {
-            appendUnresolved(custom.name, call)
+        if !returnType.isResolved {
+            appendUnresolved(returnType.typeName, call)
         }
         return .success(call)
     }
@@ -396,7 +396,6 @@ extension Parser {
 
         var left: Expression!
         if let error = doExpr(in: scope).assign(&left) { return .failure(error) }
-        let opTok = token
         
         while let op = token.value as? Operator, let opPriority = precedence(of: op.value), opPriority >= priority {
             _ = consumeOperator()
@@ -414,7 +413,11 @@ extension Parser {
             guard isAccepting(op.value, argType: left.exprType) else {
                 return error(em.binopArgTypeSupport(op.value, t: left.exprType), left.startCursor, right.endCursor)
             }
-            left = makeBinaryOperation(op.value, left: left, right: right, opTok)
+            
+            let type = returnType(ofBinaryOperation: op.value, arg: left.exprType)
+            left = BinaryOperator(name: op.value, exprType: type, arguments: (left, right))
+            left.startCursor = left.startCursor
+            left.endCursor = right.endCursor
         }
         
         if expectSemicolon, !consumeSep(";") { return error(em.expectedSemicolon) }
@@ -438,8 +441,8 @@ extension Parser {
         else if let (opTok, op) = consumeOperator() { // unary operation
             if let error = doExpr(in: scope).assign(&arg) { return .failure(error) }
             
-            // @Todo: check if it's a binary or logical or something operator
-            let op = UnaryOperator(name: op.value, exprType: arg.exprType, argument: arg)
+            let type = returnType(ofUnaryOperation: op.value, arg: arg.exprType)
+            let op = UnaryOperator(name: op.value, exprType: type, argument: arg)
             op.startCursor = opTok.startCursor
             op.endCursor = opTok.endCursor
             return .success(op)
@@ -468,7 +471,7 @@ extension Parser {
                     if let variable = statement as? VariableDeclaration {
                         expression.exprType = variable.exprType
                         
-                        if let custom = variable.exprType as? CustomType, !custom.isResolved {
+                        if !variable.exprType.isResolved {
                             appendUnresolved(identifier.value, expression)
                         }
                     }

@@ -9,6 +9,9 @@
 import Foundation
 
 class Type {
+    
+    var isResolved: Bool { !(self is UnresolvedType || self is PredictedType) }
+    var predictedType: Type? { (self as? PredictedType)?.predictedType }
 }
 
 class IntType: Type, Equatable {
@@ -67,17 +70,19 @@ class ArrayType: Type, Equatable {
     }
 }
 
-class CustomType: Type, Equatable {
+class UnresolvedType: Type {
+    
+}
+
+class StructureType: Type, Equatable {
     
     let name: String
-    let isResolved: Bool
     
-    internal init(name: String, resolved: Bool = false) {
+    internal init(name: String) {
         self.name = name
-        self.isResolved = resolved
     }
     
-    static func == (lhs: CustomType, rhs: CustomType) -> Bool {
+    static func == (lhs: StructureType, rhs: StructureType) -> Bool {
         lhs.name == rhs.name
     }
 }
@@ -106,7 +111,8 @@ extension Type {
         case (let a as PointerType, let b as PointerType): return a == b
         case (let a as ArrayType, let b as ArrayType): return a == b
         case (let a as PredictedType, let b as PredictedType): return a == b
-        case (let a as CustomType, let b as CustomType): return a == b
+        case (let a as StructureType, let b as StructureType): return a == b
+        case (is UnresolvedType, is UnresolvedType): return true
         case (is VoidType, is VoidType): return true
         default: return false
         }
@@ -120,7 +126,7 @@ extension Type {
         case let a as ArrayType: return "[\(a.elementType.typeName)]"
         case is VoidType: return "Void"
         case let a as PredictedType: return a.requirement.typeName
-        case let a as CustomType: return a.name
+        case let a as StructureType: return a.name
         default: fatalError("typeName: Unknown type \(self)")
         }
     }
@@ -150,7 +156,8 @@ extension Type {
                 let name = String(identifier[..<identifier.endIndex(offsetBy: -1)])
                 return PointerType(pointeeType: named(name))
             }
-            return CustomType(name: identifier, resolved: false)
+            fatalError("make sure this isn't unresolved!")
+            return StructureType(name: identifier)
         }
     }
 
@@ -165,7 +172,11 @@ extension Type {
     static let int64 = IntType(size: 64)
     static let string = PointerType(pointeeType: Type.int8)
     static let void = VoidType()
-    static let unresolved = CustomType(name: "")
+    static let unresolved = UnresolvedType()
+    
+    static func `struct`(_ name: String) -> StructureType {
+        StructureType(name: name)
+    }
     
     static func pointer(_ type: Type) -> PointerType {
         PointerType(pointeeType: type)

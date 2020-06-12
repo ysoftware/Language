@@ -44,8 +44,8 @@ func matchType(_ type: Type) -> String {
         default: fatalError("Unsupported floating point with \(a.size) bits")
         }
     case is VoidType: return "void"
-    case let a as CustomType:
-        guard a.isResolved else { fatalError("Unresolved type in IR Gen.") }
+    case is UnresolvedType: fatalError("Unresolved type in IR Gen.")
+    case is StructureType:
         fatalError("Structures are not yet implemented.")
     default: fatalError("Unsupported type \(type)")
     }

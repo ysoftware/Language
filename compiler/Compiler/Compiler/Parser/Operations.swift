@@ -33,7 +33,16 @@ enum Precedence {
     static let logicOr        = 3  // 12
 }
 
-func returnType(of operation: String, arg: Type) -> Type {
+func returnType(ofUnaryOperation operation: String, arg: Type) -> Type {
+    switch operation {
+    case "-":   return arg
+    case "*":   return PointerType(pointeeType: arg)
+        
+    default: report("Unary operation \(operation) is not yet implemented.")
+    }
+}
+
+func returnType(ofBinaryOperation operation: String, arg: Type) -> Type {
     switch operation {
     // MARK: - Expressions
     case "*", "/", "%":   return arg
@@ -50,7 +59,7 @@ func returnType(of operation: String, arg: Type) -> Type {
     case "&&":            return .bool
     case "||":            return .bool
         
-    default: report("Operation \(operation) is not yet implemented.")
+    default: report("Binary operation \(operation) is not yet implemented.")
     }
 }
 

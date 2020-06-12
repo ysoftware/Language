@@ -265,7 +265,6 @@ struct Value { a := getInt(); b := getString(); }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
         
-        // @Todo: implement error testing
         printResultCase(code, result, Code([
             ProcedureDeclaration(
                 id: "float", name: "float", arguments: [],
@@ -283,5 +282,21 @@ struct Value { a := getInt(); b := getString(); }
                                 endCursor: Cursor(character: 37),
                                 message: em.returnTypeNotMatching(.float, .string))
         printErrorCase(code, result, error)
+    }
+    
+    func testPointers() {
+        let code = """
+func main() {
+    a : Int  = 1;
+    b : Int* = *a;
+}
+"""
+        let tokens = try! Lexer(code).analyze().get()
+        let result = Parser(tokens).parse()
+        
+        printResultCase(code, result, Code([ main([
+            vDecl("a", .int,            int(1)),
+            vDecl("b", .pointer(.int),  unop("*", .pointer(.int), val("a", .int)))
+        ])]))
     }
 }

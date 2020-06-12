@@ -16,6 +16,44 @@ func main() {
     // when binop1 is resolved, binop2 is resolved to Int
     // when binop2 is resolved, binop3 is resolved to Bool
 
+--- 
+
+    @Note: is AnyNumber just Int Literal?
+
+    b : Bool = ((getFloat() + 1) - 2) == 0;
+    // getInt is unresolved, predicted to be AnyNumber (from the containing binop)
+    // binop1 depends on "getFloat" and is predicted(AnyNumber) (because +)
+    // binop2 depends on the binop1 and is predicted(AnyNumber) (because +)
+    // binop3 depends on the binop2 and is predicted(Bool) (because ==)
+
+    // when getFloat is resolved, binop1 that depends on it is resolved to Float
+        // second argument is IntLit, but it's not an error. it gets converted to FloatLit
+    // when binop1 is resolved, binop2 is resolved to Float
+        // second argument is IntLit, but it's not an error. it gets converted to FloatLit
+    // when binop2 is resolved, binop3 is resolved to Bool
+
+algorithm
+    @Note: all these binops depend on their arguments, they don't depend on global
+
+    FIRST PASS
+    - call type is unresolved - added to unresolved[call.name]
+    - binop1 can't resolve first argument - adds itself as the argument's depentant
+        // but it's a '+' operation, so it's probably a number - sets the first argument and itself to be predicted(AnyNumber)
+    - binop2 can't resolve it's first argument - adds itself as the argument's dependant
+        // same here for '-' operation
+    - binop3 can't resolve it's first argument - adds itself as the argument's dependant
+        // same here, but it sets the first argument and itself to be predicted(Bool)
+
+    - getFloat is resolved
+
+    WHAT WE HAVE (brackets for dependencies)
+    // binop1: Predicted(AnyNumber) {arg1} = [Predicted(AnyNumber) {getFloat}] + [AnyNumber]
+    // binop1: Predicted(AnyNumber) {arg1} = [Predicted(AnyNumber)] + [AnyNumber]
+    // binop2: Predicted(Bool) {arg1} = [Predicted(AnyNumber)] + [AnyNumber]
+
+    SECOND PASS
+    
+
 ---
     b : Bool = ((getInt() + 1) - 2.0) == 0;
     // getInt is unresolved, predicted to be AnyNumber (from the containing binop)
@@ -25,7 +63,6 @@ func main() {
     // binop3 depends on the binop2 and is predicted to be Bool (because ==)
 
     // when getInt is resolved, binop1 that depends on it is resolved to Float, and we fail with error
-
 
 ---
     d : Bool = getInt() - getFloat() == 0; // depends on both procedures, predicted to be AnyNumber

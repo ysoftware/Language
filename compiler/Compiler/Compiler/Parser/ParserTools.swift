@@ -16,10 +16,20 @@ extension Parser {
     func resolveType(_ name: String) -> Type {
         let type = Type.named(name)
         
-        if let custom = type as? CustomType {
-            let decl = globalScope.declarations[name]
-            let resolved = decl is StructDeclaration
-            return CustomType(name: name, resolved: resolved)
+        if let custom = type as? StructureType {
+            guard let decl = globalScope.declarations[name] else {
+                return .unresolved
+            }
+            
+            if let structure = decl as? StructDeclaration {
+                return StructureType(name: structure.name)
+            }
+            else if let proc = decl as? ProcedureDeclaration {
+                return proc.returnType
+            }
+            else if let variable = decl as? VariableDeclaration {
+                return variable.exprType
+            }
         }
         return type
     }
@@ -59,8 +69,9 @@ extension Parser {
                 startCursor: binop.startCursor, endCursor: binop.endCursor)
         }
         if let unop = expression as? UnaryOperator {
-            guard let arg = expressionToFloat(unop.argument, exprType: exprType) else { return nil }
-            return UnaryOperator(name: unop.name, exprType: .float, argument: arg,
+            let type = returnType(ofUnaryOperation: unop.name, arg: exprType)
+            guard let arg = expressionToFloat(unop.argument, exprType: type) else { return nil }
+            return UnaryOperator(name: unop.name, exprType: type, argument: arg,
                                  startCursor: unop.startCursor, endCursor: unop.endCursor)
         }
         if let int = expression as? IntLiteral {
@@ -70,14 +81,6 @@ extension Parser {
             return float
         }
         return nil
-    }
-    
-    func makeBinaryOperation(_ name: String, left: Expression, right: Expression, _ token: Token) -> BinaryOperator {
-        let exprType = returnType(of: name, arg: left.exprType)
-        let op = BinaryOperator(name: name, exprType: exprType, arguments: (left, right))
-        op.startCursor = left.startCursor
-        op.endCursor = right.endCursor
-        return op
     }
     
     func appendUnresolved(_ dependency: String, _ statement: Ast) {
