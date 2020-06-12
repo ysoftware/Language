@@ -30,7 +30,12 @@ internal extension IR {
             return (nil, "\(literal.value)")
             
         case let variable as Value:
-            return (nil, "%\(variable.name)")
+            
+            var code = ""
+            let type = matchType(variable.exprType)
+            let argCount = count()
+            code += "%\(argCount) = load \(type), \(type)* %\(variable.name)"
+            return (code, "%\(argCount)")
             
         case let literal as BoolLiteral:
             return (nil, "\(literal.value)")
@@ -75,10 +80,11 @@ internal extension IR {
                         arguments.append("i8* %\(argCount)")
                     }
                     else {
-                        let argCount = count()
+                        
                         let type = matchType(arg.exprType)
-                        code += "\(identation)%\(argCount) = load \(type), \(type)* %\(arg.name)"
-                        arguments.append("\(type) %\(argCount)")
+                        let (eCode, eVal) = getExpressionResult(arg, ident: ident)
+                        eCode.map { code += $0 }
+                        arguments.append("\(type) \(eVal)")
                     }
                 }
                 else {
@@ -117,14 +123,14 @@ internal extension IR {
             
             if l is IntLiteral { lValue = lExpVal }
             else {
-                lValue = "%\(count())"
-                loadL = "\(lValue) = load \(matchType(l.exprType)), \(matchType(l.exprType))* \(lExpVal)"
+                lValue = lExpVal//"%\(count())"
+                loadL = lExpCode//"\(lValue) = load \(matchType(l.exprType)), \(matchType(l.exprType))* \(lExpVal)"
             }
             
             if r is IntLiteral { rValue = rExpVal }
             else {
-                rValue = "%\(count())"
-                loadR = "\(rValue) = load \(matchType(r.exprType)), \(matchType(r.exprType))* \(rExpVal)"
+                rValue = rExpVal//"%\(count())"
+                loadR = rExpCode//"\(rValue) = load \(matchType(r.exprType)), \(matchType(r.exprType))* \(rExpVal)"
             }
             
             let resultCount = count()
@@ -135,9 +141,9 @@ internal extension IR {
             
             var code = "\n"
             code += "\(identation); binary operator: \(op.name)\n"
-            lExpCode.map { code += "\(identation)\($0)\n" }
+            //lExpCode.map { code += "\(identation)\($0)\n" }
             loadL.map { code += "\(identation)\($0)\n" }
-            rExpCode.map { code += "\(identation)\($0)\n" }
+            //rExpCode.map { code += "\(identation)\($0)\n" }
             loadR.map { code += "\(identation)\($0)\n" }
             code += "\(identation)\(result)"
             return (code, value)

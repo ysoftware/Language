@@ -78,15 +78,25 @@ func compileAndSave(ir: String, output: String = "output") throws {
     
     try ir.write(to: urlIR, atomically: true, encoding: .utf8)
     
-    try runCommand("/usr/local/opt/llvm/bin/llc", ["-filetype=obj", urlIR.path])
-    try runCommand("/usr/bin/gcc", ["-o", "\(output).app", urlO.path])
+    let llvmResult = try runCommand("/usr/local/opt/llvm/bin/llc", ["-filetype=obj", urlIR.path])
+    outputError("LLVM", llvmResult)
+    let gccResult = try runCommand("/usr/bin/gcc", ["-o", "\(output).app", urlO.path])
+    outputError("GCC", gccResult)
     
 //    try FileManager.default.removeItem(atPath: urlIR.path)
-//    try FileManager.default.removeItem(atPath: urlO.path)
+    try FileManager.default.removeItem(atPath: urlO.path)
+}
+
+func outputError(_ app: String, _ result: (status: Int32, output: String)) {
+    if result.status != 0 {
+        print("\(app) failed.")
+        print(result.output)
+        exit(1)
+    }
 }
 
 @discardableResult
-func runCommand(_ app: String, _ arguments: [String]) throws -> String {
+func runCommand(_ app: String, _ arguments: [String]) throws -> (status: Int32, output: String) {
     let task = Process()
     task.executableURL = URL(fileURLWithPath: app)
     task.arguments = arguments
@@ -98,5 +108,5 @@ func runCommand(_ app: String, _ arguments: [String]) throws -> String {
     
     let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(decoding: outputData, as: UTF8.self)
-    return output
+    return (task.terminationStatus, output)
 }

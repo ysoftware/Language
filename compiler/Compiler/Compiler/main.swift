@@ -38,7 +38,7 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             
             if CommandLine.arguments.contains("-run") {
                 let output = try runCommand("./\(appname).app", [])
-                print(output)
+                print(output.output)
             }
             exit(0)
         }

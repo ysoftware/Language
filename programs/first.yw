@@ -2,17 +2,15 @@ func printf(format: String, arguments: Int, ...) #foreign;
 
 single :: "%d argument is given.\n";
 plural :: "%d arguments are given.\n";
+test   :: "test: %d.\n";
 
 func main(count: Int, arguments: Int8**) -> Int {
 
-    b : Int = count; 
-    a : Int = b + 0; // just using count in an expression doesn't work
-
-    if (a == 1) {
-        printf(single, a);
+    if (count == 1) {
+        printf(single, count);
     }
     else {
-        printf(plural, a);
+        printf(plural, count);
     }
     return 0;
 }

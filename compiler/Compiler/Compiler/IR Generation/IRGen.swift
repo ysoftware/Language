@@ -133,7 +133,7 @@ final class IR {
             case let procedure as ProcedureDeclaration:
                 globalCounter = 0
                 procedures[procedure.id] = procedure
-                let arguments = getProcedureArgumentString(from: procedure, printName: true)
+                let arguments = getProcedureArgumentString(from: procedure, printName: false)
                 let returnType = matchType(procedure.returnType)
                 
                 if procedure.flags.contains(.isForeign) {
@@ -141,8 +141,19 @@ final class IR {
                 }
                 else {
                     emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
-                    _ = count() // implicit entry block takes the next name
                     
+                    if procedure.arguments.count > 0 {
+                        for arg in procedure.arguments {
+                            let argCount = count()
+                            let scopeIdent = String(repeating: "\t", count: ident+1)
+                            emitLocal("\(scopeIdent)%\(arg.name) = alloca \(matchType(arg.exprType))")
+                            emitLocal("\(scopeIdent)store \(matchType(arg.exprType)) %\(argCount), \(matchType(arg.exprType))* %\(arg.name)")
+                        }
+                        emitLocal()
+                    }
+                    
+                    _ = count() // implicit entry block takes the next name
+
                     let body = processStatements(procedure.scope.statements,
                                                  ident: ident + 1,
                                                  contexts: contexts)
@@ -171,6 +182,7 @@ final class IR {
                     emitLocal(expCode)
                     // @Todo: support constant variables
                     // do it at ast building?
+                    emitLocal("; declaration of \(variable.name)")
                     let type = matchType(variable.exprType)
                     emitLocal("%\(variable.name) = alloca \(type)")
                     emitLocal("store \(type) \(expVal), \(type)* %\(variable.name)")
@@ -178,6 +190,7 @@ final class IR {
                 
             case let variable as VariableAssignment:
                 let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
+                emitLocal("; assignment to \(variable.receiverId)")
                 emitLocal(expCode)
                 let type = matchType(variable.expression.exprType)
                 emitLocal("store \(type) \(expVal), \(type)* %\(variable.receiverId)")
