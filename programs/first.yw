@@ -5,7 +5,6 @@ plural :: "%d arguments are given.\n";
 test   :: "test: %d.\n";
 
 func main(count: Int, arguments: Int8**) -> Int {
-
     if (count == 1) {
         printf(single, count);
     }

@@ -118,20 +118,8 @@ internal extension IR {
             var lValue = "", rValue = ""
             var loadL: String?, loadR: String?
             let (l, r) = op.arguments
-            let (lExpCode, lExpVal) = getExpressionResult(l, ident: ident)
-            let (rExpCode, rExpVal) = getExpressionResult(r, ident: ident)
-            
-            if l is IntLiteral { lValue = lExpVal }
-            else {
-                lValue = lExpVal//"%\(count())"
-                loadL = lExpCode//"\(lValue) = load \(matchType(l.exprType)), \(matchType(l.exprType))* \(lExpVal)"
-            }
-            
-            if r is IntLiteral { rValue = rExpVal }
-            else {
-                rValue = rExpVal//"%\(count())"
-                loadR = rExpCode//"\(rValue) = load \(matchType(r.exprType)), \(matchType(r.exprType))* \(rExpVal)"
-            }
+            (loadL, lValue) = getExpressionResult(l, ident: ident)
+            (loadR, rValue) = getExpressionResult(r, ident: ident)
             
             let resultCount = count()
             let instr: String = instruction(for: op.name, type: op.operatorType)
@@ -141,9 +129,7 @@ internal extension IR {
             
             var code = "\n"
             code += "\(identation); binary operator: \(op.name)\n"
-            //lExpCode.map { code += "\(identation)\($0)\n" }
             loadL.map { code += "\(identation)\($0)\n" }
-            //rExpCode.map { code += "\(identation)\($0)\n" }
             loadR.map { code += "\(identation)\($0)\n" }
             code += "\(identation)\(result)"
             return (code, value)
