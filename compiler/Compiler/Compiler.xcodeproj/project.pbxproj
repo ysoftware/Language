@@ -15,13 +15,10 @@
 		1F0A3BF2248013A8005C91F0 /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF34AE24714A1200389B0C /* Error.swift */; };
 		1F0A77E6248B73B50028A96D /* Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F0A77E5248B73B50028A96D /* Operations.swift */; };
 		1F286DA1247450510072120C /* StatementContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F286DA0247450510072120C /* StatementContext.swift */; };
-		1F286DA3247453B60072120C /* LoopBreakContinue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F286DA2247453B60072120C /* LoopBreakContinue.swift */; };
 		1F9C96672475736E00BAEC04 /* Lexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9C96662475736E00BAEC04 /* Lexer.swift */; };
 		1F9C9669247574DF00BAEC04 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9C9668247574DF00BAEC04 /* Model.swift */; };
 		1F9C966C2475AD0300BAEC04 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9C966B2475AD0300BAEC04 /* Parser.swift */; };
 		1FAA3E922472C5F30015C8BD /* CInterop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E912472C5F30015C8BD /* CInterop.swift */; };
-		1FAA3E942472DC540015C8BD /* IfElse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E932472DC530015C8BD /* IfElse.swift */; };
-		1FAA3E972472DCC50015C8BD /* WhileLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E962472DCC50015C8BD /* WhileLoop.swift */; };
 		1FAA3E992472E09D0015C8BD /* Instructions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E982472E09D0015C8BD /* Instructions.swift */; };
 		1FAA3E9B2472ECB80015C8BD /* ParseExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA3E9A2472ECB80015C8BD /* ParseExpression.swift */; };
 		1FB1EB7A2476E9E00088F63D /* LexerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FB1EB792476E9E00088F63D /* LexerTest.swift */; };
@@ -282,15 +279,12 @@
 				1FFF349424711E3100389B0C /* main.swift in Sources */,
 				1FEB7CA924794F770018B9B4 /* ParserTestCases.swift in Sources */,
 				1F0A3BF2248013A8005C91F0 /* Error.swift in Sources */,
-				1FAA3E942472DC540015C8BD /* IfElse.swift in Sources */,
-				1FAA3E972472DCC50015C8BD /* WhileLoop.swift in Sources */,
 				1F09BF6B2471B8DF00171D0A /* ControlFlow.swift in Sources */,
 				1FEB7CA724794F6F0018B9B4 /* ParserTest.swift in Sources */,
 				1FB8F7052477CF7E008CD1CD /* Utils.swift in Sources */,
 				1FEB7CAB247A9E950018B9B4 /* ParserModel.swift in Sources */,
 				1F0A3BDD247F89A7005C91F0 /* LexerTools.swift in Sources */,
 				1FFF34B324714AB900389B0C /* BaseAST.swift in Sources */,
-				1F286DA3247453B60072120C /* LoopBreakContinue.swift in Sources */,
 				1FFF34AB2471260400389B0C /* Types.swift in Sources */,
 				1FFF34A52471216000389B0C /* Expression.swift in Sources */,
 				1F9C966C2475AD0300BAEC04 /* Parser.swift in Sources */,

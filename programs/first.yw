@@ -1,12 +1,18 @@
 func printf(format: String, arguments: Int, ...) #foreign; 
 
-hello :: "a is %d\nnewline!";
+single :: "%d argument is given.\n";
+plural :: "%d arguments are given.\n";
 
-func main() -> Int {
-    a : Int = 0;
-    b := 50;
-    a = a + b;
+func main(count: Int, arguments: Int8**) -> Int {
 
-    printf(hello, a);
+    b : Int = count; 
+    a : Int = b + 0; // just using count in an expression doesn't work
+
+    if (a == 1) {
+        printf(single, a);
+    }
+    else {
+        printf(plural, a);
+    }
     return 0;
 }

@@ -1,5 +1,50 @@
 TYPING
 
+func main() {
+
+---
+    if (getBool()) { }  // if depends on "getBool", condition is predicted to be Bool
+    
+---
+    b : Bool = ((getInt() + 1) - 2) == 0;
+    // getInt is unresolved, predicted to be AnyNumber (from the containing binop)
+    // binop1 depends on "getInt" and is predicted to be AnyNumber (because +)
+    // binop2 depends on the binop1 and is predicted to be AnyNumber (because +)
+    // binop3 depends on the binop2 and is predicted to be Bool (because ==)
+
+    // when getInt is resolved, binop1 that depends on it is resolved to Int
+    // when binop1 is resolved, binop2 is resolved to Int
+    // when binop2 is resolved, binop3 is resolved to Bool
+
+---
+    b : Bool = ((getInt() + 1) - 2.0) == 0;
+    // getInt is unresolved, predicted to be AnyNumber (from the containing binop)
+    // binop1 depends on "getInt" and is predicted to be AnyNumber (because +)
+    // binop2 depends on the binop1 and is predicted to be Float (because +)
+        // back propagating to binop1, which is also now predicted to be Float (job of the binary expression's typer)
+    // binop3 depends on the binop2 and is predicted to be Bool (because ==)
+
+    // when getInt is resolved, binop1 that depends on it is resolved to Float, and we fail with error
+
+
+---
+    d : Bool = getInt() - getFloat() == 0; // depends on both procedures, predicted to be AnyNumber
+    // when getInt is resolved, this will change predicted to Int
+    // when getFloat is resolved, we fail with error
+
+}
+
+func getInt() -> Int { return 1; }
+func getFloat() -> Float { return 1; }
+func getBool() -> Int { return true; }
+
+///////
+
+
+
+
+
+
 - if variable is unresolved, we only look for it in the global scope
 - procedures only live in the global scope
 
@@ -57,4 +102,6 @@ code snippet:
     func proc_c() -> Int { return 1; }
     func proc_a() -> Float { return 1.0; }
     func proc_b(val: Int) -> Bool { return true; }
+
+
 

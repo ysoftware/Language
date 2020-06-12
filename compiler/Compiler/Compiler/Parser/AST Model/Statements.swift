@@ -16,7 +16,7 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     static func == (lhs: ProcedureDeclaration, rhs: ProcedureDeclaration) -> Bool {
         lhs.id == rhs.id
             && lhs.name == rhs.name
-            && lhs.arguments.equals(to: rhs.arguments)
+            && lhs.arguments == rhs.arguments
             && lhs.returnType.equals(to: rhs.returnType)
             && lhs.flags == rhs.flags
             && lhs.scope.equals(to: rhs.scope)
@@ -48,12 +48,12 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     
     var id: String
     var name: String
-    var arguments: [Type]
+    var arguments: [Value]
     var returnType: Type
     var flags: Flags
     var scope: Code
     
-    internal init(id: String, name: String, arguments: [Type],
+    internal init(id: String, name: String, arguments: [Value],
                   returnType: Type, flags: ProcedureDeclaration.Flags, scope: Code,
                   startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.id = id

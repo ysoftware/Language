@@ -94,7 +94,7 @@ internal extension IR {
             
             let returnType = matchType(procedure.returnType)
             let argValues = arguments.joined(separator: ", ")
-            let argumentsString = getProcedureArgumentString(from: procedure)
+            let argumentsString = getProcedureArgumentString(from: procedure, printName: false)
             
             var value = ""
             code += "\(identation); procedure \(procedure.name)\n"
@@ -147,12 +147,16 @@ internal extension IR {
         }
     }
     
-    func getProcedureArgumentString(from procedure: ProcedureDeclaration) -> String {
-        var argumentNames = procedure.arguments.map(matchType)
-        if procedure.flags.contains(.isVarargs) {
-            argumentNames.append("...")
+    func getProcedureArgumentString(from procedure: ProcedureDeclaration, printName: Bool) -> String {
+        var arguments = procedure.arguments.map { (arg: Value)->String in
+            var str = "\(matchType(arg.exprType))"
+            if printName { str.append(" %\(arg.name)") }
+            return str
         }
-        let arguments = argumentNames.joined(separator: ", ")
-        return arguments
+        if procedure.flags.contains(.isVarargs) {
+            arguments.append("...")
+        }
+        let argumentsString = arguments.joined(separator: ", ")
+        return argumentsString
     }
 }

@@ -50,10 +50,10 @@ func print3() { x :: 1; }
         
         printResultCase(code, result, Code([
             ProcedureDeclaration(
-                id: "print1", name: "print1", arguments: [.string, .int32],
+                id: "print1", name: "print1", arguments: [val("format", .string), val("arguments", .int32)],
                 returnType: .void, flags: [.isVarargs, .isForeign], scope: .empty),
             ProcedureDeclaration(
-                id: "print2", name: "print2", arguments: [.string, .int32],
+                id: "print2", name: "print2", arguments: [val("format", .string), val("arguments", .int32)],
                 returnType: .void, flags: [], scope: .empty),
             ProcedureDeclaration(
                 id: "print3", name: "print3", arguments: [],

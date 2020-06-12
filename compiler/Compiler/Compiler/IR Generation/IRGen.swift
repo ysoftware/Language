@@ -133,7 +133,7 @@ final class IR {
             case let procedure as ProcedureDeclaration:
                 globalCounter = 0
                 procedures[procedure.id] = procedure
-                let arguments = getProcedureArgumentString(from: procedure)
+                let arguments = getProcedureArgumentString(from: procedure, printName: true)
                 let returnType = matchType(procedure.returnType)
                 
                 if procedure.flags.contains(.isForeign) {
@@ -142,9 +142,11 @@ final class IR {
                 else {
                     emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
                     _ = count() // implicit entry block takes the next name
+                    
                     let body = processStatements(procedure.scope.statements,
                                                  ident: ident + 1,
                                                  contexts: contexts)
+
                     emitLocal(body)
                     emitLocal("}")
                 }

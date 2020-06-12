@@ -175,11 +175,12 @@ extension Parser {
                     }
                     let declArgument = procDecl.arguments.count > i ? procDecl.arguments[i] : procDecl.arguments.last!
                     
-                    if let custom = declArgument as? CustomType, !custom.isResolved {
+                    if let custom = declArgument.exprType as? CustomType, !custom.isResolved {
                         arguments[i].exprType = resolveType(custom.name)
                     }
-                    else if !declArgument.equals(to: arguments[i].exprType) {
-                        return error(em.callArgumentTypeMismatch(declArgument.typeName, arguments[i].exprType.typeName),
+                    else if !declArgument.exprType.equals(to: arguments[i].exprType) {
+                        return error(em.callArgumentTypeMismatch(
+                            declArgument.exprType.typeName, arguments[i].exprType.typeName),
                                      arguments[i].startCursor, arguments[i].endCursor)
                     }
                 }
@@ -207,7 +208,7 @@ extension Parser {
         let returnType: Type
         let name = procName.value
         var id = "\(procName.value)"
-        var arguments: [Type] = []
+        var arguments: [Value] = []
         var flags = ProcedureDeclaration.Flags()
         var scope: Code = .empty
         var isForceEntry = false
@@ -222,11 +223,11 @@ extension Parser {
                 guard token.value is Identifier else {
                     return error(em.procExpectedArgumentName, token.startCursor, token.endCursor)
                 }
-                guard let _ = consumeIdent()?.value, consumePunct(":"),
+                guard let argName = consumeIdent()?.value.value, consumePunct(":"),
                     let argType = consumeIdent()?.value
                     else { return error(em.procExpectedArgumentType) }
                 // @Todo: change argument from Type to something that will also contain argument name and label
-                arguments.append(.named(argType.value))
+                arguments.append(Value(name: argName, exprType: .named(argType.value)))
             }
             if !consumeSep(",") { break }
         }
@@ -250,7 +251,15 @@ extension Parser {
         }
         else if consumePunct("{") {
             if flags.contains(.isForeign) { return error(em.procForeignUnexpectedBody) }
-            if let error = doStatements(in: globalScope.next()).then({ scope = Code($0) }) { return .failure(error) }
+            
+            let procedureScope = globalScope.next()
+            arguments.forEach { arg in
+                let decl = VariableDeclaration(name: arg.name, exprType: arg.exprType,
+                                               flags: [.isConstant], expression: arg)
+                procedureScope.declarations[arg.name] = decl
+            }
+            
+            if let error = doStatements(in: procedureScope).then({ scope = Code($0) }) { return .failure(error) }
 
             while let returnStat = firstNotMatchingReturnStatement(in: scope, to: returnType) {
                  // @Todo: more types
@@ -460,7 +469,7 @@ extension Parser {
                         expression.exprType = variable.exprType
                         
                         if let custom = variable.exprType as? CustomType, !custom.isResolved {
-                                appendUnresolved(identifier.value, expression)
+                            appendUnresolved(identifier.value, expression)
                         }
                     }
                     else { return error(em.assignPassedNotValue(statement), tok.startCursor, tok.endCursor) }
