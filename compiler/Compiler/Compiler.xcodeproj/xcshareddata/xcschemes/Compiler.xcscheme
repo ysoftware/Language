@@ -53,7 +53,7 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "--no-color"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-file"

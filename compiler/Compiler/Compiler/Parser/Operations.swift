@@ -38,7 +38,7 @@ func returnType(ofUnaryOperation operation: String, arg: Type) -> Type {
     case "-":
         return arg
     case "*":
-        guard let ptr = arg as? PointerType else { fatalError("Value we're trying to dereference is not a pointer.") }
+        guard let ptr = arg as? PointerType else { report("Value we're trying to dereference is not a pointer.") }
         return ptr.pointeeType
         
     default: report("Unary operation \(operation) is not yet implemented.")

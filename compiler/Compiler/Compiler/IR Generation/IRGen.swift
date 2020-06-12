@@ -198,7 +198,8 @@ final class IR {
             case let ret as Return:
                 let (expCode, expVal) = getExpressionResult(ret.value, ident: ident)
                 emitLocal(expCode)
-                emitLocal("ret \(matchType(ret.value.exprType)) \(expVal)")
+                if expVal == "void" { emitLocal("ret void") }
+                else { emitLocal("ret \(matchType(ret.value.exprType)) \(expVal)") }
                 
             default:
                 report("Undefined expression:\n\(expression)")

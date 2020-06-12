@@ -16,7 +16,7 @@ extension Parser {
     func resolveType(_ name: String) -> Type {
         let type = Type.named(name)
         
-        if let custom = type as? StructureType {
+        if type is StructureType {
             guard let decl = globalScope.declarations[name] else {
                 return .unresolved
             }

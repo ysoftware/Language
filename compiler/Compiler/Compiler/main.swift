@@ -97,7 +97,11 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             else {
                 let errorLine = lines[lineNumber-1]
                 
-                if pe.startCursor.lineNumber == pe.endCursor.lineNumber {
+                if pe.startCursor.lineNumber == pe.endCursor.lineNumber,
+                    
+                pe.endCursor.character <= errorLine.count {
+                    
+                    
                     let start = errorLine.index(errorLine.startIndex, offsetBy: pe.startCursor.character)
                     let end = errorLine.index(errorLine.startIndex, offsetBy: pe.endCursor.character)
                     
@@ -120,7 +124,7 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
                     print("        \u{001B}[0;31m\(startCursor)\(endCursor)\u{001B}[0;0m")
                 }
                 else {
-                    print("Unable to print an error")
+                    print(">>>>> Unable to point to the error cursor.")
                 }
             }
             

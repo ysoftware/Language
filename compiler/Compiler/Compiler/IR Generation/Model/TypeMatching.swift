@@ -41,12 +41,12 @@ func matchType(_ type: Type) -> String {
         case 32: return "float"
         case 64: return "double"
         case 128: return "fp128"
-        default: fatalError("Unsupported floating point with \(a.size) bits")
+        default: report("Unsupported floating point with \(a.size) bits")
         }
     case is VoidType: return "void"
-    case is UnresolvedType: fatalError("Unresolved type in IR Gen.")
+    case is UnresolvedType: report("Unresolved type in IR Gen.")
     case is StructureType:
-        fatalError("Structures are not yet implemented.")
-    default: fatalError("Unsupported type \(type)")
+        report("Structures are not yet implemented.")
+    default: report("Unsupported type \(type)")
     }
 }

@@ -42,10 +42,8 @@ struct Cursor: Equatable, CustomDebugStringConvertible {
     }
 }
 
-func report(_ error: String,
-            in file: String = "",
-            lineNumber: String = ""
-) -> Never {
+// @Todo: refactor this to single point of error reporting
+func report(_ error: String, _ start: Cursor? = nil, _ end: Cursor? = nil) -> Never {
     
     print("Error: \(error)")
     exit(1)

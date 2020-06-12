@@ -129,7 +129,8 @@ extension Type {
         case is VoidType: return "Void"
         case let a as PredictedType: return a.requirement.typeName
         case let a as StructureType: return a.name
-        default: fatalError("typeName: Unknown type \(self)")
+        case is UnresolvedType: return "[Unresolved]"
+        default: report("typeName: Unknown type.")
         }
     }
      
@@ -158,7 +159,7 @@ extension Type {
                 let name = String(identifier[..<identifier.endIndex(offsetBy: -1)])
                 return PointerType(pointeeType: named(name))
             }
-            fatalError("make sure this isn't unresolved!")
+            report("make sure this isn't unresolved!")
             return StructureType(name: identifier)
         }
     }

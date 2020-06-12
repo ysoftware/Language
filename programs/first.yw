@@ -1,18 +1,17 @@
-func printf(format: String, arguments: Int8, ...) #foreign; 
+func printf(format: String, arguments: Int32, ...) #foreign; 
+// func printf(format: String, arguments: Int8, ...) #foreign; 
 
-single :: "%d argument is given.\n";
-plural :: "%d arguments are given.\n";
-test   :: "test: %d.\n";
+TestChar     :: "Test: %c.\n";
+TestNum      :: "Test: %d.\n";
+Char   :: "%c";
 
 func main(count: Int, argument: Int8**) -> Int {
 
-    a := **argument;
+    ptr := int8PointerToInt32(*argument);
+    printf(TestNum, ptr);
 
-    if (count == 1) {
-        printf(single, a);
-    }
-    else {
-        printf(plural, a);
-    }
+    char := **argument;
+    // printf(Char, char);
+
     return 0;
 }

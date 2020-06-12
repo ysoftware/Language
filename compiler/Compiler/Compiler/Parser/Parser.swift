@@ -153,8 +153,10 @@ extension Parser {
                                                     lastToken.endCursor.advancingCharacter()) }
         let end = lastToken.endCursor
         var returnType: Type = .unresolved
-        if let statement = scope.declarations[name.value] { // else - proceed
-            
+        
+        let foundDecl = scope.declarations[name.value] ?? internalProcedures[name.value]
+        
+        if let statement = foundDecl { // else - proceed
             if let procDecl = statement as? ProcedureDeclaration {
                 returnType = procDecl.returnType
                 
@@ -522,11 +524,15 @@ extension Parser {
                     break
                 }
                 if consumeKeyword(.return) {
-                    var returnExpression: Expression!
-                    if let error = doExpression(in: scope).assign(&returnExpression) { return .failure(error) }
+                    var returnExpression: Expression?
+                    if !consumeSep(";") {
+                        if let error = doExpression(in: scope, expectSemicolon: false).assign(&returnExpression)
+                            { return .failure(error) }
+                    }
+                    let end = returnExpression?.endCursor ?? lastToken.endCursor
                     let returnStatement = Return(
                         value: returnExpression ?? VoidLiteral(),
-                        startCursor: lastToken.startCursor, endCursor: returnExpression.endCursor)
+                        startCursor: lastToken.startCursor, endCursor: end)
                     statements.append(returnStatement)
                     break
                 }
