@@ -19,6 +19,11 @@ internal extension IR {
     /// Example 2
     /// for an expression of `string literal of "123"`
     ///   the return value will be: `code = "%1 = getelementptr .... ", value = "%1"`
+    ///
+    /// Example 3
+    /// for an expression of `variable "a" of Int32`
+    ///   the return value will be: `code = "%1 = load i32, i32* %a", value = "%1"`
+    ///
     func getExpressionResult(
         _ expression: Expression, ident: Int) -> (code: String?, value: String) {
         let identation = String(repeating: "\t", count: ident)
@@ -30,7 +35,6 @@ internal extension IR {
             return (nil, "\(literal.value)")
             
         case let variable as Value:
-            
             var code = ""
             let type = matchType(variable.exprType)
             let argCount = count()
