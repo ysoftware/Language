@@ -154,7 +154,7 @@ extension Parser {
         let end = lastToken.endCursor
         var returnType: Type = .unresolved
         
-        let foundDecl = scope.declarations[name.value] ?? internalProcedures[name.value]
+        let foundDecl = scope.declarations[name.value] // ?? internalProcedures[name.value]
         
         if let statement = foundDecl { // else - proceed
             if let procDecl = statement as? ProcedureDeclaration {

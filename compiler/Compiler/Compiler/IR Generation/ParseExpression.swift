@@ -45,7 +45,7 @@ internal extension IR {
             return (nil, "\(literal.value)")
 
         case let call as ProcedureCall:
-            if internalProcedures[call.name] != nil { return doInternalProcedure(call, ident: ident) }
+            if internalProcedures.contains(call.name) { return doInternalProcedure(call, ident: ident) }
             
             guard let procedure = procedures[call.name] else {
                 report("Undefined procedure call: \(call.name)")
@@ -178,56 +178,5 @@ internal extension IR {
         }
         let argumentsString = arguments.joined(separator: ", ")
         return argumentsString
-    }
-    
-    // @Todo: refactor into IRGenError
-    func doInternalProcedure(_ call: ProcedureCall, ident: Int) -> (code: String?, value: String) {
-        let identation = String(repeating: "\t", count: ident)
-        
-        if call.name == "int8PointerToInt32" {
-            
-            guard call.arguments.count == 1 else {
-                report("\(call.name) expects exactly 1 argument", call.startCursor, call.endCursor)
-            }
-            
-            let arg = call.arguments[0]
-            guard arg.exprType.equals(to: .pointer(.int8)) else {
-                report("\(call.name): Pointer expected, got \(arg.exprType.typeName) instead.",
-                    arg.startCursor, arg.endCursor)
-            }
-            
-            var code = "\n"
-            let (load, val) = getExpressionResult(arg, ident: ident)
-            load.map { code += "\(identation)\($0)\n" }
-            
-            let counter = count()
-            let value = "%\(counter)"
-            code += "\n\(identation)\(value) = ptrtoint \(matchType(arg.exprType)) \(val) to \(matchType(.int32))"
-            
-            return (code, value)
-        }
-        if call.name == "int32AsInt8Pointer" {
-            
-            guard call.arguments.count == 1 else {
-                report("\(call.name) expects exactly 1 argument", call.startCursor, call.endCursor)
-            }
-            
-            let arg = call.arguments[0]
-            guard arg.exprType.equals(to: .int32) else {
-                report("\(call.name): Int32 expected, got \(arg.exprType.typeName) instead.",
-                    arg.startCursor, arg.endCursor)
-            }
-            
-            var code = "\n"
-            let (load, val) = getExpressionResult(arg, ident: ident)
-            load.map { code += "\(identation)\($0)\n" }
-            
-            let counter = count()
-            let value = "%\(counter)"
-            code += "\n\(identation)\(value) = inttoptr \(matchType(arg.exprType)) \(val) to \(matchType(.pointer(.int8)))"
-            
-            return (code, value)
-        }
-        report("Internal procedure '\(call.name)' is not implemented yet.")
     }
 }

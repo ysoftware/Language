@@ -1,5 +1,6 @@
+func int8PointerToInt32(pointer: Int8*) -> Int32 #foreign;
+func int32AsInt8Pointer(address: Int32) -> Int8* #foreign;
 func printf(format: String, arguments: Int32, ...) #foreign; 
-// func printf(format: String, arguments: Int8, ...) #foreign; 
 
 TestChar     :: "Test: %c.\n";
 TestNum      :: "Test: %d.\n";
@@ -7,11 +8,12 @@ Char   :: "%c";
 
 func main(count: Int, argument: Int8**) -> Int {
 
-    ptr := int8PointerToInt32(*argument);
-    printf(TestNum, ptr);
+    num := int8PointerToInt32(*argument) + 2;
+    printf(TestNum, num);
+
+    ptr := int32AsInt8Pointer(num + 1);
+    //printf(TestNum, *ptr);
 
     char := **argument;
-    // printf(Char, char);
-
     return 0;
 }

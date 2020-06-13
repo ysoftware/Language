@@ -36,9 +36,13 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             let appname = "output"
             try compileAndSave(ir: ir, output: appname)
             
+//            if CommandLine.arguments.contains("-run") {
+//                let output = try runCommand("./\(appname).app", [])
+//                outputCommand("PROGRAM", output)
+//            }
             if CommandLine.arguments.contains("-run") {
-                let output = try runCommand("./\(appname).app", [])
-                print(output.output)
+                let output = try runCommand("/usr/local/opt/llvm/bin/lli", ["\(appname).ll"])
+                outputCommand("PROGRAM", output)
             }
             exit(0)
         }
