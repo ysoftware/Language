@@ -73,7 +73,7 @@ extension Parser {
             if let error = doExpression(in: scope).assign(&expr) { return .failure(error) }
             if let declaredTypeName = suppliedTypeName?.value.value, let exprType = expr?.exprType {
                 let declaredType = Type.named(declaredTypeName)
-                if let literal = expr as? LiteralExpr, literal.isCompliable(with: declaredType) {
+                if let literal = expr as? LiteralExpr, literal.isConvertible(to: declaredType) {
                     literal.exprType = declaredType
                 }
                 else if !declaredType.equals(to: exprType) {
@@ -264,13 +264,17 @@ extension Parser {
             if let error = doStatements(in: procedureScope).then({ scope = Code($0) }) { return .failure(error) }
 
             while let returnStat = firstNotMatchingReturnStatement(in: scope, to: returnType) {
-                 // @Todo: more types
-                if returnType.equals(to: .float), let fixedExpr = expressionToFloat(returnStat.value, exprType: returnType) {
+                if let fixedExpr = convertExpression(returnStat.value, to: returnType) {
                     returnStat.value = fixedExpr
                     continue
                 }
                 return error(em.returnTypeNotMatching(returnType, returnStat.value.exprType),
                              returnStat.value.startCursor, returnStat.value.endCursor)
+            }
+            
+            if !(scope.statements.last is Return) {
+                if returnType.equals(to: .void) { scope.statements.append(Return(value: VoidLiteral())) }
+                else { return error(em.procNotReturning) }
             }
         }
         else {
@@ -405,9 +409,14 @@ extension Parser {
             if let error = doExpression(in: scope, expectSemicolon: false, opPriority + 1)
                 .assign(&right) { return .failure(error) }
     
-            // @Todo: do the AnyNumber thing
-            if left.exprType.equals(to: .int), right.exprType.equals(to: .float), let l = expressionToFloat(left) { left = l }
-            else if right.exprType.equals(to: .int), left.exprType.equals(to: .float), let r = expressionToFloat(right) { right = r }
+            if !left.exprType.equals(to: right.exprType) {
+                if let r = convertExpression(right, to: left.exprType) {
+                    right = r
+                }
+                else if let l = convertExpression(left, to: right.exprType) {
+                    left = l
+                }
+            }
             
             guard left.exprType.equals(to: right.exprType) else {
                 return error(em.binopArgTypeMatch(left.exprType, r: right.exprType), left.startCursor, right.endCursor)
@@ -501,6 +510,7 @@ extension Parser {
             switch token.value  {
             case let punct as Punctuator:
                 if punct.value == "}" { // done with the scope
+                    _ = nextToken()
                     return .success(statements)
                 }
             case let keyword as Keyword: // @Clean: this is a copy from the main loop

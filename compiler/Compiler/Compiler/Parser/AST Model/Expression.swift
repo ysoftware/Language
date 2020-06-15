@@ -139,21 +139,20 @@ final class IntLiteral: LiteralExpr, Equatable {
         "Int(\(value))"
     }
     
-    internal init(value: Int,
+    internal init(value: Int, exprType: Type = .int,
                   startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.value = value
-        if value > Int32.max { exprType = .int64 }
+        
+        if value > Int32.max { self.exprType = .int64 }
+        else { self.exprType = exprType }
         
         self.startCursor = startCursor
         self.endCursor = endCursor
     }
 
-    var exprType: Type = .int
+    var exprType: Type
     var value: Int
-    
-    func toFloatLiteral() -> FloatLiteral {
-        FloatLiteral(value: Float32(value))
-    }
+    var isFinalized = false
 }
 
 final class FloatLiteral: LiteralExpr, Equatable {
@@ -169,19 +168,22 @@ final class FloatLiteral: LiteralExpr, Equatable {
         "Float(\(value))"
     }
     
-    internal init(value: Float32,
+    internal init(value: Float64, exprType: Type = .float,
                   startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.value = value
+        self.exprType = exprType
         self.startCursor = startCursor
         self.endCursor = endCursor
     }
     
     convenience init(intLiteral: IntLiteral) {
-        self.init(value: Float32(intLiteral.value),startCursor: intLiteral.startCursor, endCursor: intLiteral.endCursor)
+        self.init(value: Float64(intLiteral.value),
+                  startCursor: intLiteral.startCursor, endCursor: intLiteral.endCursor)
     }
     
-    var exprType: Type = .float
-    var value: Float32
+    var exprType: Type
+    var value: Float64
+    var isFinalized = false
 }
 
 final class BoolLiteral: LiteralExpr, Equatable {

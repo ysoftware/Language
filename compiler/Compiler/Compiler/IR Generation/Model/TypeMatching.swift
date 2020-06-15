@@ -10,8 +10,34 @@ import Foundation
 
 extension LiteralExpr {
 
-    func isCompliable(with type: Type) -> Bool {
-        return exprType.isCompatible(with: type)
+    func isConvertible(to type: Type) -> Bool {
+        if self.exprType.equals(to: type) { return true }
+        
+        let isFinalized = (self as? IntLiteral)?.isFinalized ?? (self as? FloatLiteral)?.isFinalized ?? true
+        guard !isFinalized, let selfType = self.exprType as? IntType else { return false }
+        
+        switch (selfType.typeName, type.typeName) {
+        
+        // int32 to any number
+        case (Type.int.typeName, Type.int8.typeName),
+             (Type.int.typeName, Type.int16.typeName),
+             (Type.int.typeName, Type.int64.typeName),
+             (Type.int.typeName, Type.half.typeName),
+             (Type.int.typeName, Type.float.typeName),
+             (Type.int.typeName, Type.double.typeName),
+             (Type.int.typeName, Type.bool.typeName): return true
+            
+        // int64 >> float/64
+        case (Type.int64.typeName, Type.half.typeName),
+             (Type.int64.typeName, Type.float.typeName),
+             (Type.int64.typeName, Type.double.typeName): return true
+            
+        // float >> double
+        case (Type.float.typeName, Type.double.typeName): return true
+            
+        default:
+            return false
+        }
     }
 }
 

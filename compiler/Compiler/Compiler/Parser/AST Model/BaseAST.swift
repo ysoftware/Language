@@ -60,7 +60,6 @@ final class Value: Expression, Equatable {
 }
 
 protocol Ast: class, CustomDebugStringConvertible {
-    
     var startCursor: Cursor { get set }
     var endCursor: Cursor { get set }
 }
@@ -76,4 +75,6 @@ protocol Declaration: Ast {
     var name: String { get }
 }
 
-protocol LiteralExpr: Expression { }
+protocol LiteralExpr: Expression {
+    var exprType: Type { get set }
+}

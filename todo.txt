@@ -1,8 +1,9 @@
 LEXER TODO
 
+✅ escaping quotes in strings
+
 -- properly eat whitespaces
 -- add EOF token
--- escaping quotes in strings
 -- hex/bin numbers
 
 PARSER TODO
@@ -17,14 +18,16 @@ PARSER TODO
 ✅ if else
 ✅ while loop
 ✅ break, continue
+✅ binary operators          a+b; a-b; a/b; a*a;
+✅ unary operators           -a; ~a; !a; *a; (B)a ; ^a;
+✅ variable assignment       a = b;
 
--- binary operators          a+b; a-b; a/b; a*a;
--- unary operators           -a; ~a; !a; *a; (B)a ; ^a;
+-- constant expressions
+-- variable assignment as binary operation
 -- switch
 -- array literal             a : Int[3] = [1]; a := (Float[3])[1]
 -- tuple literal             a : (Int, String) = (1, "a"); 
 -- struct instance literal   x := Struct { a = 1, b = 2 }; // all unspecified are left as default
--- variable assignment       a = b;
 -- type inference 2nd pass
 
 -- add scope to Ast (to ident debug output)

@@ -1,19 +1,21 @@
 func int8PointerToInt32(pointer: Int8*) -> Int32 #foreign;
 func int32AsInt8Pointer(address: Int32) -> Int8* #foreign;
-func printf(format: String, arguments: Int32, ...) #foreign; 
+func printf(format: String, arguments: Int8, ...) #foreign; 
 
-TestChar     :: "Test: %c.\n";
-TestNum      :: "Test: %d.\n";
-Char   :: "%c";
+Num :: "%d\n";
 
-func main(count: Int, argument: Int8**) -> Int {
+func getInt() -> Int {
 
-    num := int8PointerToInt32(*argument) + 2;
-    printf(TestNum, num);
+    a := 1 + 2 + 2147483648;
 
-    ptr := int32AsInt8Pointer(num + 1);
-    //printf(TestNum, *ptr);
+    return a;
+}
 
-    char := **argument;
+func main(count: Int, arguments: Int8**) -> Int {
+
+    num := int8PointerToInt32(*arguments);
+    ptr := int32AsInt8Pointer(num);
+
+    printf(Num, getInt());
     return 0;
 }

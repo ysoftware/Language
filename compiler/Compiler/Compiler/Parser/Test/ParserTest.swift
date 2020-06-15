@@ -126,7 +126,7 @@ final class ParserTest {
     func int(_ val: Int) -> IntLiteral { IntLiteral(value: val) }
     func bool(_ val: Bool) -> BoolLiteral { BoolLiteral(value: val) }
     func string(_ val: String) -> StringLiteral { StringLiteral(value: val) }
-    func float(_ val: Float) -> FloatLiteral { FloatLiteral(value: val) }
+    func float(_ val: Float64) -> FloatLiteral { FloatLiteral(value: val) }
     func val(_ name: String, _ type: Type) -> Value { Value(name: name, exprType: type) }
     func ret(_ expr: Expression) -> Return { Return(value: expr) }
     

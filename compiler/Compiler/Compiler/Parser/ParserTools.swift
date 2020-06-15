@@ -60,25 +60,60 @@ extension Parser {
         return nil
     }
     
-    func expressionToFloat(_ expression: Expression, exprType: Type = .float) -> Expression? {
+    /*
+     
+     @Todo: lvalue operations (assignment)
+     @Todo: literal conversion
+     
+     Int32 >> Int16 >> Int8 >> Bool: explicit, check overflow
+     Int32 >> Int64 >> Float32 >> Float64: implicit
+     
+     --- finalized works by expectation
+     
+     1 + 2 + 2147483648 + 1.0
+        binop [Int32] 1 + 2
+        binop [Int64] a + 2147483648
+        binop [Float] b + 1.0
+     Int32 >> Int64 >> Float (we can keep converting it until it's used)
+    
+     a : Int8 = 1 + 2
+        binop [Int32] 1 + 2
+        assign [Int8] a
+     Int32 >> Int8 (finalized)
+     
+     if (0 + 1) { ... }
+        binop [Int32] 0 + 1
+        condition [Bool]
+     Int32 >> Bool (finalized)
+     
+     */
+    
+    func convertExpression(_ expression: Expression, to exprType: Type) -> Expression? {
         if let binop = expression as? BinaryOperator {
-            guard let left = expressionToFloat(binop.arguments.0, exprType: exprType),
-                let right = expressionToFloat(binop.arguments.1, exprType: exprType)
+            guard let left = convertExpression(binop.arguments.0, to: exprType),
+                let right = convertExpression(binop.arguments.1, to: exprType)
                 else { return nil }
             return BinaryOperator(name: binop.name, exprType: .float, arguments: (left, right),
                 startCursor: binop.startCursor, endCursor: binop.endCursor)
         }
         if let unop = expression as? UnaryOperator {
             let type = returnType(ofUnaryOperation: unop.name, arg: exprType)
-            guard let arg = expressionToFloat(unop.argument, exprType: type) else { return nil }
+            guard let arg = convertExpression(unop.argument, to: type) else { return nil }
             return UnaryOperator(name: unop.name, exprType: type, argument: arg,
                                  startCursor: unop.startCursor, endCursor: unop.endCursor)
         }
         if let int = expression as? IntLiteral {
-            return FloatLiteral(intLiteral: int)
+            guard int.isConvertible(to: exprType) else { return nil }
+            if exprType is IntType {
+                return IntLiteral(value: int.value, exprType: exprType)
+            }
+            else {
+                return FloatLiteral(value: Float64(int.value), exprType: exprType)
+            }
         }
         if let float = expression as? FloatLiteral {
-            return float
+            guard float.isConvertible(to: exprType) else { return nil }
+            return FloatLiteral(value: Float64(float.value), exprType: exprType)
         }
         return nil
     }

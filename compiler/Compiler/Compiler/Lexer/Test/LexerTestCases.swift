@@ -212,7 +212,7 @@ bye
             TokenLiteral(value: .float(value: 1.1724)),
             TokenLiteral(value: .int(value: 0)),
             TokenLiteral(value: .int(value: 011)),
-            TokenLiteral(value: .float(value: Float(11))),
+            TokenLiteral(value: .float(value: Float64(11))),
             TokenLiteral(value: .float(value: 0.11)),
             TokenLiteral(value: .int(value: -0)),
             TokenLiteral(value: .float(value: 1e-23)),

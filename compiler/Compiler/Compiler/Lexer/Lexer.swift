@@ -166,7 +166,7 @@ final class Lexer {
                     fallthrough
                 }
                 else if value.contains("e") || value.contains(".") {
-                    append(TokenLiteral(value: .float(value: Float(value)!)), start, cursor)
+                    append(TokenLiteral(value: .float(value: Float64(value)!)), start, cursor)
                 }
                 else {
                     append(TokenLiteral(value: .int(value: Int(value)!)), start, cursor)

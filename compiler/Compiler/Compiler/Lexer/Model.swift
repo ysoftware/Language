@@ -21,7 +21,7 @@ enum LiteralToken: Equatable {
     }
     
     case string(value: String)
-    case float(value: Float)
+    case float(value: Float64)
     case int(value: Int)
     case bool(value: Bool)
 }

@@ -84,8 +84,8 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             print("")
         
             let lines = code.split(separator: "\n", omittingEmptySubsequences: false)
-            if lineNumber >= 3 { print("   >    \(lines[lineNumber-3])") }
-            if lineNumber >= 2 { print("   >    \(lines[lineNumber-2])") }
+            if lines.count > lineNumber-3, lineNumber >= 3 { print("   >    \(lines[lineNumber-3])") }
+            if lines.count > lineNumber-2, lineNumber >= 2 { print("   >    \(lines[lineNumber-2])") }
 
             if !ColorCode {
                 print("   >    \(lines[lineNumber-1])")
@@ -101,10 +101,7 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             else {
                 let errorLine = lines[lineNumber-1]
                 
-                if pe.startCursor.lineNumber == pe.endCursor.lineNumber,
-                    
-                pe.endCursor.character <= errorLine.count {
-                    
+                if pe.startCursor.lineNumber == pe.endCursor.lineNumber, pe.endCursor.character <= errorLine.count {
                     
                     let start = errorLine.index(errorLine.startIndex, offsetBy: pe.startCursor.character)
                     let end = errorLine.index(errorLine.startIndex, offsetBy: pe.endCursor.character)
@@ -128,6 +125,7 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
                     print("        \u{001B}[0;31m\(startCursor)\(endCursor)\u{001B}[0;0m")
                 }
                 else {
+                    print("Error @ \(pe.startCursor) - \(pe.endCursor)")
                     print(">>>>> Unable to point to the error cursor.")
                 }
             }

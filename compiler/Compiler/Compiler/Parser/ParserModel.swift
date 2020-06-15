@@ -66,7 +66,7 @@ extension Parser {
         let expectedExpression = "Expected expression."
         let expectedParentheses = "Parentheses are expected around the condition expression."
         let exprExpectedBrackets = "Expected closing bracket after expression."
-        
+
         func returnTypeNotMatching(_ e: Type, _ g: Type) -> String {
             "Return type is expected to be '\(e)', but expression provided evaluates to '\(g)'."
         }
@@ -133,6 +133,7 @@ extension Parser {
         let procMainRedecl = "Redeclaration of the entry procedure."
         let procReturnTypeExpected = "Expected a return type after '->'."
         let procExpectedName = "Expected procedure name after 'func'."
+        let procNotReturning = "Expected a return statement in a non-void procedure."
         
         // struct declaration
         let structExpectedName = "Expected struct name after 'struct'."
