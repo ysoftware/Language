@@ -24,7 +24,8 @@ extension ParserTest {
                 vDecl("e", .bool, bool(true), const: true), vDecl("f", .float, float(1)),
                 vDecl("g", .bool, bool(false), const: true),
                 vDecl("h", .int64, int(5_000_000_000_000), const: true),
-                vDecl("i", .pointer(.int8), nil)
+                vDecl("i", .pointer(.int8), nil),
+                ret(VoidLiteral())
             ])]))
         }
 
@@ -35,7 +36,8 @@ extension ParserTest {
         
         printResultCase(code, result, Code([main([
             vDecl("a", .int, int(1)),
-            vAssign("a", binop("+", .int, (val("a", .int), int(1))))
+            vAssign("a", binop("+", .int, (val("a", .int), int(1)))),
+            ret(VoidLiteral())
         ])]))
     }
     
@@ -54,10 +56,12 @@ func print3() { x :: 1; }
                 returnType: .void, flags: [.isVarargs, .isForeign], scope: .empty),
             ProcedureDeclaration(
                 id: "print2", name: "print2", arguments: [val("format", .string), val("arguments", .int32)],
-                returnType: .void, flags: [], scope: .empty),
+                returnType: .void, flags: [], scope: Code([ ret(VoidLiteral()) ])),
             ProcedureDeclaration(
                 id: "print3", name: "print3", arguments: [],
-                returnType: .void, flags: [], scope: Code([ vDecl("x", .int, int(1), const: true) ])),
+                returnType: .void, flags: [], scope: Code([
+                    vDecl("x", .int, int(1), const: true), ret(VoidLiteral())
+                ])),
         ]))
     }
     
@@ -115,7 +119,11 @@ struct Value { a := getInt(); b := getString(); }
         printResultCase(
             code, result, Code([
                 vDecl("c", .int, int(1)),
-                main([ vDecl("a", .int, val("c", .int)), vDecl("b", .int, val("a", .int)) ])
+                main([
+                    vDecl("a", .int, val("c", .int)),
+                    vDecl("b", .int, val("a", .int)),
+                    ret(VoidLiteral())
+                ])
             ]))
     }
     
@@ -127,7 +135,7 @@ struct Value { a := getInt(); b := getString(); }
         let result = Parser(tokens).parse()
         
         printResultCase(
-            code, result, Code([main([
+            code, result, Code([ main([
                 Condition(condition: bool(true), block: Code([
                     vDecl("a", .int, int(1)),
                     Condition(condition: bool(false), block: Code([
@@ -136,6 +144,7 @@ struct Value { a := getInt(); b := getString(); }
                 ]), elseBlock: Code([
                     vDecl("c", .unresolved, val("a", .unresolved))
                 ])),
+                ret(VoidLiteral())
             ])]))
     }
     
@@ -144,9 +153,10 @@ struct Value { a := getInt(); b := getString(); }
         let tokens = try! Lexer(code).analyze().get()
         let result = Parser(tokens).parse()
 
-        printResultCase(code, result, Code([
-            main([ WhileLoop(userLabel: nil, condition: bool(true), block: .empty) ])
-        ]))
+        printResultCase(code, result, Code([ main([
+            WhileLoop(userLabel: nil, condition: bool(true), block: .empty),
+            ret(VoidLiteral())
+        ])]))
     }
     
     func testWhileLoopBreak() {
@@ -160,7 +170,8 @@ struct Value { a := getInt(); b := getString(); }
                 WhileLoop(userLabel: "loop1", condition: bool(true), block: Code([
                     Break(userLabel: "loop")
                 ]))
-            ]))
+            ])),
+            ret(VoidLiteral())
         ])]))
     }
     
@@ -174,7 +185,8 @@ struct Value { a := getInt(); b := getString(); }
                 WhileLoop(userLabel: "loop1", condition: bool(true), block: Code([
                     Continue(userLabel: "loop")
                 ]))
-            ]))
+            ])),
+            ret(VoidLiteral())
         ])]))
     }
     
@@ -185,7 +197,8 @@ struct Value { a := getInt(); b := getString(); }
         
         printResultCase(code, result, Code([main([
             vDecl("a", .int, int(1)),
-            vDecl("b", .int, unop("-", .int, val("a", .int)))
+            vDecl("b", .int, unop("-", .int, val("a", .int))),
+            ret(VoidLiteral())
         ])]))
     }
     
@@ -209,7 +222,8 @@ struct Value { a := getInt(); b := getString(); }
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([main([
-            vDecl("a", .bool, op4)
+            vDecl("a", .bool, op4),
+            ret(VoidLiteral())
         ])]))
     }
     
@@ -229,7 +243,8 @@ struct Value { a := getInt(); b := getString(); }
                 returnType: .int, flags: [], scope: Code([ ret(int(2)) ])),
             main([
                 vDecl("a", .int, binop("+", .int, (mul1, mul2))),
-                vDecl("b", .int, binop("+", .int, (val("a", .int), mul3)))
+                vDecl("b", .int, binop("+", .int, (val("a", .int), mul3))),
+                ret(VoidLiteral())
             ])
         ]))
     }
@@ -244,7 +259,10 @@ struct Value { a := getInt(); b := getString(); }
         let binop2 = binop("*", .int, (binop1, int(3))) // (1+2) * (3)
         let binop3 = binop("+", .int, (binop2, int(5))) // ((1+2)+(3)) + 5
         
-        printResultCase(code, result, Code([ main([ vDecl("a", .int, binop3)]) ]))
+        printResultCase(code, result, Code([ main([
+            vDecl("a", .int, binop3),
+            ret(VoidLiteral())
+        ])]))
     }
     
     func testBinopLiteralConversion() {
@@ -256,7 +274,10 @@ struct Value { a := getInt(); b := getString(); }
         let binop1 = binop("+", .float, (float(1), unop("-", .float, float(1))))
         let binop2 = binop("+", .float, (binop1, float(1.5)))
         
-        printResultCase(code, result, Code([ main([ vDecl("a", .float, binop2)]) ]))
+        printResultCase(code, result, Code([ main([
+            vDecl("a", .float, binop2),
+            ret(VoidLiteral())
+        ])]))
     }
     
     func testReturnTypeLiteralConversion() {
