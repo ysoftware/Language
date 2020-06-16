@@ -306,13 +306,10 @@ struct Value { a := getInt(); b := getString(); }
     }
     
     func testPointers() {
-        // @Todo: fix this test
-        return
-        
         let code = """
 func main() {
     a : Int  = 1;
-    b : Int* = *a;
+    b : Int* = *a; // getting a pointer to 'a'
 }
 """
         let tokens = try! Lexer(code).analyze().get()
@@ -320,7 +317,8 @@ func main() {
         
         printResultCase(code, result, Code([ main([
             vDecl("a", .int,            int(1)),
-            vDecl("b", .pointer(.int),  unop("*", .pointer(.int), val("a", .int)))
+            vDecl("b", .pointer(.int),  unop("*", .pointer(.int), val("a", .int))),
+            ret(VoidLiteral())
         ])]))
     }
 }
