@@ -8,7 +8,6 @@
 
 // Constants
 
-// @Todo: add EOF token - unfinished string literal results in crash
 // @Todo: properly eat whitespaces
 
 fileprivate let punctuators = [".", ":", "(", ")", "{", "}", "[", "]", "->", "..."]
@@ -26,13 +25,13 @@ final class Lexer {
     
     internal init(fileName: String? = nil, _ string: String) {
         self.fileName = fileName
-        self.string = string
+        self.characters = string.dropLast(0) // hack to convert string to character array
         self.char = string[i]
         self.stringCount = string.count
     }
     
     let fileName: String?
-    let string: String
+    let characters: [Character]
     let stringCount: Int
 
     // Variables
@@ -42,7 +41,7 @@ final class Lexer {
     var i = 0
     var char: Character
     
-    func analyze() -> Result<[Token], LexerError> {    
+    func analyze() -> Result<LexerOutput, LexerError> {    
         loop: while stringCount > i {
             switch char {
                 
@@ -166,7 +165,7 @@ final class Lexer {
                 }
                 
                 if let next = peekNext() {
-                    if !(separators + punctuators + operators).contains(String(next)) {
+                    if !(separators + punctuators + operators).contains(String(next)) { // @Speed: this is extremely slow
                         return error(.unexpectedCharacter, start, cursor)
                     }
                 }
@@ -253,6 +252,6 @@ final class Lexer {
             }
             guard nextChar() else { append(EOF(), cursor, cursor); break }
         }
-        return .success(tokens)
+        return .success(LexerOutput(tokens: tokens, linesProcessed: cursor.lineNumber))
     }
 }

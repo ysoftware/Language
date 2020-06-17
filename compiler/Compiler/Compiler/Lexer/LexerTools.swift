@@ -8,6 +8,12 @@
 
 import Foundation
 
+struct LexerOutput {
+    
+    let tokens: [Token]
+    let linesProcessed: Int
+}
+
 extension Lexer {
 
     /// add this token to the return
@@ -16,7 +22,7 @@ extension Lexer {
     }
     
     /// returns the error set at the current point
-    func error(_ error: LexerError.Message, _ start: Cursor, _ end: Cursor) -> Result<[Token], LexerError> {
+    func error(_ error: LexerError.Message, _ start: Cursor, _ end: Cursor) -> Result<LexerOutput, LexerError> {
         .failure(LexerError(fileName: fileName, startCursor: start, endCursor: end, error))
     }
     
@@ -50,7 +56,7 @@ extension Lexer {
         guard stringCount > i else {
             return false
         }
-        char = string[i]
+        char = characters[i]
         return true
     }
     
@@ -58,7 +64,7 @@ extension Lexer {
     func peekNext() -> Character? {
         let nextIndex = i + 1
         guard stringCount > nextIndex else { return nil }
-        return string[nextIndex]
+        return characters[nextIndex]
     }
     
     /// checks if `next char` exists and matches, then eats it if it does
@@ -72,7 +78,7 @@ extension Lexer {
     func consumeNext(where compare: (Character)->Bool) -> Character? {
         let nextIndex = i + 1
         guard stringCount > nextIndex else { return nil }
-        let char = string[nextIndex]
+        let char = characters[nextIndex]
         if compare(char) {
             advance()
             return char
@@ -80,10 +86,41 @@ extension Lexer {
         return nil
     }
     
+    /// checks if `char` matches, then eats it if it does
+    /// if not, does nothing and returns false
+    func consume(_ character: Character) -> Bool {
+        if char == character {
+            nextChar()
+            advance()
+            return true
+        }
+        return false
+    }
+    
     /// checks if the string
     /// matches `current and subsequent` characters
     func consume(string: String) -> Bool {
-        consume(oneOf: [string]) != nil
+        let count = string.count
+        let query: [Character] = string.dropLast(0)
+        
+        var index = 0
+        while count > index {
+            if stringCount > i + index, characters[i + index] == query[index] {
+                index += 1
+            }
+            else {
+                return false
+            }
+        }
+        
+        advance(count-1)
+        if stringCount > i {
+            char = characters[i]
+        }
+        else {
+            char = characters[stringCount-1]
+        }
+        return true
     }
     
     /// checks if one of the strings in the array
@@ -109,7 +146,7 @@ extension Lexer {
             }
             index += 1
             guard stringCount > i + index else { return nil }
-            query.append(string[i + index])
+            query.append(characters[i + index])
         }
         return nil
     }

@@ -15,7 +15,7 @@ extension ParserTest {
     func main() { a : String; b := 1; c :: "hello"; d : Int = 1;
     e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; i : Int8*; }
     """
-            let tokens = try! Lexer(code).analyze().get()
+            let tokens = try! Lexer(code).analyze().get().tokens
             let result = Parser(tokens).parse()
             
             printResultCase(code, result, Code([main([
@@ -31,7 +31,7 @@ extension ParserTest {
 
     func testVariableAssign() {
         let code = "func main() { a := 1; a = a + 1; }"
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([main([
@@ -47,7 +47,7 @@ func print1(format: String, arguments: Int32, ...) #foreign;
 func print2(format: String, arguments: Int32) {  }
 func print3() { x :: 1; }
 """
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([
@@ -69,7 +69,7 @@ func print3() { x :: 1; }
         // @Todo: finish this test
 //        let code = "1struct c { a: String; b :: 1; }" // @Lexer @Todo: this passes (with 1 at the start)
         let code = "x := 1.0; struct A { a: String; b :: 1; c := b; d := x; }"
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([
@@ -92,7 +92,7 @@ func getString() -> String { return "hello"; }
 struct Value { a := getInt(); b := getString(); }
 """
         
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([
@@ -113,7 +113,7 @@ struct Value { a := getInt(); b := getString(); }
     
     func testTypeInference() {
         let code = "c:= 1; func main() { a := c; b := a; }"
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         printResultCase(
@@ -131,7 +131,7 @@ struct Value { a := getInt(); b := getString(); }
         // @Todo this test should fail when 2nd pass type inference is implemented
         // this just stops at the type being unresolved
         let code = "func main() { if (true) { a := 1; if (false) { b := a; }} else { c := a; }}"
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         printResultCase(
@@ -150,7 +150,7 @@ struct Value { a := getInt(); b := getString(); }
     
     func testWhileLoop() {
         let code = "func main() { while (true) { }}"
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
 
         printResultCase(code, result, Code([ main([
@@ -162,7 +162,7 @@ struct Value { a := getInt(); b := getString(); }
     func testWhileLoopBreak() {
         // @Todo: you can pass string literal with no error as while condition
         let code = "func main() { loop: while (true) { loop1: while (true) { break loop; }}}"
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([main([
@@ -177,7 +177,7 @@ struct Value { a := getInt(); b := getString(); }
     
     func testWhileLoopContinue() {
         let code = "func main() { loop: while (true) { loop1: while (true) { continue loop; }}}"
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
 
         printResultCase(code, result, Code([main([
@@ -192,7 +192,7 @@ struct Value { a := getInt(); b := getString(); }
     
     func testUnaryOperators() {
         let code = "func main() { a := 1; b := -a; }"
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([main([
@@ -218,7 +218,7 @@ struct Value { a := getInt(); b := getString(); }
         let op3 = binop("%", .int, (op2, int(100)))
         let op4 = binop("==", .bool, (op3, int(0)))
         
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([main([
@@ -230,7 +230,7 @@ struct Value { a := getInt(); b := getString(); }
     func testBinaryOperators() {
         let code = "func getInt() -> Int { return 2; } func main() { a := 2 * 3 + 2 * getInt(); b: = a + 2 * 2; }"
         
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         let mul1 = binop("*", .int, (int(2), int(3)))
@@ -252,7 +252,7 @@ struct Value { a := getInt(); b := getString(); }
     func testBrackets() {
         let code = "func main() { a := (1+2)*(3)+5; }"
         
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         let binop1 = binop("+", .int, (int(1), int(2))) // 1 + 2
@@ -268,7 +268,7 @@ struct Value { a := getInt(); b := getString(); }
     func testBinopLiteralConversion() {
         let code = "func main() { a := 1 + -(1) + 1.5; }"
         
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         let binop1 = binop("+", .float, (float(1), unop("-", .float, float(1))))
@@ -283,7 +283,7 @@ struct Value { a := getInt(); b := getString(); }
     func testReturnTypeLiteralConversion() {
         let code = "func float() -> Float { return 1; }"
         
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([
@@ -296,7 +296,7 @@ struct Value { a := getInt(); b := getString(); }
     func testErrorReturnTypeNotMatching() {
         let code = "func main() -> Float { return \"string\"; }"
         
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         let error = ParserError(startCursor: Cursor(character: 30),
@@ -312,7 +312,7 @@ func main() {
     b : Int* = *a; // getting a pointer to 'a'
 }
 """
-        let tokens = try! Lexer(code).analyze().get()
+        let tokens = try! Lexer(code).analyze().get().tokens
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([ main([

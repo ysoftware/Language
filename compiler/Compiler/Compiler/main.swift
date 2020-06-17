@@ -31,9 +31,10 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
     }
     
     do {
-        let tokens = try Lexer(code).analyze().get()
+        let lexerOutput = try Lexer(code).analyze().get()
         reportTimeSpent(on: "Lexing", from: previousTime)
-        let result = try Parser(tokens).parse().get()
+        let result = try Parser(lexerOutput.tokens).parse().get()
+        print("Lines processed: \(lexerOutput.linesProcessed)")
         reportTimeSpent(on: "Parsing", from: previousTime)
         let ir = IR().generateIR(globalScope: result)
         reportTimeSpent(on: "IR Generation", from: previousTime)

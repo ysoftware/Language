@@ -45,7 +45,7 @@ final class LexerTest {
     }
     
     func printErrorCase(caseName: String = #function, _ code: String,
-                        _ resultR: Result<[Token], LexerError>, _ expected: LexerError) {
+                        _ resultR: Result<LexerOutput, LexerError>, _ expected: LexerError) {
         
         // @Todo: test exact cursors
         
@@ -64,18 +64,18 @@ final class LexerTest {
             print("Received error:", error.message.rawValue)
             print("\n\n")
             
-        case .success(let tokens):
+        case .success(let output):
             failed += 1
             print("❌ \(caseName)")
             print("code: \"\(code)\"")
             print("Expected error:", expected.message, "\n===")
-            printTokens(tokens)
+            printTokens(output.tokens)
             print("===\n\n")
         }
     }
     
     func printResultCase(caseName: String = #function, _ code: String,
-                         _ resultR: Result<[Token], LexerError>, _ expect: [Token]) {
+                         _ resultR: Result<LexerOutput, LexerError>, _ expect: [Token]) {
         
         switch resultR {
         case .failure(let error):
@@ -91,20 +91,20 @@ final class LexerTest {
             print("\(String(repeating: "_", count: error.startCursor.character + 1))^")
             print("\n\n")
             
-        case .success(let result):
-            if result != expect {
+        case .success(let output):
+            if output.tokens != expect {
                 failed += 1
                 print("\n❌ \(caseName)")
                 print("\"\(code)\"")
-                if result.count != expect.count {
-                    print("Counts don't match", result.count, "vs expected", expect.count, "\n===")
-                    printTokens(result)
+                if output.tokens.count != expect.count {
+                    print("Counts don't match", output.tokens.count, "vs expected", expect.count, "\n===")
+                    printTokens(output.tokens)
                     print("===\n\n")
                 }
                 else {
-                    for i in 0..<result.count {
-                        if expect[i] != result[i] {
-                            print("Mismatch in \(i):\n", result[i], "\nExpected:\n", expect[i], "\n\n")
+                    for i in 0..<output.tokens.count {
+                        if expect[i] != output.tokens[i] {
+                            print("Mismatch in \(i):\n", output.tokens[i], "\nExpected:\n", expect[i], "\n\n")
                         }
                     }
                 }
