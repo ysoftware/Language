@@ -37,7 +37,14 @@ struct Cursor: Equatable, CustomDebugStringConvertible {
         lineNumber += 1
     }
     
+    static func isDefault(_ cursor: Cursor) -> Bool {
+        let def = Cursor()
+        return cursor.lineNumber == def.lineNumber
+            && cursor.character == def.character
+    }
+    
     static func ==(lhs: Cursor, rhs: Cursor) -> Bool {
+        if isDefault(lhs) || isDefault(rhs) { return true }
         return lhs.lineNumber == rhs.lineNumber && lhs.character == rhs.character
     }
 }

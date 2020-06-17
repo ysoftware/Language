@@ -8,6 +8,8 @@
 
 import Foundation
 
+fileprivate let eof = EOF()
+
 extension LexerTest {
 
     func testInvalidIdentifierUnderscore() {
@@ -20,7 +22,8 @@ extension LexerTest {
         
         printResultCase(code, Lexer(code).analyze(), asTokens([
             TokenLiteral(value: .bool(value: true)),
-            TokenLiteral(value: .bool(value: false))
+            TokenLiteral(value: .bool(value: false)),
+            eof
         ]))
     }
     
@@ -43,6 +46,7 @@ extension LexerTest {
             Token(TokenLiteral(value: .int(value: 123)),
                   start: Cursor(lineNumber: 4, character: 0),
                   end: Cursor(lineNumber: 4, character: 2)),
+            Token(eof)
         ])
     }
         
@@ -86,7 +90,8 @@ Test
 """
         printResultCase(code, Lexer(code).analyze(), asTokens([
             TokenLiteral(value: .string(value: "\n")),
-            TokenLiteral(value: .string(value: "\nTest\n\"It\""))
+            TokenLiteral(value: .string(value: "\nTest\n\"It\"")),
+            eof
         ]))
     }
     
@@ -114,7 +119,8 @@ Test
 """
         printResultCase(code, Lexer(code).analyze(), asTokens([
             TokenLiteral(value: .string(value: "Hello, Sailor!")),
-            TokenLiteral(value: .string(value: ""))
+            TokenLiteral(value: .string(value: "")),
+            eof
         ]))
     }
     
@@ -141,7 +147,8 @@ Test
             Punctuator(value: ":"),
             Identifier(value: "Int"),
             Directive(value: "foreign"),
-            Directive(value: "_internal")
+            Directive(value: "_internal"),
+            eof
         ]))
     }
     
@@ -173,6 +180,7 @@ bye
             Comment(value: "1"),
             Identifier(value: "goodbye"),
             Comment(value: "bye"), // comment to the end of the file
+            eof
         ]))
     }
     
@@ -217,6 +225,7 @@ bye
             TokenLiteral(value: .int(value: -0)),
             TokenLiteral(value: .float(value: 1e-23)),
             TokenLiteral(value: .int(value: 123)),
+            eof
         ]))
     }
     
@@ -235,6 +244,7 @@ bye
             Identifier(value: "Int32"),
             Punctuator(value: "{"),
             Punctuator(value: "}"),
+            eof
         ]))
     }
     
@@ -250,7 +260,8 @@ bye
             Punctuator(value: "("),
             Identifier(value: "saw"),
             Punctuator(value: ")"),
-            Identifier(value: "_d")
+            Identifier(value: "_d"),
+            eof
         ]))
     }
     
@@ -267,6 +278,7 @@ bye
             Identifier(value: "A"),
             Operator(value: ".."),
             Identifier(value: "z"),
+            eof
         ]))
     }
 }

@@ -47,7 +47,9 @@ extension Lexer {
     @discardableResult @inline(__always)
     func nextChar() -> Bool {
         advance()
-        guard string.count > i else { return false }
+        guard string.count > i else {
+            return false
+        }
         char = string[i]
         return true
     }

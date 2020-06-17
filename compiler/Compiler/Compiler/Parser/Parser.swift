@@ -509,7 +509,6 @@ extension Parser {
             switch token.value  {
             case let punct as Punctuator:
                 if punct.value == "}" { // done with the scope
-                    _ = nextToken()
                     return .success(statements)
                 }
             case let keyword as Keyword: // @Clean: this is a copy from the main loop
@@ -572,6 +571,8 @@ extension Parser {
             case let separator as Separator:
                 if separator.value == ";" { if !nextToken() { break loop }}
                 
+            case is EOF:
+                break loop
             default:
                 print("(statements loop) Unexpected token\n\(token)\n")
                 return error(em.notImplemented, token.startCursor, token.endCursor)

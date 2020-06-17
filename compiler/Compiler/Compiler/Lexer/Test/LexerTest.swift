@@ -15,6 +15,7 @@ final class LexerTest {
         let i = LexerTest()
         i.failed = 0
         
+        i.testComments()
         i.testInvalidIdentifierUnderscore()
         i.testCursors()
         i.testNumbersFail4()
@@ -32,7 +33,6 @@ final class LexerTest {
         i.testDirectiveFail3()
         i.testDirectiveFail2()
         i.testDirectiveFail()
-        i.testComments()
         i.testNumbersFail2()
         i.testNumbersFail()
         i.testVarargsRangeSpecialFloat()

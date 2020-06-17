@@ -177,27 +177,25 @@ final class Lexer {
                 
                 // we fallthrough to here from the case above
                 // can expect ".", "e", "-" and number characters
-                
                 let start = cursor
                 var value = ""
                 if consume(string: "//") {
-                    nextChar()
+                    guard nextChar() else { break }
                     
                     while string.count > i {
-                        if peekNext() == "\n" {
+                        if char == "\n" {
                             break
                         }
                         else {
                             value.append(char)
-                            nextChar()
+                            guard nextChar() else { break }
                         }
                     }
                     append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)), start, cursor)
-                    nextChar()
                 }
                 else if consume(string: "/*") {
                     var commentLevel = 1
-                    nextChar()
+                    guard nextChar() else { break }
                     
                     while string.count > i && commentLevel > 0 {
                         if consume(string: "/*") {
@@ -218,7 +216,7 @@ final class Lexer {
                         else {
                             value.append(char)
                         }
-                        nextChar()
+                        guard nextChar() else { break }
                     }
                     append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)), start, cursor)
                 }
@@ -244,7 +242,7 @@ final class Lexer {
                     return error(.unexpectedCharacter, cursor, cursor)
                 }
             }
-            nextChar()
+            guard nextChar() else { append(EOF(), cursor, cursor); break }
         }
         return .success(tokens)
     }

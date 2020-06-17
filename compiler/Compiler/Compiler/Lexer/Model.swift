@@ -42,6 +42,7 @@ extension TokenValue {
         case (let a as Separator, let b as Separator): return a.value == b.value
         case (let a as TokenLiteral, let b as TokenLiteral): return a.value == b.value
         case (let a as Keyword, let b as Keyword): return a == b
+        case (is EOF, is EOF): return true
         default: break
         }
         return false
@@ -75,6 +76,7 @@ struct Operator: TokenValue, StringValueToken { let value: String }
 struct Comment: TokenValue, StringValueToken{ let value: String }
 struct Separator: TokenValue, StringValueToken { let value: String }
 struct TokenLiteral: TokenValue { let value: LiteralToken }
+struct EOF: TokenValue { }
 
 final class Token: Equatable, CustomDebugStringConvertible {
     
@@ -86,6 +88,7 @@ final class Token: Equatable, CustomDebugStringConvertible {
         case is Operator: return "Operator"
         case is Comment: return "Comment"
         case is Separator: return "Separator"
+        case is EOF: return "End."
         default: return "\(self.self)"
         }
     }
