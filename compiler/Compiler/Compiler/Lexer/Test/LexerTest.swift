@@ -15,10 +15,10 @@ final class LexerTest {
         let i = LexerTest()
         i.failed = 0
         
+        i.testNumbersFail4()
         i.testComments()
         i.testInvalidIdentifierUnderscore()
         i.testCursors()
-        i.testNumbersFail4()
         i.testBoolLiteral()
         i.testNumbersFail3()
         i.testMultilineStringLiteral()
@@ -85,7 +85,8 @@ final class LexerTest {
             
             // @Todo use endCursor
                 
-            let line = code.split(separator: "\n")[error.startCursor.lineNumber-1]
+            let lines = code.split(separator: "\n", omittingEmptySubsequences: false)
+            let line = lines[error.endCursor.lineNumber-1]
             print("\"\(line)\"")
             print("\(String(repeating: "_", count: error.startCursor.character + 1))^")
             print("\n\n")

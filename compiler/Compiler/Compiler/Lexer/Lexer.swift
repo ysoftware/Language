@@ -15,6 +15,7 @@ fileprivate let punctuators = [".", ":", "(", ")", "{", "}", "[", "]", "->", "..
 fileprivate let operators = ["-", "+", "/", "*", "%", "..", "=", ":=",
                              "==", "!=", "<=", ">=", "&&", "||", ">", "<",
                              "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<="]
+fileprivate let separators = ["\n", " ", ";", ","]
 
 fileprivate let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "z"))
 fileprivate let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "Z"))
@@ -160,6 +161,12 @@ final class Lexer {
                     }
                     if next == "_" { continue }
                     value.append(next)
+                }
+                
+                if let next = peekNext() {
+                    if !(separators + punctuators + operators).contains(String(next)) {
+                        return error(.unexpectedCharacter, start, cursor)
+                    }
                 }
                 
                 if value == "-" || value.replacingOccurrences(of: ".", with: "").isEmpty {

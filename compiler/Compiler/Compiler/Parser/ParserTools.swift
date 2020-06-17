@@ -174,7 +174,7 @@ extension Parser {
     /// if not, does nothing and returns nil
     func consume<T: TokenValue>(_ value: T.Type) -> (token: Token, value: T)? {
         if let value = token.value as? T {
-            defer { nextToken() }
+            defer { _ = nextToken() }
             return (token: token, value: value)
         }
         return nil
@@ -184,7 +184,7 @@ extension Parser {
     /// if not, does nothing and returns nil
     func consume(where compare: (TokenValue)->Bool) -> Token? {
         if (compare(token.value)) {
-            defer { nextToken() }
+            defer { _ = nextToken() }
             return token
         }
         return nil

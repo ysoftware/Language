@@ -204,7 +204,6 @@ bye
         // I need to find a way to consume() some sort of separation after a token
         // " ", ",", ";" or anything else. Not that it matters a lot, since
         // the parser will error on the expression in the test
-        return
         
         let code = "12a23"
         printErrorCase(code, Lexer(code).analyze(), LexerError(.unexpectedCharacter))
