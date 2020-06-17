@@ -175,9 +175,7 @@ final class Lexer {
             case "/":
                 // COMMENTS
                 
-                // @Todo: // comments fuck up cursors
-                
-                // @Note: we fallthrough to here from the case above
+                // we fallthrough to here from the case above
                 // can expect ".", "e", "-" and number characters
                 
                 let start = cursor
@@ -186,8 +184,7 @@ final class Lexer {
                     nextChar()
                     
                     while string.count > i {
-                        if consume(string: "\n") {
-                            cursor.advanceLine()
+                        if peekNext() == "\n" {
                             break
                         }
                         else {
@@ -196,6 +193,7 @@ final class Lexer {
                         }
                     }
                     append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)), start, cursor)
+                    nextChar()
                 }
                 else if consume(string: "/*") {
                     var commentLevel = 1
@@ -214,7 +212,7 @@ final class Lexer {
                                 value.append("*/")
                             }
                         }
-                        else if consume(string: "\n") {
+                        else if char ==  "\n" {
                             value.append("\n")
                         }
                         else {

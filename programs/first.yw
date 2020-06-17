@@ -4,6 +4,10 @@ func printf(format: String, arguments: Int8, ...) #foreign;
 
 Num :: "%d\n";
 
+/*
+x
+*/
+
 func getInt() -> Int {
 
     a := 1 + 2 + 2147483648;

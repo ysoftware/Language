@@ -426,9 +426,8 @@ extension Parser {
             }
             
             let type = returnType(ofBinaryOperation: op.value, arg: left.exprType)
-            left = BinaryOperator(name: op.value, exprType: type, arguments: (left, right))
-            left.startCursor = left.startCursor
-            left.endCursor = right.endCursor
+            left = BinaryOperator(name: op.value, exprType: type, arguments: (left, right),
+                                  startCursor: left.startCursor, endCursor: right.endCursor)
         }
         
         if expectSemicolon, !consumeSep(";") { return error(em.expectedSemicolon) }
