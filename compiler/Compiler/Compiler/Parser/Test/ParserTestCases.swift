@@ -308,7 +308,7 @@ struct Value { a := getInt(); b := getString(); }
     func testPointers() {
         let code = """
 func main() {
-    a : Int  = 1;
+    a : Int**;
     b : Int* = *a; // getting a pointer to 'a'
 }
 """
@@ -316,8 +316,8 @@ func main() {
         let result = Parser(tokens).parse()
         
         printResultCase(code, result, Code([ main([
-            vDecl("a", .int,            int(1)),
-            vDecl("b", .pointer(.int),  unop("*", .pointer(.int), val("a", .int))),
+            vDecl("a", .pointer(.pointer(.int)), nil),
+            vDecl("b", .pointer(.int),  unop("*", .pointer(.int), val("a", .pointer(.pointer(.int))))),
             ret(VoidLiteral())
         ])]))
     }

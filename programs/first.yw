@@ -10,7 +10,7 @@ x
 
 func getInt() -> Int {
 
-    a := 1 + 2 + 2147483648;
+    a := 1 + 2;
 
     return a;
 }
