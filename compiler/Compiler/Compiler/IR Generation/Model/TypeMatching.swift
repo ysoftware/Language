@@ -41,19 +41,6 @@ extension LiteralExpr {
     }
 }
 
-extension Type {
-    
-    // @Todo figure out when we will need 'loss of data' checking when converting types
-    
-    // @Todo deal with the type system
-    // it's a mess right now
-    
-    /// returns true if self can be converted to the given type
-    func isCompatible(with type: Type) -> Bool {
-        (self is IntType && type is IntType) || (self is FloatType && type is FloatType)
-    }
-}
-
 func matchType(_ type: Type) -> String {
     switch type {
     case let a as IntType: return "i\(a.size)"

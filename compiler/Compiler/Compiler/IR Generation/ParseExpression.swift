@@ -41,9 +41,6 @@ internal extension IR {
             code += "%\(argCount) = load \(type), \(type)* %\(variable.name)"
             return (code, "%\(argCount)")
             
-        case let literal as BoolLiteral:
-            return (nil, "\(literal.value)")
-
         case let call as ProcedureCall:
             if internalProcedures.contains(call.name) { return doInternalProcedure(call, ident: ident) }
             

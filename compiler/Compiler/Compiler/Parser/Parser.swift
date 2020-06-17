@@ -468,7 +468,7 @@ extension Parser {
         case let literal as TokenLiteral:
             switch literal.value {
             case .int(let value): expression = IntLiteral(value: value)
-            case .bool(let value): expression = BoolLiteral(value: value)
+            case .bool(let value): expression = IntLiteral(value: value ? 1 : 0, exprType: .bool)
             case .float(let value): expression = FloatLiteral(value: value)
             case .string(let value): expression = StringLiteral(value: value)
             }

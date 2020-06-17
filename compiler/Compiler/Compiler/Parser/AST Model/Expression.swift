@@ -186,30 +186,6 @@ final class FloatLiteral: LiteralExpr, Equatable {
     var isFinalized = false
 }
 
-final class BoolLiteral: LiteralExpr, Equatable {
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
-    
-    static func == (lhs: BoolLiteral, rhs: BoolLiteral) -> Bool {
-        lhs.value == rhs.value
-    }
-    
-    var debugDescription: String {
-        "Bool(\(value))"
-    }
-    
-    internal init(value: Bool,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
-        self.value = value
-        self.startCursor = startCursor
-        self.endCursor = endCursor
-    }
-    
-    var exprType: Type = .bool
-    var value: Bool
-}
-
 final class VoidLiteral: LiteralExpr {
     
     var startCursor: Cursor
