@@ -47,7 +47,7 @@ extension Lexer {
     @discardableResult @inline(__always)
     func nextChar() -> Bool {
         advance()
-        guard string.count > i else {
+        guard stringCount > i else {
             return false
         }
         char = string[i]
@@ -57,7 +57,7 @@ extension Lexer {
     /// Peeks at the `next` character
     func peekNext() -> Character? {
         let nextIndex = i + 1
-        guard string.count > nextIndex else { return nil }
+        guard stringCount > nextIndex else { return nil }
         return string[nextIndex]
     }
     
@@ -71,7 +71,7 @@ extension Lexer {
     /// if not, does nothing and returns nil
     func consumeNext(where compare: (Character)->Bool) -> Character? {
         let nextIndex = i + 1
-        guard string.count > nextIndex else { return nil }
+        guard stringCount > nextIndex else { return nil }
         let char = string[nextIndex]
         if compare(char) {
             advance()
@@ -92,7 +92,7 @@ extension Lexer {
         var leftValues = array
         var index = 0
         var query = String(char)
-        while string.count > i + index {
+        while stringCount > i + index {
             let filtered = leftValues.filter { $0.count >= index && $0.starts(with: query) }
             if filtered.isEmpty {
                 let prevQuery = String(query[query.startIndex..<query.endIndex(offsetBy: -1)])
@@ -108,7 +108,7 @@ extension Lexer {
                 return query
             }
             index += 1
-            guard string.count > i + index else { return nil }
+            guard stringCount > i + index else { return nil }
             query.append(string[i + index])
         }
         return nil

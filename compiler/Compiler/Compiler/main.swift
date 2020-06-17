@@ -8,13 +8,16 @@
 
 import Foundation
 
+let startTime = CFAbsoluteTimeGetCurrent()
+var previousTime = startTime
+
 let PRINT_PASSES = false
 let ColorCode = !CommandLine.arguments.contains("--no-color")
 
 if let i = CommandLine.arguments.firstIndex(of: "-file") {
     guard CommandLine.arguments.count > i + 1 else {
         print("usage: ./compiler -file <filename> (-run)")
-        exit(1)
+        quit(1)
     }
     
     let code: String
@@ -24,17 +27,21 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
     }
     catch {
         print(error.localizedDescription)
-        exit(1)
+        quit(1)
     }
     
     do {
         let tokens = try Lexer(code).analyze().get()
+        reportTimeSpent(on: "Lexing", from: previousTime)
         let result = try Parser(tokens).parse().get()
+        reportTimeSpent(on: "Parsing", from: previousTime)
         let ir = IR().generateIR(globalScope: result)
+        reportTimeSpent(on: "IR Generation", from: previousTime)
 
         if CommandLine.arguments.contains("-ast") {
             print(result)
-            exit(0)
+            reportTimeSpent()
+            quit(0)
         }
         
         do {
@@ -43,13 +50,14 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             
             if CommandLine.arguments.contains("-run") {
                 let output = try runCommand("/usr/local/opt/llvm/bin/lli", ["\(appname).ll"])
+                reportTimeSpent(on: "Running", from: previousTime)
                 outputCommand("PROGRAM", output)
             }
-            exit(0)
+            quit(0)
         }
         catch {
             print(error.localizedDescription)
-            exit(1)
+            quit(1)
         }
     }
     catch {
@@ -74,7 +82,7 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             
             print("")
             print(le.message.rawValue, "\n")
-            exit(1)
+            quit(1)
         }
         else if let pe = error as? ParserError {
             // @Todo: refactor out and clean up
@@ -133,11 +141,11 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             
             print("")
             print(pe.message, "\n")
-            exit(1)
+            quit(1)
         }
         else {
             print(error.localizedDescription)
-            exit(1)
+            quit(1)
         }
     }
 }
@@ -145,3 +153,16 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
 // no arguments
 LexerTest.run()
 ParserTest.run()
+
+
+func reportTimeSpent(on string: String = "Everything", from: CFAbsoluteTime = startTime) {
+    let currentTime = CFAbsoluteTimeGetCurrent()
+    let endTime = currentTime - from
+    previousTime = currentTime
+    print("\(string) took \(round(endTime * 10000)/10000) sec.")
+}
+
+func quit(_ code: Int32) -> Never {
+    reportTimeSpent()
+    exit(code)
+}

@@ -53,5 +53,5 @@ struct Cursor: Equatable, CustomDebugStringConvertible {
 func report(_ error: String, _ start: Cursor? = nil, _ end: Cursor? = nil) -> Never {
     
     print("Error: \(error)")
-    exit(1)
+    quit(1)
 }

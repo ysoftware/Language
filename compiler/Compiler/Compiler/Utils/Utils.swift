@@ -93,7 +93,7 @@ func outputCommand(_ app: String, _ result: (status: Int32, output: String, erro
     if result.status != 0 {
         print("\(app): Ended with code: \(result.status).")
         print(result.error)
-        exit(1)
+        quit(1)
     }
 }
 

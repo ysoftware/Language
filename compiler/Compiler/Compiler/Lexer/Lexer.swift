@@ -28,10 +28,12 @@ final class Lexer {
         self.fileName = fileName
         self.string = string
         self.char = string[i]
+        self.stringCount = string.count
     }
     
     let fileName: String?
     let string: String
+    let stringCount: Int
 
     // Variables
     
@@ -41,7 +43,7 @@ final class Lexer {
     var char: Character
     
     func analyze() -> Result<[Token], LexerError> {    
-        loop: while string.count > i {
+        loop: while stringCount > i {
             switch char {
                 
             case "\"":
@@ -55,7 +57,7 @@ final class Lexer {
                 if !nextChar() { return error(.unexpectedEndOfFile, cursor, cursor) }
                 
                 var value = ""
-                while string.count > i {
+                while stringCount > i {
                     if char == "\n" { }
                     
                     if consume(string: "\\") {
@@ -189,7 +191,7 @@ final class Lexer {
                 if consume(string: "//") {
                     guard nextChar() else { break }
                     
-                    while string.count > i {
+                    while stringCount > i {
                         if char == "\n" {
                             break
                         }
@@ -204,7 +206,7 @@ final class Lexer {
                     var commentLevel = 1
                     guard nextChar() else { break }
                     
-                    while string.count > i && commentLevel > 0 {
+                    while stringCount > i && commentLevel > 0 {
                         if consume(string: "/*") {
                             commentLevel += 1
                             if commentLevel > 0 {
