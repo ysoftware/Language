@@ -93,7 +93,7 @@ extension Parser {
             guard let left = convertExpression(binop.arguments.0, to: exprType),
                 let right = convertExpression(binop.arguments.1, to: exprType)
                 else { return nil }
-            return BinaryOperator(name: binop.name, exprType: .float, arguments: (left, right),
+            return BinaryOperator(name: binop.name, exprType: exprType, arguments: (left, right),
                 startCursor: binop.startCursor, endCursor: binop.endCursor)
         }
         if let unop = expression as? UnaryOperator {

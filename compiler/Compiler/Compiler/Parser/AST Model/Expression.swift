@@ -136,7 +136,7 @@ final class IntLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "Int(\(value))"
+        "\(exprType.typeName)(\(value))"
     }
     
     internal init(value: Int, exprType: Type = .int,

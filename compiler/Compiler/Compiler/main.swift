@@ -31,15 +31,16 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
         let tokens = try Lexer(code).analyze().get()
         let result = try Parser(tokens).parse().get()
         let ir = IR().generateIR(globalScope: result)
+
+        if CommandLine.arguments.contains("-ast") {
+            print(result)
+            exit(0)
+        }
         
         do {
             let appname = "output"
             try compileAndSave(ir: ir, output: appname)
             
-//            if CommandLine.arguments.contains("-run") {
-//                let output = try runCommand("./\(appname).app", [])
-//                outputCommand("PROGRAM", output)
-//            }
             if CommandLine.arguments.contains("-run") {
                 let output = try runCommand("/usr/local/opt/llvm/bin/lli", ["\(appname).ll"])
                 outputCommand("PROGRAM", output)

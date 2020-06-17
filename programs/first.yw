@@ -1,25 +1,20 @@
 func int8PointerToInt32(pointer: Int8*) -> Int32 #foreign;
 func int32AsInt8Pointer(address: Int32) -> Int8* #foreign;
-func printf(format: String, arguments: Int8, ...) #foreign; 
+func printf(format: String, arguments: Int64, ...) #foreign; 
 
 Num :: "%d\n";
 
-/*
-x
-*/
+func val() -> Bool {
 
-func getInt() -> Int {
-
-    a := 1 + 2;
-
-    return a;
+    return 0;
 }
 
 func main(count: Int, arguments: Int8**) -> Int {
 
-    num := int8PointerToInt32(*arguments);
-    ptr := int32AsInt8Pointer(num);
+    a : Int64 = 200000000 * 50;
+    printf(Num, a);
 
-    printf(Num, getInt());
+    b := val();
+
     return 0;
 }

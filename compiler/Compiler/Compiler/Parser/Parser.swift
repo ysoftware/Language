@@ -62,22 +62,27 @@ extension Parser {
         
         var expr: Expression?
         var flags: VariableDeclaration.Flags = []
-        let suppliedTypeName = consumeIdent()
+        let declType = consumeIdent()
         var expectingExpression = true
+        let end = token.endCursor
         
         if consumePunct(":") { flags.insert(.isConstant) }
         else if !consumeOp("=") { expectingExpression = false }
         
-        let end = token.endCursor
         if expectingExpression {
             if let error = doExpression(in: scope).assign(&expr) { return .failure(error) }
-            if let declaredTypeName = suppliedTypeName?.value.value, let exprType = expr?.exprType {
+            if let declaredTypeName = declType?.value.value, let exprType = expr?.exprType {
                 let declaredType = Type.named(declaredTypeName)
-                if let literal = expr as? LiteralExpr, literal.isConvertible(to: declaredType) {
-                    literal.exprType = declaredType
+                
+                if let converted = convertExpression(expr!, to: declaredType) {
+                    expr = converted
                 }
+//                if let literal = expr as? LiteralExpr, literal.isConvertible(to: declaredType) {
+//                    literal.exprType = declaredType
+//                }
                 else if !declaredType.equals(to: exprType) {
-                    return error(em.varDeclTypeMismatch(exprType, declaredType), start, end)
+                    return error(em.varDeclTypeMismatch(exprType, declaredType),
+                                 declType?.token.startCursor, declType?.token.endCursor)
                 }
             }
         }
@@ -87,7 +92,7 @@ extension Parser {
         let type: Type
         if let t = expr?.exprType { type = t }
             
-        else if let name = suppliedTypeName?.value.value {
+        else if let name = declType?.value.value {
             type = resolveType(name)
         }
         else { return error(em.varDeclRequiresType) } // @Todo: check cursors and if this error is even valid
