@@ -10,11 +10,19 @@
 
 // @Todo: properly eat whitespaces
 
-fileprivate let punctuators = [".", ":", "(", ")", "{", "}", "[", "]", "->", "..."]
-fileprivate let operators = ["-", "+", "/", "*", "%", "..", "=", ":=",
-                             "==", "!=", "<=", ">=", "&&", "||", ">", "<",
-                             "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<="]
-fileprivate let separators = ["\n", " ", ";", ","]
+fileprivate let punctuators = [
+    "...", ".", ":", "(", ")", "{", "}", "[", "]", "->"
+]
+
+fileprivate let operators = [
+    ":=", "==", "!=", "<=", ">=", "&&", "||", ">", "<",
+    "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<=",
+    "-", "+", "/", "*", "%", "..", "="
+]
+
+fileprivate let separators = [
+    "\n", " ", ";", ","
+]
 
 fileprivate let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "z"))
 fileprivate let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "Z"))
@@ -25,7 +33,7 @@ final class Lexer {
     
     internal init(fileName: String? = nil, _ string: String) {
         self.fileName = fileName
-        self.characters = string.dropLast(0) // hack to convert string to character array
+        self.characters = Array(string)
         self.char = string[i]
         self.stringCount = string.count
     }
@@ -165,7 +173,7 @@ final class Lexer {
                 }
                 
                 if let next = peekNext() {
-                    if !(separators + punctuators + operators).contains(String(next)) { // @Speed: this is extremely slow
+                    if !(separators + punctuators + operators).contains(String(next)) { 
                         return error(.unexpectedCharacter, start, cursor)
                     }
                 }

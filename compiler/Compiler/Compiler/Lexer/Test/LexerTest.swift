@@ -40,8 +40,8 @@ final class LexerTest {
         i.testFunctionDeclaration()
         i.testNumbers()
         
-        if i.failed != 0 { print("❌ \(i.failed) lexer test\(plural(i.failed)) have failed!") }
-        else { print("All lexer tests have passed.") }
+        if i.failed != 0 { print("\(i.failed) lexer test\(plural(i.failed)) have failed!\n".color(.lightRed)) }
+        else { print("All lexer tests have passed.\n".color(.lightGreen)) }
     }
     
     func printErrorCase(caseName: String = #function, _ code: String,
@@ -52,25 +52,25 @@ final class LexerTest {
         switch resultR {
         case .failure(let error):
             if expected.message == error.message {
-                guard PRINT_PASSES else { return }
+                guard PrintPasses else { return }
                 let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
-                print("OK \(name)")
+                print("OK \(name)".color(.darkGray))
                 return
             }
             failed += 1
-            print("❌ \(caseName)")
-            print("code: \"\(code)\"")
+            print("\(caseName)".color(.lightRed))
+            print("code: \"\(code)\"".color(.cyan))
             print("Expected error:", expected.message)
             print("Received error:", error.message.rawValue)
             print("\n\n")
             
         case .success(let output):
             failed += 1
-            print("❌ \(caseName)")
-            print("code: \"\(code)\"")
-            print("Expected error:", expected.message, "\n===")
+            print("\(caseName)".color(.lightRed))
+            print("code: \"\(code)\"".color(.cyan))
+            print("Expected error:", expected.message, "\n===".color(.darkGray))
             printTokens(output.tokens)
-            print("===\n\n")
+            print("===\n\n".color(.darkGray))
         }
     }
     
@@ -80,7 +80,7 @@ final class LexerTest {
         switch resultR {
         case .failure(let error):
             failed += 1
-            print("\n❌ \(caseName)\nUnexpected error on line \(error.startCursor.lineNumber)")
+            print("\n\(caseName)\nUnexpected error on line \(error.startCursor.lineNumber)".color(.lightRed))
             print(error.message.rawValue, "\n")
             
             // @Todo use endCursor
@@ -94,25 +94,34 @@ final class LexerTest {
         case .success(let output):
             if output.tokens != expect {
                 failed += 1
-                print("\n❌ \(caseName)")
-                print("\"\(code)\"")
+                print("\n\(caseName)".color(.lightRed))
+                print("\"\(code)\"".color(.cyan))
                 if output.tokens.count != expect.count {
-                    print("Counts don't match", output.tokens.count, "vs expected", expect.count, "\n===")
+                    print("Counts don't match:".color(.lightGray),
+                          output.tokens.count,
+                          "Expected:".color(.lightGray),
+                          expect.count,
+                          "\n===".color(.darkGray))
+                    
                     printTokens(output.tokens)
-                    print("===\n\n")
+                    print("===\n\n".color(.darkGray))
                 }
                 else {
                     for i in 0..<output.tokens.count {
                         if expect[i] != output.tokens[i] {
-                            print("Mismatch in \(i):\n", output.tokens[i], "\nExpected:\n", expect[i], "\n\n")
+                            print("Mismatch in \(i):\n".color(.lightGray),
+                                  output.tokens[i],
+                                  "\nExpected:\n".color(.lightGray),
+                                  expect[i],
+                                  "\n\n")
                         }
                     }
                 }
             }
             else {
-                guard PRINT_PASSES else { return }
+                guard PrintPasses else { return }
                 let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
-                print("OK \(name)")
+                print("OK \(name)".color(.lightGray))
             }
         }
     }

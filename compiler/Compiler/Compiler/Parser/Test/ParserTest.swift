@@ -35,8 +35,8 @@ final class ParserTest {
         i.testVariableDeclaration()
         i.testStructDeclaration()
         
-        if i.failed != 0 { print("❌ \(i.failed) parser test\(plural(i.failed)) have failed!") }
-        else { print("All parser tests have passed.") }
+        if i.failed != 0 { print("\(i.failed) parser test\(plural(i.failed)) have failed!".color(.lightRed)) }
+        else { print("All parser tests have passed.".color(.lightGreen)) }
     }
     
     func printErrorCase(caseName: String = #function, _ code: String,
@@ -49,25 +49,25 @@ final class ParserTest {
         case .success(let result):
             failed += 1
             
-            print("❌ \(caseName)")
-            print("code: \"\(code)\"\n")
-            print("Expected error:", expect.message, "\n===")
+            print("\(caseName)".color(.lightRed))
+            print("code: \"\(code)\"\n".color(.cyan))
+            print("Expected error:", expect.message, "\n===".color(.darkGray))
             print(result)
-            print("===\n\n")
+            print("===\n\n".color(.darkGray))
             
         case .failure(let error):
             if expect == error {
-                guard PRINT_PASSES else { return }
+                guard PrintPasses else { return }
                 let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
-                print("OK \(name)")
+                print("OK \(name)".color(.darkGray))
                 return
             }
-            print("❌ \(caseName)\n")
+            print("\(caseName)\n".color(.lightRed))
             error.context.map { print("Error context: ", $0) }
-            print("code: \"\(code)\"\n")
-            print("Expected error:", expect.message, "\n===")
+            print("code: \"\(code)\"\n".color(.cyan))
+            print("Expected error:", expect.message, "\n===".color(.darkGray))
             print("Received error:", error.message)
-            print("===\n\n")
+            print("===\n\n".color(.darkGray))
         }
     }
     
@@ -78,7 +78,7 @@ final class ParserTest {
         switch resultAST {
         case .failure(let error):
             failed += 1
-            print("\n❌ \(caseName)\nUnexpected error @ \(error.startCursor)-\(error.endCursor)\n")
+            print("\n \(caseName)\nUnexpected error @ \(error.startCursor)-\(error.endCursor)\n")
             print(error.message, "\n")
             
             _ = {
@@ -100,25 +100,33 @@ final class ParserTest {
         case .success(let result):
             if !result.equals(to: expect) {
                 failed += 1
-                print("\n❌ \(caseName)")
-                print("\"\(code)\"\n")
+                print("\n\(caseName)".color(.lightRed))
+                print("\"\(code)\"\n".color(.cyan))
                 if result.statements.count != expect.statements.count {
-                    print("Counts don't match", result.statements.count, "vs expected", expect.statements.count, "\n===")
+                    print("Counts don't match:".color(.lightGray),
+                    result.statements.count,
+                    "Expected:".color(.lightGray),
+                    expect.statements.count,
+                    "\n===".color(.darkGray))
                     print(result)
-                    print("===\n\n")
+                    print("===\n\n".color(.darkGray))
                 }
                 else {
                     for i in 0..<result.statements.count {
                         if !expect.equals(to: result) {
-                            print("Mismatch in:\n", result.statements[i], "\nExpected:\n", expect.statements[i], "\n\n")
+                            print("Mismatch in:\n".color(.lightGray),
+                                  result.statements[i],
+                                  "\nExpected:\n".color(.lightGray),
+                                  expect.statements[i],
+                                  "\n\n")
                         }
                     }
                 }
             }
             else {
-                guard PRINT_PASSES else { return }
+                guard PrintPasses else { return }
                 let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
-                print("OK \(name)")
+                print("OK \(name)".color(.lightGray))
             }
         }
     }

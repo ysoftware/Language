@@ -10,8 +10,10 @@ import Foundation
 
 let startTime = CFAbsoluteTimeGetCurrent()
 var previousTime = startTime
+var loc = 0
 
-let PRINT_PASSES = false
+let Silent = CommandLine.arguments.contains("-silent")
+let PrintPasses = CommandLine.arguments.contains("--print-passes")
 let ColorCode = !CommandLine.arguments.contains("--no-color")
 
 if let i = CommandLine.arguments.firstIndex(of: "-file") {
@@ -32,9 +34,9 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
     
     do {
         let lexerOutput = try Lexer(code).analyze().get()
+        loc = lexerOutput.linesProcessed
         reportTimeSpent(on: "Lexing", from: previousTime)
         let result = try Parser(lexerOutput.tokens).parse().get()
-        print("Lines processed: \(lexerOutput.linesProcessed)")
         reportTimeSpent(on: "Parsing", from: previousTime)
         let ir = IR().generateIR(globalScope: result)
         reportTimeSpent(on: "IR Generation", from: previousTime)
@@ -129,10 +131,10 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
 
                     let beforeError = errorLine[errorLine.startIndex..<start]
                     let afterError = errorLine[end2..<errorLine.endIndex]
-                    print("   >    \(String(beforeError))\u{001B}[0;31m\(String(error))\u{001B}[0;0m\(String(afterError))")
+                    print("   >    \(String(beforeError))\(String(error).color(.red))\(String(afterError))")
                     let startCursor = String(repeating: " ", count: pe.startCursor.character) + "^"
                     let endCursor = String(repeating: "^", count: pe.endCursor.character-pe.startCursor.character)
-                    print("        \u{001B}[0;31m\(startCursor)\(endCursor)\u{001B}[0;0m")
+                    print("        \(startCursor)\(endCursor)".color(.red))
                 }
                 else {
                     print("Error @ \(pe.startCursor) - \(pe.endCursor)")
@@ -157,10 +159,17 @@ ParserTest.run()
 
 
 func reportTimeSpent(on string: String = "Everything", from: CFAbsoluteTime = startTime) {
+    guard !Silent else { return }
     let currentTime = CFAbsoluteTimeGetCurrent()
     let endTime = currentTime - from
     previousTime = currentTime
-    print("\(string) took \(round(endTime * 10000)/10000) sec.")
+    var output = "\(string) took \(round(endTime * 10000)/10000) sec."
+
+    if loc != 0 && (string == "Lexing") {
+        let klocps = Float(loc) / Float(previousTime - startTime) / 1000
+        output += " \(loc) lines (\(klocps) kloc/s)"
+    }
+    print(output)
 }
 
 func quit(_ code: Int32) -> Never {

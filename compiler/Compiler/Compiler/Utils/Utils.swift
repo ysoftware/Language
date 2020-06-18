@@ -116,3 +116,30 @@ func runCommand(_ app: String, _ arguments: [String]) throws -> (status: Int32, 
     let error = String(decoding: errorData, as: UTF8.self)
     return (task.terminationStatus, output, error)
 }
+
+enum BashColor: Int {
+    case black = 30
+    case red = 31
+    case green = 32
+    case yellow = 33
+    case blue = 34
+    case magenta = 35
+    case cyan = 36
+    case lightGray = 37
+    case darkGray = 90
+    case lightRed = 91
+    case lightGreen = 92
+    case lightYellow = 93
+    case lightBlue = 94
+    case lightMagenta = 95
+    case lightCyan = 96
+    case white = 97
+}
+
+extension String {
+    
+    func color(_ color: BashColor) -> String {
+        if !ColorCode { return self }
+        return "\u{001B}[0;\(color.rawValue)m\(self)\u{001B}[0;0m"
+    }
+}

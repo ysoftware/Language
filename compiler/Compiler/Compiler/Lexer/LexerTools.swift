@@ -101,52 +101,30 @@ extension Lexer {
     /// matches `current and subsequent` characters
     func consume(string: String) -> Bool {
         let count = string.count
-        let query: [Character] = string.dropLast(0)
+        let query: [Character] = Array(string)
         
         var index = 0
         while count > index {
-            if stringCount > i + index, characters[i + index] == query[index] {
-                index += 1
-            }
-            else {
+            guard stringCount > i + index, characters[i + index] == query[index] else {
                 return false
             }
+            index += 1
         }
         
         advance(count-1)
-        if stringCount > i {
-            char = characters[i]
-        }
-        else {
-            char = characters[stringCount-1]
-        }
+        if stringCount > i { char = characters[i] }
+        else { char = characters[stringCount-1] }
         return true
     }
     
+    // @Speed: this is extremely slow
     /// checks if one of the strings in the array
     /// matches `current and subsequent` characters
     func consume(oneOf array: [String]) -> String? {
-        var leftValues = array
-        var index = 0
-        var query = String(char)
-        while stringCount > i + index {
-            let filtered = leftValues.filter { $0.count >= index && $0.starts(with: query) }
-            if filtered.isEmpty {
-                let prevQuery = String(query[query.startIndex..<query.endIndex(offsetBy: -1)])
-                if leftValues.contains(prevQuery) {
-                    advance(prevQuery.count - 1)
-                    return prevQuery
-                }
-                return nil
+        for s in array {
+            if consume(string: s) {
+                return s
             }
-            leftValues = filtered
-            if leftValues.count == 1, leftValues[0] == query {
-                advance(query.count - 1)
-                return query
-            }
-            index += 1
-            guard stringCount > i + index else { return nil }
-            query.append(characters[i + index])
         }
         return nil
     }
