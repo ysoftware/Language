@@ -10,19 +10,19 @@
 
 // @Todo: properly eat whitespaces
 
-fileprivate let punctuators = [
+fileprivate let punctuators: [[Character]] = [
     "...", ".", ":", "(", ")", "{", "}", "[", "]", "->"
-]
+].map { Array($0) }
 
-fileprivate let operators = [
+fileprivate let operators: [[Character]] = [
     ":=", "==", "!=", "<=", ">=", "&&", "||", ">", "<",
     "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<=",
     "-", "+", "/", "*", "%", "..", "="
-]
+].map { Array($0) }
 
-fileprivate let separators = [
+fileprivate let separators: [[Character]] = [
     "\n", " ", ";", ","
-]
+].map { Array($0) }
 
 fileprivate let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "z"))
 fileprivate let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "Z"))
@@ -112,7 +112,7 @@ final class Lexer {
                         }
                     }
                     else {
-                        if consume(string: "\"") {
+                        if consume(string: ["\""]) {
                             append(TokenLiteral(value: .string(value: value)), start, cursor)
                             break
                         }
@@ -132,7 +132,7 @@ final class Lexer {
                 // KEYWORDS / IDENTIFIERS / DIRECTIVES / BOOL LITERALS
                 
                 let start = cursor
-                let isDirective = consume(string: "#") // @Todo: this needs to be a string?
+                let isDirective = consume(string: ["#"])
                 if isDirective {
                     if !nextChar() { return error(.emptyDirectiveName, start, cursor) }
                     else if char == " " { return error(.emptyDirectiveName, start, cursor) }
@@ -185,7 +185,7 @@ final class Lexer {
                 }
                 
                 if let next = peekNext() {
-                    if !(separators + punctuators + operators).contains(String(next)) { 
+                    if !(separators + punctuators + operators).contains([next]) {
                         return error(.unexpectedCharacter, start, cursor)
                     }
                 }
@@ -207,7 +207,7 @@ final class Lexer {
                 // can expect ".", "e", "-" and number characters
                 let start = cursor
                 var value = ""
-                if consume(string: "//") {
+                if consume(string: ["/", "/"]) {
                     guard nextChar() else { break }
                     
                     while stringCount > i {
@@ -221,18 +221,18 @@ final class Lexer {
                     }
                     append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)), start, cursor)
                 }
-                else if consume(string: "/*") {
+                else if consume(string: ["/", "*"]) {
                     var commentLevel = 1
                     guard nextChar() else { break }
                     
                     while stringCount > i && commentLevel > 0 {
-                        if consume(string: "/*") {
+                        if consume(string: ["/", "*"]) {
                             commentLevel += 1
                             if commentLevel > 0 {
                                 value.append("/*")
                             }
                         }
-                        else if consume(string: "*/") {
+                        else if consume(string: ["*", "/"]) {
                             commentLevel -= 1
                             if commentLevel > 0 {
                                 value.append("*/")
@@ -256,10 +256,10 @@ final class Lexer {
                 // PUNCTUATORS, OPERATORS
                 let start = cursor
                 if let value = consume(oneOf: punctuators) {
-                    append(Punctuator(value: value), start, cursor)
+                    append(Punctuator(value: String(value)), start, cursor)
                 }
                 else if let value = consume(oneOf: operators) {
-                    append(Operator(value: value), start, cursor)
+                    append(Operator(value: String(value)), start, cursor)
                 }
                 else if char.isWhitespace {
                     break

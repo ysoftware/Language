@@ -159,7 +159,7 @@ extension Parser {
     }
     
     var lastToken: Token {
-        if i == 0 { report("Do not call this at the first token") }
+        if i == 0 { return tokens[0] }
         return tokens[i-1]
     }
     
