@@ -5,46 +5,6 @@ func printf(format: String, arguments: Int32, ...) #foreign;
 Num :: "%d\n";
 
 func main(count: Int, arguments: Int8**) -> Int {
-
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
-    printf(Num, 2000000);
     
     return 0;
 }

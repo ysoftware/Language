@@ -12,6 +12,7 @@ let startTime = CFAbsoluteTimeGetCurrent()
 var previousTime = startTime
 var loc = 0
 
+let PrintTime = CommandLine.arguments.contains("-time")
 let Silent = CommandLine.arguments.contains("-silent")
 let PrintPasses = CommandLine.arguments.contains("--print-passes")
 let ColorCode = !CommandLine.arguments.contains("--no-color")
@@ -35,34 +36,35 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
     do {
         let lexerOutput = try Lexer(code).analyze().get()
         loc = lexerOutput.linesProcessed
-        reportTimeSpent(on: "Lexing", from: previousTime)
+        reportTimeSpent(on: "Lexing", from: previousTime, print: PrintTime)
         
         if CommandLine.arguments.contains("-tokens") {
             print(lexerOutput.tokens)
-            reportTimeSpent()
             quit(0)
         }
         
         let result = try Parser(lexerOutput.tokens).parse().get()
-        reportTimeSpent(on: "Parsing", from: previousTime)
+        reportTimeSpent(on: "Parsing", from: previousTime, print: PrintTime)
         
         let ir = IR().generateIR(globalScope: result)
-        reportTimeSpent(on: "IR Generation", from: previousTime)
 
+        reportTimeSpent(on: "IR Generation", from: previousTime, print: PrintTime)
+        reportTimeSpent(on: "Frontend", from: startTime, print: PrintTime)
+        
         if CommandLine.arguments.contains("-ast") {
             print(result)
-            reportTimeSpent()
             quit(0)
         }
         
         do {
             let appname = "output"
-            try compileAndSave(ir: ir, output: appname)
-            
             if CommandLine.arguments.contains("-run") {
                 let output = try runCommand("/usr/local/opt/llvm/bin/lli", ["\(appname).ll"])
-                reportTimeSpent(on: "Running", from: previousTime)
+                reportTimeSpent(on: "Running", from: previousTime, print: PrintTime)
                 outputCommand("PROGRAM", output)
+            }
+            else {
+                try compileAndSave(ir: ir, output: appname)
             }
             quit(0)
         }
@@ -164,23 +166,3 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
 // no arguments
 LexerTest.run()
 ParserTest.run()
-
-
-func reportTimeSpent(on string: String = "Everything", from: CFAbsoluteTime = startTime) {
-    guard !Silent else { return }
-    let currentTime = CFAbsoluteTimeGetCurrent()
-    let endTime = currentTime - from
-    previousTime = currentTime
-    var output = "\(string) took \(round(endTime * 10000)/10000) sec."
-
-    if loc != 0 && (string == "Lexing") {
-        let klocps = Float(loc) / Float(previousTime - startTime) / 1000
-        output += " \(loc) lines (\(klocps) kloc/s)"
-    }
-    print(output)
-}
-
-func quit(_ code: Int32) -> Never {
-    reportTimeSpent()
-    exit(code)
-}

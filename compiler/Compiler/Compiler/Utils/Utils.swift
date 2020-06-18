@@ -79,8 +79,11 @@ func compileAndSave(ir: String, output: String = "output") throws {
     
     let llvmResult = try runCommand("/usr/local/opt/llvm/bin/llc", ["-filetype=obj", urlIR.path])
     outputCommand("LLVM", llvmResult)
+    reportTimeSpent(on: "LLVM", from: previousTime, print: PrintTime)
+    
     let gccResult = try runCommand("/usr/bin/gcc", ["-o", "\(output).app", urlO.path])
     outputCommand("GCC", gccResult)
+    reportTimeSpent(on: "GCC", from: previousTime, print: PrintTime)
     
 //    try FileManager.default.removeItem(atPath: urlIR.path)
 //    try FileManager.default.removeItem(atPath: urlO.path)
@@ -142,4 +145,24 @@ extension String {
         if !ColorCode { return self }
         return "\u{001B}[0;\(color.rawValue)m\(self)\u{001B}[0;0m"
     }
+}
+
+
+func reportTimeSpent(on string: String = "Everything", from: CFAbsoluteTime = startTime, print: Bool) {
+    guard !Silent else { return }
+    let currentTime = CFAbsoluteTimeGetCurrent()
+    let endTime = currentTime - from
+    previousTime = currentTime
+    var output = "\(string) took \(round(endTime * 10000)/10000) sec."
+
+    if loc != 0 && (string == "Lexing") {
+        let klocps = Float(loc) / Float(previousTime - startTime) / 1000
+        output += " \(loc) lines (\(klocps) kloc/s)"
+    }
+    if print { Swift.print(output) }
+}
+
+func quit(_ code: Int32) -> Never {
+    reportTimeSpent(print: true)
+    exit(code)
 }
