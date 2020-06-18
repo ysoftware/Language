@@ -248,7 +248,7 @@ bye
     }
     
     func testBrackets() {
-        let code = "I[aZ]a(saw)_d s "
+        let code = "I[aZ]a(saw)_d"
         
         printResultCase(code, Lexer(code).analyze(), asTokens([
             Identifier(value: "I"),

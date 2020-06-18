@@ -41,7 +41,7 @@ final class LexerTest {
         i.testNumbers()
         
         if i.failed != 0 { print("\(i.failed) lexer test\(plural(i.failed)) have failed!\n".color(.lightRed)) }
-        else { print("All lexer tests have passed.\n".color(.lightGreen)) }
+        else { print("All lexer tests have passed.".color(.lightGreen)) }
     }
     
     func printErrorCase(caseName: String = #function, _ code: String,
