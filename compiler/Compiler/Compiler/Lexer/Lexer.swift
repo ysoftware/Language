@@ -57,17 +57,28 @@ final class Lexer {
                 let start = cursor
                 // STRING LITERAL
                 
-                let isMultiline = consume(string: "\"\"\"")
-                if isMultiline, !consumeNext("\n") {
-                    return error(.newlineExpectedBeforeMultilineStringLiteral, cursor, cursor)
+                func isNextThreeQuotes(after n: Int = 0) -> Bool {
+                    guard characters.count > i+2+n else { return false }
+                    return characters[i+n] == "\"" && characters[i+1+n] == "\"" && characters[i+2+n] == "\""
                 }
-                if !nextChar() { return error(.unexpectedEndOfFile, cursor, cursor) }
+                
+                let isMultiline = isNextThreeQuotes()
+                if isMultiline {
+                    nextChar(3)
+                    if !consume("\n") {
+                        return error(.newlineExpectedBeforeMultilineStringLiteral, cursor, cursor)
+                    }
+                }
+                else {
+                    if !nextChar() { return error(.unexpectedEndOfFile, cursor, cursor) }
+                }
+                
                 
                 var value = ""
                 while stringCount > i {
-                    if char == "\n" { }
+                    if char == "\n" { /* @Todo: wtf is this? */ }
                     
-                    if consume(string: "\\") {
+                    if char == "\\" {
                         guard let next = peekNext()
                             else { return error(.unexpectedEndOfFile, cursor, cursor) }
                         
@@ -86,10 +97,11 @@ final class Lexer {
                     
                     if isMultiline {
                         if peekNext() == nil { return error(.unexpectedEndOfFile, cursor, cursor) }
-                        else if consume(string: "\"\"\"") {
+                        else if isNextThreeQuotes() {
                             return error(.newlineExpectedAfterMultilineStringLiteral, cursor, cursor)
                         }
-                        else if consume(string: "\n\"\"\"") {
+                        else if char == "\n", isNextThreeQuotes(after: 1) {
+                            nextChar(4)
                             if let next = peekNext(), next != "\n", next != ";" {
                                 return error(.newlineExpectedAfterMultilineStringLiteral, cursor, cursor)
                             }
@@ -120,7 +132,7 @@ final class Lexer {
                 // KEYWORDS / IDENTIFIERS / DIRECTIVES / BOOL LITERALS
                 
                 let start = cursor
-                let isDirective = consume(string: "#")
+                let isDirective = consume(string: "#") // @Todo: this needs to be a string?
                 if isDirective {
                     if !nextChar() { return error(.emptyDirectiveName, start, cursor) }
                     else if char == " " { return error(.emptyDirectiveName, start, cursor) }
@@ -160,7 +172,7 @@ final class Lexer {
                 }
                 
                 var value = String(char)
-                let numLitSymbols = "_.e-"
+                let numLitSymbols = Array("_.e-")
                 while let next = consumeNext(where: { numberRange.contains($0) || numLitSymbols.contains($0) }) {
                     if value.count >= 1 && next == "-" && value.last != "e" {
                         return error(.unexpectedMinusInNumberLiteral, start, cursor)

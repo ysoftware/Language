@@ -29,6 +29,7 @@ extension Lexer {
     /// advances the counter
     @inline(__always) func advance(_ count: Int = 1) {
         i += count
+        // @Todo: this doesn't check every the character on the way
         if char.isNewline {
             cursor.advanceLine()
         }
@@ -51,18 +52,20 @@ extension Lexer {
     
     /// advances the counter and sets `char` to the next character in string
     @discardableResult @inline(__always)
-    func nextChar() -> Bool {
-        advance()
-        guard stringCount > i else {
-            return false
+    func nextChar(_ n: Int = 1) -> Bool {
+        for _ in 0..<n {
+            advance()
+            guard stringCount > i else {
+                return false
+            }
+            char = characters[i]
         }
-        char = characters[i]
         return true
     }
     
     /// Peeks at the `next` character
-    func peekNext() -> Character? {
-        let nextIndex = i + 1
+    func peekNext(_ n: Int = 1) -> Character? {
+        let nextIndex = i + n
         guard stringCount > nextIndex else { return nil }
         return characters[nextIndex]
     }
@@ -91,7 +94,6 @@ extension Lexer {
     func consume(_ character: Character) -> Bool {
         if char == character {
             nextChar()
-            advance()
             return true
         }
         return false

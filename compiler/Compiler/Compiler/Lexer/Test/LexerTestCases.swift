@@ -16,13 +16,22 @@ extension LexerTest {
         let code = "_ := 1;"
         printErrorCase(code, Lexer(code).analyze(), LexerError(.invalidIdentifierUnderscore))
     }
-        
+    
     func testBoolLiteral() {
         let code = "true false"
         
         printResultCase(code, Lexer(code).analyze(), asTokens([
             TokenLiteral(value: .bool(value: true)),
             TokenLiteral(value: .bool(value: false)),
+            eof
+        ]))
+    }
+    
+    func testStringEscapes() {
+        let code = "\"\\n\\r\""
+        
+        printResultCase(code, Lexer(code).analyze(), asTokens([
+            TokenLiteral(value: .string(value: "\n\r")),
             eof
         ]))
     }

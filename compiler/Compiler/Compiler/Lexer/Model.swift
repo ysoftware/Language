@@ -99,7 +99,7 @@ final class Token: Equatable, CustomDebugStringConvertible {
         }
         else if let literal = value as? TokenLiteral {
             switch literal.value {
-            case .string(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
+            case .string(let value): return "[Literal] '\(value.replacingOccurrences(of: "\n", with: "\\n"))' (\(startCursor)-\(endCursor))"
             case .float(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
             case .int(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
             case .bool(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"

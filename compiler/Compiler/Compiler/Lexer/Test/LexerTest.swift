@@ -15,18 +15,19 @@ final class LexerTest {
         let i = LexerTest()
         i.failed = 0
         
+        i.testMultilineStringLiteral()
+        i.testMultilineStringLiteralFail()
         i.testNumbersFail4()
         i.testComments()
         i.testInvalidIdentifierUnderscore()
         i.testCursors()
         i.testBoolLiteral()
         i.testNumbersFail3()
-        i.testMultilineStringLiteral()
         i.testMultilineStringLiteralFail3()
         i.testMultilineStringLiteralFail2()
-        i.testMultilineStringLiteralFail()
         i.testStingLiteralFail3()
         i.testStingLiteralFail2()
+        i.testStringEscapes()
         i.testStringLiteralFail()
         i.testStringLiteral()
         i.testDirective()
@@ -59,15 +60,15 @@ final class LexerTest {
             }
             failed += 1
             print("\(caseName)".color(.lightRed))
-            print("code: \"\(code)\"".color(.cyan))
-            print("Expected error:", expected.message)
+            print("\(code)\n".color(.cyan))
+            print("Expected error:", expected.message.rawValue)
             print("Received error:", error.message.rawValue)
             print("\n\n")
             
         case .success(let output):
             failed += 1
             print("\(caseName)".color(.lightRed))
-            print("code: \"\(code)\"".color(.cyan))
+            print("\(code)\n".color(.cyan))
             print("Expected error:", expected.message, "\n===".color(.darkGray))
             printTokens(output.tokens)
             print("===\n\n".color(.darkGray))
@@ -95,7 +96,7 @@ final class LexerTest {
             if output.tokens != expect {
                 failed += 1
                 print("\n\(caseName)".color(.lightRed))
-                print("\"\(code)\"".color(.cyan))
+                print("\(code)\n".color(.cyan))
                 if output.tokens.count != expect.count {
                     print("Counts don't match:".color(.lightGray),
                           output.tokens.count,

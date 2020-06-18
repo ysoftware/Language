@@ -50,7 +50,7 @@ final class ParserTest {
             failed += 1
             
             print("\(caseName)".color(.lightRed))
-            print("code: \"\(code)\"\n".color(.cyan))
+            print("\(code)\n".color(.cyan))
             print("Expected error:", expect.message, "\n===".color(.darkGray))
             print(result)
             print("===\n\n".color(.darkGray))
@@ -64,7 +64,7 @@ final class ParserTest {
             }
             print("\(caseName)\n".color(.lightRed))
             error.context.map { print("Error context: ", $0) }
-            print("code: \"\(code)\"\n".color(.cyan))
+            print("\(code)\n".color(.cyan))
             print("Expected error:", expect.message, "\n===".color(.darkGray))
             print("Received error:", error.message)
             print("===\n\n".color(.darkGray))
