@@ -199,7 +199,8 @@ final class IR {
                     }
                     else {
                         
-                        // see if we need to zero initialize for custom type
+                        // @Todo: see if we need to zero initialize for custom type
+                        // or probably we should set it up in the AST
                     }
                 }
                 
