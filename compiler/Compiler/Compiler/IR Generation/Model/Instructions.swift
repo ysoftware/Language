@@ -40,7 +40,8 @@ func instruction(for operation: String, type: Type) -> String {
     case "*": i = int ? "mul" : (flt ? "fmul" : "")
     case "+": i = int ? "add" : (flt ? "fadd" : "")
     case "-": i = int ? "sub" : (flt ? "fsub" : "")
-        
+    case "/": i = int ? (sgn ? "sdiv" : "udiv") : (flt ? "fdiv" : "")
+
     case "==": i = int ? "icmp eq" : ""
     case "!=": i = int ? "icmp ne" : ""
     
