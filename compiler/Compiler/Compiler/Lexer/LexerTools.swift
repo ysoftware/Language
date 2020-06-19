@@ -17,17 +17,20 @@ struct LexerOutput {
 extension Lexer {
 
     /// add this token to the return
+    @inline(__always)
     func append(_ value: TokenValue, _ start: Cursor, _ end: Cursor) {
         tokens.append(Token(value, start: start, end: end))
     }
     
     /// returns the error set at the current point
+    @inline(__always)
     func error(_ error: LexerError.Message, _ start: Cursor, _ end: Cursor) -> Result<LexerOutput, LexerError> {
         .failure(LexerError(fileName: fileName, startCursor: start, endCursor: end, error))
     }
     
     /// advances the counter
-    @inline(__always) func advance(_ count: Int = 1) {
+    @inline(__always)
+    func advance(_ count: Int = 1) {
         i += count
         // @Todo: this doesn't check every the character on the way
         if char.isNewline {
@@ -38,7 +41,7 @@ extension Lexer {
         }
     }
     
-    @discardableResult // @Todo test
+    @inline(__always) @discardableResult // @Todo test
     func eatSpaces(eatNewLines: Bool = true) -> Bool {
         var didEat = false
         repeat {
@@ -64,6 +67,7 @@ extension Lexer {
     }
     
     /// Peeks at the `next` character
+    @inline(__always)
     func peekNext(_ n: Int = 1) -> Character? {
         let nextIndex = i + n
         guard stringCount > nextIndex else { return nil }
@@ -72,6 +76,7 @@ extension Lexer {
     
     /// checks if `next char` exists and matches, then eats it if it does
     /// if not, does nothing and returns false
+    @inline(__always)
     func consumeNext(_ character: Character) -> Bool {
         consumeNext(where: { $0 == character }) != nil
     }
