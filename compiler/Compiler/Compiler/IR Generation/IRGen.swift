@@ -15,7 +15,8 @@ final class IR {
     
     internal var stringLiterals: [String: StringLiteral] = [:]
     internal var procedures: [String: ProcedureDeclaration] = [:]
-    
+    internal var structures: [String: StructDeclaration] = [:]
+
     internal var globalCounter = 0
     internal var globalScope = ""
     
@@ -129,6 +130,14 @@ final class IR {
                 
                 emitLocal()
                 emitLocal("\(continueLabel):")
+                
+            case let structure as StructDeclaration:
+                
+                structures[structure.name] = structure
+                
+                emitGlobal("")
+                emitGlobal("; struct decl: \(structure.name)")
+                emitGlobal("%struct_\(structure.name) = type { \(structure.members.map { matchType($0.exprType) }.joined(separator: ", ")) }")
                 
             case let procedure as ProcedureDeclaration:
                 globalCounter = 0

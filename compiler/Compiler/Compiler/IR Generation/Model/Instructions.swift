@@ -6,27 +6,6 @@
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 //
-//enum Instruction: String {
-//
-//    case assign
-//
-//    // comparison
-//    case equal
-//    case notEqual
-//    case unsignedGreaterThan
-//    case unsignedGreaterOrEqual
-//    case unsignedLessThan
-//    case unsignedLessOrEqual
-//    case signedGreaterThan
-//    case signedGreaterOrEqual
-//    case signedLessThan
-//    case signedLessOrEqual
-//
-//    // arithmetic
-//    case add
-//    case sub
-//    case mul
-//}
 
 func instruction(for operation: String, type: Type) -> String {
     var i = ""
@@ -36,7 +15,6 @@ func instruction(for operation: String, type: Type) -> String {
     let flt = type is FloatType
     
     switch operation {
-    // MARK: - Expressions
     case "*": i = int ? "mul" : (flt ? "fmul" : "")
     case "+": i = int ? "add" : (flt ? "fadd" : "")
     case "-": i = int ? "sub" : (flt ? "fsub" : "")
