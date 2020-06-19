@@ -13,14 +13,35 @@ extension Parser {
     // @Todo: add append method the same as in Lexer
     // to auto-include the Cursor in the Ast
     
+    // make sure to add dependency for an ast with unresolved type
+    func resolveMemberType(name: String, of base: Expression) -> Type {
+        guard !base.exprType.equals(to: .unresolved) else { return .unresolved }
+        
+        guard let structType = base.exprType as? StructureType else {
+            report("Don't call this resolveMemberType for non-struct bases.")
+        }
+        
+        // @Todo: Test what happens when we're specifying the type of base
+        // with a name, but not for a structure declaration, but for a procedure declaration
+        //
+        // maybe we should split those kinds of declarations?
+        // but then the conflict resolution will be messier
+        guard let decl = globalScope.declarations[structType.name] as? StructDeclaration else {
+            return .unresolved
+        }
+        guard let member = decl.members.first(where: { $0.name == name }) else {
+            return .unresolved
+        }
+        return member.exprType
+    }
+    
+    // make sure to add dependency for an ast with unresolved type
     func resolveType(_ name: String) -> Type {
         let type = Type.named(name)
-        
         if type is StructureType {
             guard let decl = globalScope.declarations[name] else {
-                return .unresolved // @Todo: add dependency?
+                return .unresolved
             }
-            
             if let structure = decl as? StructDeclaration {
                 return StructureType(name: structure.name)
             }

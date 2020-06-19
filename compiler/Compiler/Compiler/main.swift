@@ -46,15 +46,15 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
         let result = try Parser(lexerOutput.tokens).parse().get()
         reportTimeSpent(on: "Parsing", from: previousTime, print: PrintTime)
         
-        let ir = IR().generateIR(globalScope: result)
-
-        reportTimeSpent(on: "IR Generation", from: previousTime, print: PrintTime)
-        reportTimeSpent(on: "Frontend", from: startTime, print: PrintTime)
-        
         if CommandLine.arguments.contains("-ast") {
             print(result)
             quit(0)
         }
+        
+        let ir = IR().generateIR(globalScope: result)
+
+        reportTimeSpent(on: "IR Generation", from: previousTime, print: PrintTime)
+        reportTimeSpent(on: "Frontend", from: startTime, print: PrintTime)
         
         do {
             let appname = "output"

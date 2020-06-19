@@ -187,14 +187,20 @@ final class IR {
                     emitGlobal("@\(variable.name) = private unnamed_addr constant [\(literal.value.count + 1) x i8] c\"\(value)\"")
                 }
                 else {
-                    let (expCode, expVal) = getExpressionResult(variable.expression!, ident: ident)
-                    emitLocal(expCode)
-                    // @Todo: support constant variables
-                    // do it at ast building?
-                    emitLocal("; declaration of \(variable.name)")
-                    let type = matchType(variable.exprType)
-                    emitLocal("%\(variable.name) = alloca \(type)")
-                    emitLocal("store \(type) \(expVal), \(type)* %\(variable.name)")
+                    if let expression = variable.expression {
+                        let (expCode, expVal) = getExpressionResult(expression, ident: ident)
+                        emitLocal(expCode)
+                        // @Todo: support constant variables
+                        // do it at ast building?
+                        emitLocal("; declaration of \(variable.name)")
+                        let type = matchType(variable.exprType)
+                        emitLocal("%\(variable.name) = alloca \(type)")
+                        emitLocal("store \(type) \(expVal), \(type)* %\(variable.name)")
+                    }
+                    else {
+                        
+                        // see if we need to zero initialize for custom type
+                    }
                 }
                 
             case let variable as Assignment:

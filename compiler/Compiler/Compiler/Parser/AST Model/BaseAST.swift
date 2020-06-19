@@ -37,35 +37,6 @@ final class Code: Ast, Equatable {
     }
 }
 
-/// A variable or constant passed by name.
-final class Value: Expression, Equatable {
-    
-    var isRValue: Bool  { true }
-    
-    var startCursor = Cursor()
-    var endCursor = Cursor()
-    
-    static func == (lhs: Value, rhs: Value) -> Bool {
-        lhs.name == rhs.name
-            && lhs.exprType.equals(to: rhs.exprType)
-    }
-    
-    var debugDescription: String {
-        "[Value] \(name): \(exprType)"
-    }
-    
-    var name: String
-    var exprType: Type
-     
-    // @Todo: not all values get cursors set up. maybe make these explicit without default value?
-    internal init(name: String, exprType: Type, startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
-        self.name = name
-        self.exprType = exprType
-        self.startCursor = startCursor
-        self.endCursor = endCursor
-    }
-}
-
 protocol Ast: class, CustomDebugStringConvertible {
     var startCursor: Cursor { get set }
     var endCursor: Cursor { get set }

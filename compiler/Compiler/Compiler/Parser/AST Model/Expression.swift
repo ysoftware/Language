@@ -8,6 +8,35 @@
 
 import Foundation
 
+/// A variable or constant passed by name.
+final class Value: Expression, Equatable {
+    
+    var isRValue: Bool  { true }
+    
+    var startCursor = Cursor()
+    var endCursor = Cursor()
+    
+    static func == (lhs: Value, rhs: Value) -> Bool {
+        lhs.name == rhs.name
+            && lhs.exprType.equals(to: rhs.exprType)
+    }
+    
+    var debugDescription: String {
+        "[Value] \(name): \(exprType)"
+    }
+    
+    var name: String
+    var exprType: Type
+     
+    // @Todo: not all values get cursors set up. maybe make these explicit without default value?
+    internal init(name: String, exprType: Type, startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+        self.name = name
+        self.exprType = exprType
+        self.startCursor = startCursor
+        self.endCursor = endCursor
+    }
+}
+
 final class MemberAccess: Expression, Equatable {
     
     var isRValue: Bool { true }
@@ -22,7 +51,7 @@ final class MemberAccess: Expression, Equatable {
     }
     
     var debugDescription: String {
-        "[Member] \(memberName) of \(base)"
+        "[Member] \(memberName): \(exprType.typeName) of \(base)"
     }
     
     var base: Expression
@@ -120,7 +149,11 @@ final class ProcedureCall: Expression, Statement, Equatable {
     
     var debugDescription: String {
         var string = "[Call] \(name)->\(exprType)"
-        arguments.forEach { string.append("\n\t\($0)") }
+        if !arguments.isEmpty {
+            string += "\n("
+            string += arguments.map { String(describing: $0) }.joined(separator: ", ")
+            string += ")\n"
+        }
         return string
     }
     
@@ -150,7 +183,7 @@ final class StringLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "String(\"\(value)\")"
+        "String(\"\(value.reescaped)\")"
     }
     
     internal init(value: String,

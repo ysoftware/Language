@@ -90,6 +90,7 @@ extension Parser {
         func assignUndeclared(_ n: String) -> String { "Undeclared variable '\(n)'." }
         func assignConst(_ n: String) -> String { "\(n) is declared as constant." }
         func assignTypeMismatch(_ e: Type, _ g: Type) -> String { "Variable is declared as \(e), but expression given evaluates to \(g)." }
+        func assignNotRValue(_ n: String) -> String { "\(n) is not an rvalue." }
 
         // var decl
         let varDeclExpectedEquals = "Expected '=' or ':' for the variable or constant declaration."

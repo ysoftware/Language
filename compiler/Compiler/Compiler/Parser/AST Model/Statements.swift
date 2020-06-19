@@ -169,6 +169,6 @@ final class Assignment: Statement, Equatable {
         self.startCursor = startCursor
         self.endCursor = endCursor
         
-        assert(receiver.isRValue)
+        guard receiver.isRValue else { report("Initializing an assignment statement with a non-rvalue receiver.") }
     }
 }

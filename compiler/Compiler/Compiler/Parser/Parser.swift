@@ -20,19 +20,21 @@ extension Parser {
             && peekNext(index: 2)?.value is Identifier
     }
     
-    func doMemberAccess(of base: Expression) -> Result<Expression, ParserError> {
-        guard let ident = consumeIdent()?.value, consumePunct(".")
+    func doMemberAccess(of base: Expression, in scope: Scope) -> Result<Expression, ParserError> {
+        guard let _ = consumeIdent(), consumePunct(".")
             else { report("call matchMemberAccess required before calling this") }
         
+        if let value = base as? Value, value.exprType.equals(to: .unresolved) {
+            if let decl = scope.declarations[value.name] as? VariableDeclaration {
+                base.exprType = decl.exprType
+            }
+        }
         guard let memberIdent = consumeIdent() else {
             return error(em.expectedMemberIdentifier, token.startCursor, token.endCursor)
         }
-
-        // @Todo: if base is resolved, try to resolve base.member
-        
-        let exprType = Type.unresolved
-        
-        let access = MemberAccess(base: base, memberName: ident.value, exprType: exprType,
+        let member = memberIdent.value.value
+        let exprType = resolveMemberType(name: member, of: base)
+        let access = MemberAccess(base: base, memberName: member, exprType: exprType,
                                   startCursor: base.startCursor, endCursor: memberIdent.token.endCursor)
         return .success(access)
     }
@@ -40,15 +42,13 @@ extension Parser {
     // MARK: - ASSIGNMENT -
     
     /// Returns a thing we're going to assign to
-    func matchAssignment() -> Result<Ast?, ParserError> {
+    func matchAssignment(in scope: Scope) -> Result<Ast?, ParserError> {
         
         if let identifier = token.value as? Identifier {
             var base: Expression = Value(name: identifier.value, exprType: .unresolved,
                                          startCursor: token.startCursor, endCursor: token.endCursor)
-            // @Todo: resolve type of base
-            
             while matchMemberAccess() {
-                if let error = doMemberAccess(of: base).assign(&base) { return .failure(error) }
+                if let error = doMemberAccess(of: base, in: scope).assign(&base) { return .failure(error) }
             }
             
             guard consumeOp("=") else { return error(em.unexpectedMemberAccess, base.startCursor, base.endCursor) }
@@ -134,8 +134,9 @@ extension Parser {
 
         // variable type inference
         let type: Type
-        if let t = expr?.exprType { type = t }
-            
+        if let t = expr?.exprType {
+            type = t
+        }
         else if let name = declType?.value.value {
             type = resolveType(name)
         }
@@ -145,7 +146,8 @@ extension Parser {
             name: identifier.value.value, exprType: type, flags: flags, expression: expr,
             startCursor: start, endCursor: end)
         
-        if let custom = type as? StructureType { appendUnresolved(custom.name, varDecl) }
+        // @Todo: check that dependency is added correctly for unresolved
+        // we're supposed to add this decl as a dependant on the expression
         
         if let e = verifyNameConflict(varDecl, in: scope) { return error(e) }
         appendDeclaration(varDecl, to: scope)
@@ -226,6 +228,7 @@ extension Parser {
                     }
                     let declArgument = procDecl.arguments.count > i ? procDecl.arguments[i] : procDecl.arguments.last!
                     
+                    // @Todo: check that dependency is added correctly for unresolved
                     if !declArgument.exprType.isResolved {
                         arguments[i].exprType = resolveType(declArgument.exprType.typeName)
                     }
@@ -531,7 +534,7 @@ extension Parser {
                                              startCursor: token.startCursor, endCursor: token.endCursor)
                 // @Todo: resolve type of base
                 while matchMemberAccess() {
-                    if let error = doMemberAccess(of: base).assign(&base) { return .failure(error) }
+                    if let error = doMemberAccess(of: base, in: scope).assign(&base) { return .failure(error) }
                 }
                 expression = base
             }
@@ -623,7 +626,7 @@ extension Parser {
                 }
                 
                 var assignmentReceiver: Ast?
-                if let error = matchAssignment().assign(&assignmentReceiver) { return .failure(error) }
+                if let error = matchAssignment(in: scope).assign(&assignmentReceiver) { return .failure(error) }
                 if let base = assignmentReceiver {
                     if let error = doAssign(to: base, in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break

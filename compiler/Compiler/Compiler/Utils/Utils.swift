@@ -145,6 +145,13 @@ extension String {
         if !ColorCode { return self }
         return "\u{001B}[0;\(color.rawValue)m\(self)\u{001B}[0;0m"
     }
+    
+    var reescaped: String {
+        replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+    }
 }
 
 
