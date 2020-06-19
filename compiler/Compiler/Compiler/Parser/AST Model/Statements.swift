@@ -83,7 +83,7 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     
     var debugDescription: String {
         var string = "[Struct] \(name) "
-        members.forEach { string.append("\n\t\t\($0) ") }
+        members.forEach { string.append("\n\t\t[Member] \($0.name): \($0.exprType.typeName)") }
         return string
     }
     
