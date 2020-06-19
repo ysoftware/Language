@@ -51,7 +51,7 @@ extension Ast {
         case (let l as ProcedureDeclaration, let r as ProcedureDeclaration): return l == r
         case (let l as StructDeclaration, let r as StructDeclaration): return l == r
         case (let l as VariableDeclaration, let r as VariableDeclaration): return l == r
-        case (let l as VariableAssignment, let r as VariableAssignment): return l == r
+        case (let l as Assignment, let r as Assignment): return l == r
         case (let l as Condition, let r as Condition): return l == r
         case (let l as WhileLoop, let r as WhileLoop): return l == r
         case (let l as Break, let r as Break): return l == r

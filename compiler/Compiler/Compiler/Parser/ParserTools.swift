@@ -18,7 +18,7 @@ extension Parser {
         
         if type is StructureType {
             guard let decl = globalScope.declarations[name] else {
-                return .unresolved
+                return .unresolved // @Todo: add dependency?
             }
             
             if let structure = decl as? StructDeclaration {

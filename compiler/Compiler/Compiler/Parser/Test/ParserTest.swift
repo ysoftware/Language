@@ -147,8 +147,8 @@ final class ParserTest {
         VariableDeclaration(name: name, exprType: type, flags: const ? [.isConstant] : [], expression: expr)
     }
     
-    func vAssign(_ name: String, _ expr: Expression) -> VariableAssignment {
-        VariableAssignment(receiverId: name, expression: expr)
+    func vAssign(_ name: String, _ expr: Expression) -> Assignment {
+        Assignment(receiver: val(name, expr.exprType), expression: expr)
     }
     
     func binop(_ name: String, _ type: Type, _ arguments: (Expression, Expression)) -> BinaryOperator {

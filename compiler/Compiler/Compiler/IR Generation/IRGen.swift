@@ -197,12 +197,15 @@ final class IR {
                     emitLocal("store \(type) \(expVal), \(type)* %\(variable.name)")
                 }
                 
-            case let variable as VariableAssignment:
-                let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
-                emitLocal("; assignment to \(variable.receiverId)")
-                emitLocal(expCode)
-                let type = matchType(variable.expression.exprType)
-                emitLocal("store \(type) \(expVal), \(type)* %\(variable.receiverId)")
+            case let variable as Assignment:
+                break
+                // @Todo: reimplement with proper assignment to rvalue
+                
+//                let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
+//                emitLocal("; assignment to \(variable.receiverId)")
+//                emitLocal(expCode)
+//                let type = matchType(variable.expression.exprType)
+//                emitLocal("store \(type) \(expVal), \(type)* %\(variable.receiverId)")
                 
             case let ret as Return:
                 let (expCode, expVal) = getExpressionResult(ret.value, ident: ident)

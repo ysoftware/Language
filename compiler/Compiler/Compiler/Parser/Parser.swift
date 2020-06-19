@@ -13,35 +13,82 @@
 
 extension Parser {
     
-    // MARK: - VARIABLE ASSIGNMENT -
+    // MARK: - R VALUES -
     
-    func matchVarAssignment() -> Bool {
-        token.value is Identifier && (peekNext()?.value as? Operator)?.value == "="
+    func matchMemberAccess() -> Bool {
+        token.value is Identifier && (peekNext()?.value as? Punctuator)?.value == "."
+            && peekNext(index: 2)?.value is Identifier
     }
     
-    func doVarAssign(in scope: Scope) -> Result<VariableAssignment, ParserError> {
-        let start = token.startCursor
-        guard let (idToken, idVal) = consumeIdent() else { report("call matchVarAssignment required before calling this") }
-        let identifier = idVal.value
-        guard consumeOp("=") else { report("call matchVarAssignment required before calling this") }
+    func doMemberAccess(of base: Expression) -> Result<Expression, ParserError> {
+        guard let ident = consumeIdent()?.value, consumePunct(".")
+            else { report("call matchMemberAccess required before calling this") }
         
-        // find variable in scope
-        guard let ast = scope.declarations[identifier]
-            else { return error(em.assignUndeclared(identifier), idToken.startCursor, idToken.endCursor) }
-        guard let varDecl = ast as? VariableDeclaration
-            else { return error(em.assignPassedNotValue(ast), idToken.startCursor, idToken.endCursor) }
-        guard !varDecl.flags.contains(.isConstant)
-            else { return error(em.assignConst(identifier), idToken.startCursor, idToken.endCursor) }
+        guard let memberIdent = consumeIdent() else {
+            return error(em.expectedMemberIdentifier, token.startCursor, token.endCursor)
+        }
+
+        // @Todo: if base is resolved, try to resolve base.member
+        
+        let exprType = Type.unresolved
+        
+        let access = MemberAccess(base: base, memberName: ident.value, exprType: exprType,
+                                  startCursor: base.startCursor, endCursor: memberIdent.token.endCursor)
+        return .success(access)
+    }
+    
+    // MARK: - ASSIGNMENT -
+    
+    /// Returns a thing we're going to assign to
+    func matchAssignment() -> Result<Ast?, ParserError> {
+        
+        if let identifier = token.value as? Identifier {
+            var base: Expression = Value(name: identifier.value, exprType: .unresolved,
+                                         startCursor: token.startCursor, endCursor: token.endCursor)
+            // @Todo: resolve type of base
+            
+            while matchMemberAccess() {
+                if let error = doMemberAccess(of: base).assign(&base) { return .failure(error) }
+            }
+            
+            guard consumeOp("=") else { return error(em.unexpectedMemberAccess, base.startCursor, base.endCursor) }
+            return .success(base)
+        }
+        
+        return .success(nil)
+    }
+    
+    func doAssign(to rValue: Ast, in scope: Scope) -> Result<Assignment, ParserError> {
+        let start = rValue.startCursor
+        
+        var expectingType: Type!
+        if let value = rValue as? Value {
+            // find variable in scope
+            guard let ast = scope.declarations[value.name]
+                else { return error(em.assignUndeclared(value.name), rValue.startCursor, rValue.endCursor) }
+            guard let varDecl = ast as? VariableDeclaration
+                else { return error(em.assignPassedNotValue(ast), rValue.startCursor, rValue.endCursor) }
+            guard !varDecl.flags.contains(.isConstant)
+                else { return error(em.assignConst(value.name), rValue.startCursor, rValue.endCursor) }
+            expectingType = varDecl.exprType
+        }
+        else if let memberAccess = rValue as? MemberAccess {
+            expectingType = memberAccess.exprType
+            // check root member access base existence
+        }
         
         var expr: Expression!
         if let error = doExpression(in: scope).assign(&expr) { return .failure(error) }
         
-        // @Todo: refactor to "getType(...) -> Type"
-        guard expr.exprType.equals(to: varDecl.exprType) else {
-            return error(em.assignTypeMismatch(varDecl.exprType, expr.exprType))
+        if !expectingType.equals(to: .unresolved) {
+            // @Todo: resolve expression type
+            guard expr.exprType.equals(to: expectingType) else {
+                return error(em.assignTypeMismatch(expectingType, expr.exprType))
+            }
         }
-        let assign = VariableAssignment(
-            receiverId: identifier, expression: expr, startCursor: start, endCursor: expr.endCursor)
+        
+        let assign = Assignment(
+            receiver: rValue, expression: expr, startCursor: start, endCursor: expr.endCursor)
         return .success(assign)
     }
     
@@ -399,6 +446,7 @@ extension Parser {
     
     // MARK: - EXPRESSIONS -
     
+    /// `Binary` or `any single expression`
     func doExpression(in scope: Scope,
                       expectSemicolon: Bool = true,
                       _ priority: Int = 0) -> Result<Expression, ParserError> {
@@ -442,7 +490,6 @@ extension Parser {
     func doExpr(in scope: Scope) -> Result<Expression, ParserError> {
         let start = token.startCursor
         
-        // @Todo: member access
         // @Todo: subscript
 
         var arg: Expression!
@@ -478,6 +525,15 @@ extension Parser {
                 var ex: ProcedureCall!
                 if let error = doProcedureCall(in: scope).assign(&ex) { return .failure(error) }
                 expression = ex
+            }
+            else if matchMemberAccess() {
+                var base: Expression = Value(name: identifier.value, exprType: .unresolved,
+                                             startCursor: token.startCursor, endCursor: token.endCursor)
+                // @Todo: resolve type of base
+                while matchMemberAccess() {
+                    if let error = doMemberAccess(of: base).assign(&base) { return .failure(error) }
+                }
+                expression = base
             }
             else {
                 expression = Value(name: identifier.value, exprType: .unresolved)
@@ -552,10 +608,7 @@ extension Parser {
                 return error(em.notImplemented, token.startCursor, token.endCursor)
                 
             case is Identifier: // @Clean: this is a copy from the main loop
-                if matchVarAssignment() {
-                    if let error = doVarAssign(in: scope).then({ statements.append($0) }) { return .failure(error) }
-                    break
-                }
+                
                 if matchProcedureCall() {
                     if let error = doProcedureCall(in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break
@@ -568,6 +621,14 @@ extension Parser {
                     if let error = doVarDecl(in: scope).then({ statements.append($0) }) { return .failure(error) }
                     break
                 }
+                
+                var assignmentReceiver: Ast?
+                if let error = matchAssignment().assign(&assignmentReceiver) { return .failure(error) }
+                if let base = assignmentReceiver {
+                    if let error = doAssign(to: base, in: scope).then({ statements.append($0) }) { return .failure(error) }
+                    break
+                }
+                
                 print("(statements loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
                 return error(em.notImplemented, token.startCursor, token.endCursor)
             case is Comment:
@@ -615,6 +676,7 @@ final class Parser {
         // Cycle
 
         loop: while tokens.count > i {
+            
             switch token.value  {
             case let keyword as Keyword:
                 if keyword == .func {

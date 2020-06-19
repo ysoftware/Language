@@ -10,6 +10,8 @@ import Foundation
 
 final class ProcedureDeclaration: Statement, Declaration, Equatable {
     
+    var isRValue: Bool  { false }
+    
     var startCursor: Cursor
     var endCursor: Cursor
     
@@ -69,6 +71,8 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
 
 final class StructDeclaration: Statement, Declaration, Equatable {
     
+    var isRValue: Bool  { false }
+    
     var startCursor: Cursor
     var endCursor: Cursor
     
@@ -96,6 +100,8 @@ final class StructDeclaration: Statement, Declaration, Equatable {
 }
 
 final class VariableDeclaration: Statement, Declaration, Equatable {
+    
+    var isRValue: Bool  { false }
     
     var startCursor: Cursor
     var endCursor: Cursor
@@ -137,28 +143,32 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     }
 }
 
-final class VariableAssignment: Statement, Equatable {
+final class Assignment: Statement, Equatable {
+    
+    var isRValue: Bool  { false }
     
     var startCursor: Cursor
     var endCursor: Cursor
     
-    static func == (lhs: VariableAssignment, rhs: VariableAssignment) -> Bool {
-        lhs.receiverId == rhs.receiverId
+    static func == (lhs: Assignment, rhs: Assignment) -> Bool {
+        lhs.receiver.equals(to: rhs.receiver)
             && lhs.expression.equals(to: rhs.expression)
     }
     
     var debugDescription: String {
-        "[Assign] \(receiverId) = \(expression)"
+        "[Assign] \(receiver) = \(expression)"
     }
     
-    let receiverId: String
+    let receiver: Ast
     let expression: Expression
     
-    internal init(receiverId: String, expression: Expression,
+    internal init(receiver: Ast, expression: Expression,
                   startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
-        self.receiverId = receiverId
+        self.receiver = receiver
         self.expression = expression
         self.startCursor = startCursor
         self.endCursor = endCursor
+        
+        assert(receiver.isRValue)
     }
 }

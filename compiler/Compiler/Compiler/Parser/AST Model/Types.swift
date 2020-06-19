@@ -159,7 +159,6 @@ extension Type {
                 let name = String(identifier[..<identifier.endIndex(offsetBy: -1)])
                 return PointerType(pointeeType: named(name))
             }
-            report("make sure this isn't unresolved!")
             return StructureType(name: identifier)
         }
     }

@@ -8,7 +8,39 @@
 
 import Foundation
 
+final class MemberAccess: Expression, Equatable {
+    
+    var isRValue: Bool { true }
+    
+    var startCursor: Cursor
+    var endCursor: Cursor
+    
+    static func == (lhs: MemberAccess, rhs: MemberAccess) -> Bool {
+        lhs.base.equals(to: rhs.base)
+            && lhs.memberName == rhs.memberName
+            && lhs.exprType.equals(to: rhs.exprType)
+    }
+    
+    var debugDescription: String {
+        "[Member] \(memberName) of \(base)"
+    }
+    
+    var base: Expression
+    var memberName: String
+    var exprType: Type
+    
+    internal init(base: Expression, memberName: String, exprType: Type, startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+        self.memberName = memberName
+        self.exprType = exprType
+        self.startCursor = startCursor
+        self.endCursor = endCursor
+        self.base = base
+    }
+}
+
 final class UnaryOperator: Expression, Equatable {
+    
+    var isRValue: Bool  { true } // @Todo: not all operators produce an rValue
     
     var startCursor: Cursor
     var endCursor: Cursor
@@ -40,6 +72,8 @@ final class UnaryOperator: Expression, Equatable {
 }
 
 final class BinaryOperator: Expression, Equatable {
+    
+    var isRValue: Bool  { false }
     
     var startCursor: Cursor
     var endCursor: Cursor
@@ -73,6 +107,8 @@ final class BinaryOperator: Expression, Equatable {
 
 final class ProcedureCall: Expression, Statement, Equatable {
     
+    var isRValue: Bool  { false } // @Todo: sure about this?
+    
     var startCursor: Cursor
     var endCursor: Cursor
     
@@ -104,6 +140,8 @@ final class ProcedureCall: Expression, Statement, Equatable {
 
 final class StringLiteral: LiteralExpr, Equatable {
     
+    var isRValue: Bool  { false }
+    
     var startCursor: Cursor
     var endCursor: Cursor
     
@@ -127,6 +165,8 @@ final class StringLiteral: LiteralExpr, Equatable {
 }
 
 final class IntLiteral: LiteralExpr, Equatable {
+    
+    var isRValue: Bool  { false }
     
     var startCursor: Cursor
     var endCursor: Cursor
@@ -156,6 +196,8 @@ final class IntLiteral: LiteralExpr, Equatable {
 }
 
 final class FloatLiteral: LiteralExpr, Equatable {
+    
+    var isRValue: Bool  { false }
     
     var startCursor: Cursor
     var endCursor: Cursor
@@ -187,6 +229,8 @@ final class FloatLiteral: LiteralExpr, Equatable {
 }
 
 final class VoidLiteral: LiteralExpr {
+    
+    var isRValue: Bool  { false }
     
     var startCursor: Cursor
     var endCursor: Cursor

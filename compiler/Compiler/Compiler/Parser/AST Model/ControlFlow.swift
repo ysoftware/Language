@@ -10,6 +10,8 @@ import Foundation
 
 final class Condition: Statement, Equatable {
     
+    var isRValue: Bool  { false }
+    
     var startCursor: Cursor
     var endCursor: Cursor
     
@@ -39,6 +41,8 @@ final class Condition: Statement, Equatable {
 }
 
 final class WhileLoop: Statement, Equatable {
+    
+    var isRValue: Bool  { false }
     
     var startCursor: Cursor
     var endCursor: Cursor
@@ -72,6 +76,8 @@ final class WhileLoop: Statement, Equatable {
 
 final class Break: Statement, Equatable {
     
+    var isRValue: Bool  { false }
+    
     var startCursor: Cursor
     var endCursor: Cursor
     
@@ -98,6 +104,8 @@ final class Break: Statement, Equatable {
 
 final class Continue: Statement, Equatable {
     
+    var isRValue: Bool  { false }
+    
     var startCursor: Cursor
     var endCursor: Cursor
     
@@ -123,6 +131,8 @@ final class Continue: Statement, Equatable {
 }
 
 final class Return: Statement, Equatable {
+    
+    var isRValue: Bool  { false }
     
     var startCursor: Cursor
     var endCursor: Cursor

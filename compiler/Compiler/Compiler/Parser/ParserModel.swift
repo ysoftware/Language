@@ -96,6 +96,9 @@ extension Parser {
         func varDeclTypeMismatch(_ e: Type, _ g: Type) -> String { "Type supplied '\(g)' does not match the type '\(e)' as specified." }
         let varDeclRequiresType = "Variable declaration without expression requires type to be specified."
         
+        let expectedMemberIdentifier = "Expected identifier after '.' for member access."
+        let unexpectedMemberAccess = "Unexpected member access expression."
+
         // if
         let ifExpectedBrackets = "Expected brackets around if-else blocks."
         let ifNotExpectedAtGlobalScope = "If statement is not expected at the global scope"
