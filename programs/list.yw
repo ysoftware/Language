@@ -13,8 +13,8 @@ struct List {
 
 // @Todo
 // + null literal
+// + getting pointer of element
 // member access of a pointer
-// getting pointer of element
 // pointer comparison
 // pointer as boolean expression (null checking)
 
@@ -22,15 +22,20 @@ func printList(list: List) {
     printf("List. Count: %d\n", list.count);
     node := list.firstNode;
     index := 0;
-    while (node.nextNode != null) {
-        printf("  %d: %d\n", index, node.value);
+    nextNode := node.nextNode;
+    
+    /*
+    while (nextNode != null) {
+        //printf("  %d: %d\n", index, node.value);
         node = node.nextNode;
         index = index + 1;
     }
+    */
 }
 
 func append(list: List*, value: Int) {
-    node: Node;
+/*
+    node: Node*;
     node.value = value;
 
     if (list.count > 0) {
@@ -38,42 +43,43 @@ func append(list: List*, value: Int) {
         list.lastNode = node;
     }
     else {
-        list.firstNode = node*;
-        list.lastNode = node*;
+        list.firstNode = node;
+        list.lastNode = node;
     }
 
     list.count = list.count + 1;
+    */
 }
 
 func main(count: Int, arguments: Int8**) -> Int {
     list: List;
     printList(list);
 
-    append(list*, 0);
+    append(&list, 0);
     printList(list);
 
-    append(list*, 1);
+    append(&list, 1);
     printList(list);
 
-    append(list*, 1);
+    append(&list, 1);
     printList(list);
 
-    append(list*, 2);
+    append(&list, 2);
     printList(list);
 
-    append(list*, 3);
+    append(&list, 3);
     printList(list);
 
-    append(list*, 5);
+    append(&list, 5);
     printList(list);
 
-    append(list*, 8);
+    append(&list, 8);
     printList(list);
 
-    append(list*, 13);
+    append(&list, 13);
     printList(list);
 
-    append(list*, 21);
+    append(&list, 21);
     printList(list);
 
     return 0;

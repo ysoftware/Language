@@ -8,6 +8,7 @@
 
 import Foundation
 
+// @Todo: convert them to #intrinsic? after I learn what intrinsic is.
 let internalProcedures = [
     "int8PointerToInt32", // func int8PointerToInt32(pointer: Int8*) -> Int32 #foreign;
     "int32AsInt8Pointer"  // func int32AsInt8Pointer(address: Int32) -> Int8* #foreign;
@@ -41,6 +42,7 @@ internal extension IR {
             
             return (code, value)
         }
+        
         if call.name == "int32AsInt8Pointer" {
             
             // @Todo: this doesn't seem to work: Segmentation fault: 11

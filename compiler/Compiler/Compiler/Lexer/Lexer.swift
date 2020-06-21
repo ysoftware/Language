@@ -17,7 +17,7 @@ fileprivate let punctuators: [[Character]] = [
 fileprivate let operators: [[Character]] = [
     ":=", "==", "!=", "<=", ">=", "&&", "||", ">", "<",
     "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<=",
-    "-", "+", "/", "*", "%", "..", "="
+    "-", "+", "/", "&", "*", "%", "..", "="
 ].map { Array($0) }
 
 fileprivate let separators: [[Character]] = [

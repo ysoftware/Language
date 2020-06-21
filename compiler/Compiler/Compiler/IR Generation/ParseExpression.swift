@@ -127,15 +127,25 @@ internal extension IR {
             return (code, value)
             
         case let op as UnaryOperator:
-            let (load, val) = getExpressionResult(op.argument, ident: ident)
-            
             code += "\(identation); unary operator: \(op.name)\n"
-            let value = "%\(count())"
+            var value = ""
             
             // pointer dereference (*a)
             if op.name == "*" {
+                let (load, val) = getExpressionResult(op.argument, ident: ident)
+                value = "%\(count())"
                 load.map { code += "\(identation)\($0)\n" }
                 code += "\(identation)\(value) = load \(matchType(op.exprType)), \(matchType(op.operatorType)) \(val)"
+            }
+            else if op.name == "&" {
+                if let variable = op.argument as? Value {
+                    value = "%\(variable.name)"
+                }
+                else {
+                    let (load, val) = getExpressionResult(op.argument, ident: ident)
+                    load.map { code += "\(identation)\($0)\n" }
+                    value = val
+                }
             }
             else {
                 report("Unsupported expression:\n\(expression)")
@@ -144,26 +154,39 @@ internal extension IR {
             return (code, value)
             
         case let op as BinaryOperator:
+            
+            if let (load, resultValue) = specialCase(for: op.name, type: op.operatorType, arguments: op.arguments) {
+                
+                // @Todo: don't pass identation, but add it afterwards (everywhere)
+                
+                code += load
+                return (code, resultValue)
+            }
+            
             var lValue = "", rValue = ""
             var loadL: String?, loadR: String?
             let (l, r) = op.arguments
             (loadL, lValue) = getExpressionResult(l, ident: ident)
             (loadR, rValue) = getExpressionResult(r, ident: ident)
             
+            code += "\(identation); binary operator: \(op.name)\n"
+            loadL.map { code += "\(identation)\($0)\n" }
+            loadR.map { code += "\(identation)\($0)\n" }
+            
             let resultValue = "%\(count())"
-            let instr: String = instruction(for: op.name, type: op.operatorType)
+            let instr = instruction(for: op.name, type: op.operatorType)
             let workingType = matchType(op.operatorType)
             let result = "\(resultValue) = \(instr) \(workingType) \(lValue), \(rValue)"
             let value = "\(resultValue)"
             
-            code += "\(identation); binary operator: \(op.name)\n"
-            loadL.map { code += "\(identation)\($0)\n" }
-            loadR.map { code += "\(identation)\($0)\n" }
             code += "\(identation)\(result)"
             return (code, value)
             
         case is VoidLiteral:
             return (nil, "void")
+            
+        case is NullLiteral:
+            return (nil, "null")
             
         default:
             report("Unsupported expression:\n\(expression)")
@@ -191,7 +214,6 @@ internal extension IR {
         var code = ""
 
         let baseType = matchType(access.base.exprType)
-        
         var base = ""
         if let value = access.base as? Value {
             base = "%\(value.name)"
@@ -207,12 +229,11 @@ internal extension IR {
             base = val
         }
         
-        // @Todo: do recursive member access pointer search for things like:
-        /// `a := frame.size.width`
-        
         code += "\(identation); member access \(access.base.exprType.typeName).\(access.memberName)\n"
         let memberPointerValue = "%\(count())"
-        code += "\(identation)\(memberPointerValue) = getelementptr \(baseType), \(baseType)* \(base), i32 0, i32 \(memberIndex)\n"
+        
+        let index0 = (access.base.exprType as? PointerType)?.pointeeType is StructureType ? "" : "i32 0, "
+        code += "\(identation)\(memberPointerValue) = getelementptr \(baseType), \(baseType)* \(base), \(index0)i32 \(memberIndex)\n"
         
         return (code, memberPointerValue)
     }
