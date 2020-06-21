@@ -9,7 +9,7 @@
 import Foundation
 
 internal extension IR {
-
+    
     /// Process an expression and return the code of the expression and the final IR value
     ///
     /// Example 1
@@ -24,10 +24,10 @@ internal extension IR {
     /// for an expression of `variable "a" of Int32`
     ///   the return value will be: `code = "%1 = load i32, i32* %a", value = "%1"`
     ///
-    func getExpressionResult(
-        _ expression: Expression, ident: Int) -> (code: String?, value: String) {
-        let identation = String(repeating: "\t", count: ident)
-        
+    func getExpressionResult(_ expression: Expression, ident: Int) -> (code: String?, value: String) {
+        let identation = string(for: ident)
+        var code = ""
+
         // All expressions go here
         switch expression {
             
@@ -35,7 +35,6 @@ internal extension IR {
             return (nil, "\(literal.value)")
             
         case let variable as Value:
-            var code = ""
             let type = matchType(variable.exprType)
             let argValue = "%\(count())"
             code += "\(argValue) = load \(type), \(type)* %\(variable.name)"
@@ -48,12 +47,11 @@ internal extension IR {
                 report("Undefined procedure call: \(call.name)")
             }
             
-            var code = "\n"
             var arguments: [String] = []
             
             for arg in call.arguments {
                 code += "\(identation); argument \(matchType(arg.exprType))\n"
-
+                
                 // @Todo: don't load the same value argument
                 // if passed twice, like a = add(a, a)
                 
@@ -115,24 +113,22 @@ internal extension IR {
             }
             return (code, value)
             
-
+            
         case let access as MemberAccess:
             // this is member access as expression, IRGen for the rValue member access is in another place
             
-            var code = ""
             let (intermediateCode, memberPointerValue) = getMemberPointerValue(of: access, with: ident)
             code += intermediateCode
             
             let value = "%\(count())"
             let memberType = matchType(access.exprType)
             code += "\(identation)\(value) = load \(memberType), \(memberType)* \(memberPointerValue)\n"
-
+            
             return (code, value)
             
         case let op as UnaryOperator:
             let (load, val) = getExpressionResult(op.argument, ident: ident)
             
-            var code = "\n"
             code += "\(identation); unary operator: \(op.name)\n"
             let value = "%\(count())"
             
@@ -146,7 +142,7 @@ internal extension IR {
             }
             
             return (code, value)
-        
+            
         case let op as BinaryOperator:
             var lValue = "", rValue = ""
             var loadL: String?, loadR: String?
@@ -160,7 +156,6 @@ internal extension IR {
             let result = "\(resultValue) = \(instr) \(workingType) \(lValue), \(rValue)"
             let value = "\(resultValue)"
             
-            var code = "\n"
             code += "\(identation); binary operator: \(op.name)\n"
             loadL.map { code += "\(identation)\($0)\n" }
             loadR.map { code += "\(identation)\($0)\n" }
@@ -187,15 +182,15 @@ internal extension IR {
         let argumentsString = arguments.joined(separator: ", ")
         return argumentsString
     }
-
+    
     /// Value is the pointer to the member, and the code is what's required to search for it
     func getMemberPointerValue(of access: MemberAccess, with ident: Int) -> (code: String, value: String) {
         guard let memberIndex = access.memberIndex else { report("Member access index is not set before IR Gen stage") }
-        let identation = String(repeating: "\t", count: ident)
-        
-        let baseType = matchType(access.base.exprType)
+        let identation = string(for: ident)
         
         var code = ""
+
+        let baseType = matchType(access.base.exprType)
         
         var base = ""
         if let value = access.base as? Value {
@@ -215,10 +210,14 @@ internal extension IR {
         // @Todo: do recursive member access pointer search for things like:
         /// `a := frame.size.width`
         
-        code += "\r\(identation); member access \(access.base.exprType.typeName).\(access.memberName)\n"
+        code += "\(identation); member access \(access.base.exprType.typeName).\(access.memberName)\n"
         let memberPointerValue = "%\(count())"
         code += "\(identation)\(memberPointerValue) = getelementptr \(baseType), \(baseType)* \(base), i32 0, i32 \(memberIndex)\n"
         
         return (code, memberPointerValue)
     }
+}
+
+func string(for ident: Int) -> String {
+    String(repeating: "    ", count: ident)
 }

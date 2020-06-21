@@ -20,8 +20,8 @@ final class Condition: Statement, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[If] \(condition)\n\tThen: \(block)"
-        if !elseBlock.isEmpty { string.append("\n\tElse: \(elseBlock)") }
+        var string = "[If] \(condition)\n    Then: \(block)"
+        if !elseBlock.isEmpty { string.append("\n    Else: \(elseBlock)") }
         return string
     }
     

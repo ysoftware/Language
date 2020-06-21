@@ -17,7 +17,7 @@ internal extension IR {
     
     // @Todo: refactor into IRGenError
     func doInternalProcedure(_ call: ProcedureCall, ident: Int) -> (code: String?, value: String) {
-        let identation = String(repeating: "\t", count: ident)
+        let identation = string(for: ident)
         
         if call.name == "int8PointerToInt32" {
             
@@ -31,7 +31,7 @@ internal extension IR {
                     arg.startCursor, arg.endCursor)
             }
             
-            var code = "\n"
+           var code = ""
             let (load, val) = getExpressionResult(arg, ident: ident)
             load.map { code += "\(identation)\($0)\n" }
             
@@ -55,7 +55,7 @@ internal extension IR {
                     arg.startCursor, arg.endCursor)
             }
             
-            var code = "\n"
+           var code = ""
             let (load, val) = getExpressionResult(arg, ident: ident)
             load.map { code += "\(identation)\($0)\n" }
             

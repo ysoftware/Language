@@ -43,12 +43,13 @@ final class IR {
                                    contexts: [StatementContext]) -> String {
         
         var scope = ""
-        let identation = String(repeating: "\t", count: ident)
+        let identation = string(for: ident)
         
         /// Write a line of IR text into the local scope
         func emitLocal(_ string: String? = "") {
             guard let string = string else { return }
-            scope += "\(identation)\(string)\n"
+            if string.isEmpty { scope += "" }
+            else { scope += "\(identation)\(string)\n" }
         }
         
         // All statements go here
@@ -154,7 +155,7 @@ final class IR {
                     if procedure.arguments.count > 0 {
                         for arg in procedure.arguments {
                             let argValue = "%\(count())"
-                            let scopeIdent = String(repeating: "\t", count: ident+1)
+                            let scopeIdent = string(for: ident + 1)
                             emitLocal("\(scopeIdent)%\(arg.name) = alloca \(matchType(arg.exprType))")
                             emitLocal("\(scopeIdent)store \(matchType(arg.exprType)) \(argValue), \(matchType(arg.exprType))* %\(arg.name)")
                         }
@@ -168,7 +169,7 @@ final class IR {
                                                  contexts: contexts)
 
                     emitLocal(body)
-                    emitLocal("}")
+                    emitLocal("}\n")
                 }
                 
             case let call as ProcedureCall:

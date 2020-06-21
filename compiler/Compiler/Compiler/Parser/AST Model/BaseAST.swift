@@ -22,7 +22,7 @@ final class Code: Ast, Equatable {
     var debugDescription: String {
         var string = "[Scope] \(statements.count) statement(s)"
         for statement in statements {
-            string.append("\n\t\(statement.debugDescription)")
+            string.append("\n    \(statement.debugDescription)")
         }
         return string
     }
