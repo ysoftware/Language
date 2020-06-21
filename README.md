@@ -81,7 +81,7 @@ else {
 #### Not-really-objective
 Use dot syntax for calling procedures where first argument is (pointer to) an instance of this class.
 ```
-func ListAppend(list: List*, value: Int) -> Node*;
+func list_append(list: List*, value: Int) -> Node*;
 list.append(1);
 ```
 
