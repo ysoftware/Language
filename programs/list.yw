@@ -12,11 +12,11 @@ struct List {
 }
 
 // @Todo
+// + null literal
+// member access of a pointer
 // getting pointer of element
-// null literal
 // pointer comparison
 // pointer as boolean expression (null checking)
-// member access of a pointer
 
 func printList(list: List*) -> Node* {
     printf("List. Count: %d\n", list.count);
