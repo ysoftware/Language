@@ -80,9 +80,11 @@ else {
 
 #### Not-really-objective
 Use dot syntax for calling procedures where first argument is (pointer to) an instance of this class.
+Sort of like namespacing, but it will require procedure overloading to resolve collisions.
 ```
-func list_append(list: List*, value: Int) -> Node*;
-list.append(1);
+func append(list: List*, value: Int) -> Node*;
+list.append(1);       
+/* instead of: */ list_append(list, 1);
 ```
 
 #### Polymorphic procedures
