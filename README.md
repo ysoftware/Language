@@ -56,7 +56,7 @@ func entry_point() -> Int32 #main { ... }
  
 ## Ideas Roadmap:
 
-If/switch expression
+#### If/switch expression
 ```
 enum Values { A, B, C };
 value := Values.A;
@@ -78,12 +78,21 @@ else {
 // description == "The name is not B."
 ```
 
-Polymorphic procedures
+#### Not-really-objective
+Use dot syntax for calling procedures where first argument is (pointer to) an instance of this class.
+Sort of like namespacing, but it will require procedure overloading to resolve collisions.
+```
+func append(list: List*, value: Int) -> Node*;
+list.append(1);       
+/* instead of: */ list_append(list, 1);
+```
+
+#### Polymorphic procedures
  ```
 func array_add(_ array: *($T[]), _ element: T);
 ```
 
-Dynamic arrays (probably written in the language as a part of the st. lib)
+#### Dynamic arrays (probably written in the language as a part of the st. lib)
 ```
 a := [1, 2, 3, 4, ...] // use varargs as syntax for dynamic array
 ```
