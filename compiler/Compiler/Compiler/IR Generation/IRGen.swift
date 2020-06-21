@@ -137,7 +137,7 @@ final class IR {
                 
                 emitGlobal("")
                 emitGlobal("; struct decl: \(structure.name)")
-                emitGlobal("%struct_\(structure.name) = type { \(structure.members.map { matchType($0.exprType) }.joined(separator: ", ")) }")
+                emitGlobal("%Structure\(structure.name) = type { \(structure.members.map { matchType($0.exprType) }.joined(separator: ", ")) }")
                 
             case let procedure as ProcedureDeclaration:
                 globalCounter = 0

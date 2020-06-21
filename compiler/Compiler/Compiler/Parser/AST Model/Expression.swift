@@ -54,16 +54,20 @@ final class MemberAccess: Expression, Equatable {
         "[Member] \(memberName): \(exprType.typeName) of \(base)"
     }
     
-    var base: Expression
+    var memberIndex: Int? = nil
     var memberName: String
+    
+    var base: Expression
     var exprType: Type
     
-    internal init(base: Expression, memberName: String, exprType: Type, startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+    internal init(base: Expression, memberName: String, memderIndex: Int?, exprType: Type,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.memberName = memberName
         self.exprType = exprType
         self.startCursor = startCursor
         self.endCursor = endCursor
         self.base = base
+        self.memberIndex = memderIndex
     }
 }
 

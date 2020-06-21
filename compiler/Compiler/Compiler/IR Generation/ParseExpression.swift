@@ -37,9 +37,9 @@ internal extension IR {
         case let variable as Value:
             var code = ""
             let type = matchType(variable.exprType)
-            let argCount = count()
-            code += "%\(argCount) = load \(type), \(type)* %\(variable.name)"
-            return (code, "%\(argCount)")
+            let argValue = "%\(count())"
+            code += "\(argValue) = load \(type), \(type)* %\(variable.name)"
+            return (code, argValue)
             
         case let call as ProcedureCall:
             if internalProcedures.contains(call.name) { return doInternalProcedure(call, ident: ident) }
@@ -77,10 +77,10 @@ internal extension IR {
                             report("Undefined symbol \(arg.name)")
                         }
                         
-                        let argCount = count()
+                        let argValue = "%\(count())"
                         let length = literal.value.count + 1 // @Todo: properly check null termination for strings
-                        code += "\(identation)%\(argCount) = getelementptr [\(length) x i8], [\(length) x i8]* @\(arg.name), i32 0, i32 0"
-                        arguments.append("i8* %\(argCount)")
+                        code += "\(identation)\(argValue) = getelementptr [\(length) x i8], [\(length) x i8]* @\(arg.name), i32 0, i32 0"
+                        arguments.append("i8* \(argValue)")
                     }
                     else {
                         
@@ -111,10 +111,41 @@ internal extension IR {
                 code += "\(identation)call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
             }
             else {
-                let resultCount = count()
-                value = "%\(resultCount)"
+                value = "%\(count())"
                 code += "\(identation)\(value) = call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
             }
+            return (code, value)
+            
+
+        case let access as MemberAccess:
+            // this is member access as expression, IRGen for the rValue member access is in another place
+            guard let memberIndex = access.memberIndex else { report("Member access index is not set before IR Gen stage") }
+            
+            var code = "\n"
+            code += "\(identation); member access \(access.base.exprType.typeName).\(access.memberName)\n"
+            
+            var (load, val) = getExpressionResult(access.base, ident: ident)
+            load.map { code += "\(identation)\($0)\n" }
+            let baseType = matchType(access.base.exprType)
+            let memberType = matchType(access.exprType)
+            
+            if !(access.base.exprType is PointerType) {
+                let derefValue = "%\(count())"
+                code += "\(identation); getting pointer to base struct instance\n"
+                code += "\(identation)\(derefValue) = alloca \(baseType)\n"
+                code += "\(identation)store \(baseType) \(val), \(baseType)* \(derefValue)\n"
+                val = derefValue
+            }
+            
+            let memberPointerValue = "%\(count())"
+            code += "\(identation)\(memberPointerValue) = getelementptr \(baseType), \(baseType)* \(val), i32 0, i32 \(memberIndex)\n"
+            
+            // @Todo: do recursive member access pointer search for things like:
+            /// `a := frame.size.width`
+            
+            let value = "%\(count())"
+            code += "\(identation)\(value) = load \(memberType), \(memberType)* \(memberPointerValue)\n"
+
             return (code, value)
             
         case let op as UnaryOperator:
@@ -122,8 +153,7 @@ internal extension IR {
             
             var code = "\n"
             code += "\(identation); unary operator: \(op.name)\n"
-            let counter = count()
-            let value = "%\(counter)"
+            let value = "%\(count())"
             
             // pointer dereference (*a)
             if op.name == "*" {
@@ -135,7 +165,7 @@ internal extension IR {
             }
             
             return (code, value)
-            
+        
         case let op as BinaryOperator:
             var lValue = "", rValue = ""
             var loadL: String?, loadR: String?
@@ -143,11 +173,11 @@ internal extension IR {
             (loadL, lValue) = getExpressionResult(l, ident: ident)
             (loadR, rValue) = getExpressionResult(r, ident: ident)
             
-            let resultCount = count()
+            let resultValue = "%\(count())"
             let instr: String = instruction(for: op.name, type: op.operatorType)
             let workingType = matchType(op.operatorType)
-            let result = "%\(resultCount) = \(instr) \(workingType) \(lValue), \(rValue)"
-            let value = "%\(resultCount)"
+            let result = "\(resultValue) = \(instr) \(workingType) \(lValue), \(rValue)"
+            let value = "\(resultValue)"
             
             var code = "\n"
             code += "\(identation); binary operator: \(op.name)\n"

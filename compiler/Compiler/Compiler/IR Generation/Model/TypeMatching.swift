@@ -58,8 +58,8 @@ func matchType(_ type: Type) -> String {
         }
     case is VoidType: return "void"
     case is UnresolvedType: report("Unresolved type in IR Gen.")
-    case is StructureType:
-        report("Structures are not yet implemented.")
+    case let a as StructureType:
+        return "%Structure\(a.name)"
     default: report("Unsupported type \(type)")
     }
 }

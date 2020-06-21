@@ -14,8 +14,8 @@ extension Parser {
     // to auto-include the Cursor in the Ast
     
     // make sure to add dependency for an ast with unresolved type
-    func resolveMemberType(name: String, of base: Expression) -> Type {
-        guard !base.exprType.equals(to: .unresolved) else { return .unresolved }
+    func resolveMemberTypeAndIndex(name: String, of base: Expression) -> (type: Type, index: Int)? {
+        guard !base.exprType.equals(to: .unresolved) else { return nil }
         
         guard let structType = base.exprType as? StructureType else {
             report("Don't call this resolveMemberType for non-struct bases.")
@@ -27,12 +27,12 @@ extension Parser {
         // maybe we should split those kinds of declarations?
         // but then the conflict resolution will be messier
         guard let decl = globalScope.declarations[structType.name] as? StructDeclaration else {
-            return .unresolved
+            return nil
         }
-        guard let member = decl.members.first(where: { $0.name == name }) else {
-            return .unresolved
+        guard let index = decl.members.firstIndex(where: { $0.name == name }) else {
+            return nil
         }
-        return member.exprType
+        return (decl.members[index].exprType, index)
     }
     
     // make sure to add dependency for an ast with unresolved type

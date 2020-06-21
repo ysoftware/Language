@@ -8,9 +8,11 @@ struct Point {
     y: Int;
 }
 
+/*
 func advancePosition(val: Int) -> Int {
     return val + 1;
 }
+*/
 
 func main(count: Int, arguments: Int8**) -> Int {
     
@@ -22,7 +24,7 @@ func main(count: Int, arguments: Int8**) -> Int {
     position.y = 30;
 
     // expression
-    position.x = advancePosition(position.x);
+    // position.x = advancePosition(position.x);
 
     printf(X, position.x);
     printf(Y, position.y);

@@ -33,8 +33,10 @@ extension Parser {
             return error(em.expectedMemberIdentifier, token.startCursor, token.endCursor)
         }
         let member = memberIdent.value.value
-        let exprType = resolveMemberType(name: member, of: base)
-        let access = MemberAccess(base: base, memberName: member, exprType: exprType,
+        let info = resolveMemberTypeAndIndex(name: member, of: base)
+        let memberType = info?.type ?? .unresolved
+        let memberIndex = info?.index
+        let access = MemberAccess(base: base, memberName: member, memderIndex: memberIndex, exprType: memberType,
                                   startCursor: base.startCursor, endCursor: memberIdent.token.endCursor)
         return .success(access)
     }
