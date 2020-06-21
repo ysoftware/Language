@@ -195,12 +195,16 @@ internal extension IR {
         
         let baseType = matchType(access.base.exprType)
         
-        var code = "\n"
-        code += "\(identation); member access \(access.base.exprType.typeName).\(access.memberName)\n"
+        var code = ""
         
         var base = ""
         if let value = access.base as? Value {
             base = "%\(value.name)"
+        }
+        else if let nestedAccess = access.base as? MemberAccess {
+            let (load, val) = getMemberPointerValue(of: nestedAccess, with: ident)
+            code += load
+            base = val
         }
         else {
             let (load, val) = getExpressionResult(access.base, ident: ident)
@@ -211,6 +215,7 @@ internal extension IR {
         // @Todo: do recursive member access pointer search for things like:
         /// `a := frame.size.width`
         
+        code += "\r\(identation); member access \(access.base.exprType.typeName).\(access.memberName)\n"
         let memberPointerValue = "%\(count())"
         code += "\(identation)\(memberPointerValue) = getelementptr \(baseType), \(baseType)* \(base), i32 0, i32 \(memberIndex)\n"
         

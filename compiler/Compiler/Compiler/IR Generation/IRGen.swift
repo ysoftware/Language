@@ -202,6 +202,7 @@ final class IR {
                     else {
                         emitLocal("store \(type) zeroinitializer, \(type)* %\(variable.name)")
                     }
+                    emitLocal()
                 }
                 
             case let assign as Assignment:

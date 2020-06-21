@@ -1,22 +1,40 @@
 func printf(format: String, arguments: Int32, ...) #foreign;
 
-X :: "Position.x is %d\n";
-Y :: "Position.y is %d\n";
-
-struct Point {
+struct Vector {
     x: Int;
     y: Int;
 }
 
+struct Rect {
+    origin: Vector;
+    size: Vector;
+}
+
+RECT :: "Origin: %dx%d, Size: %dx%d\n";
+func printRect(rect: Rect) { printf(RECT, rect.origin.x, rect.origin.y, rect.size.x, rect.size.y); }
+
+VECTOR :: "Vector: %dx%d\n";
+func printVector(vector: Vector) { printf(VECTOR, vector.x, vector.y); }
+
+
+func rectCenter(rect: Rect) -> Vector {
+    a : Vector;
+    a.x = rect.size.x / 2 + rect.origin.x;
+    a.y = rect.size.y / 2 + rect.origin.y;
+    return a;
+}
+
 func main(count: Int, arguments: Int8**) -> Int {
 
-    position : Point;
-    
-    position.x = 15;
-    position.y = 30;
+    frame : Rect;
 
-    printf(X, position.x);
-    printf(Y, position.y);
+    frame.origin.x = 100;
+    frame.origin.y = 100;
+    frame.size.x = 100;
+    frame.size.y = 100;
+    
+    printRect(frame);
+    printVector(rectCenter(frame));
 
     return 0;
 }

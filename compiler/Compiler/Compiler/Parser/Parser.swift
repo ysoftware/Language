@@ -16,13 +16,11 @@ extension Parser {
     // MARK: - R VALUES -
     
     func matchMemberAccess() -> Bool {
-        token.value is Identifier && (peekNext()?.value as? Punctuator)?.value == "."
-            && peekNext(index: 2)?.value is Identifier
+        (token.value as? Punctuator)?.value == "." && peekNext()?.value is Identifier
     }
     
     func doMemberAccess(of base: Expression, in scope: Scope) -> Result<Expression, ParserError> {
-        guard let _ = consumeIdent(), consumePunct(".")
-            else { report("call matchMemberAccess required before calling this") }
+        guard consumePunct(".") else { report("call matchMemberAccess required before calling this") }
         
         if let value = base as? Value, value.exprType.equals(to: .unresolved) {
             if let decl = scope.declarations[value.name] as? VariableDeclaration {
@@ -47,6 +45,7 @@ extension Parser {
     func matchAssignment(in scope: Scope) -> Result<Ast?, ParserError> {
         
         if let identifier = token.value as? Identifier {
+            if !nextToken() { return error(em.unexpectedEndOfFile) }
             var base: Expression = Value(name: identifier.value, exprType: .unresolved,
                                          startCursor: token.startCursor, endCursor: token.endCursor)
             while matchMemberAccess() {
@@ -530,10 +529,13 @@ extension Parser {
                 var ex: ProcedureCall!
                 if let error = doProcedureCall(in: scope).assign(&ex) { return .failure(error) }
                 expression = ex
+                break
             }
-            else if matchMemberAccess() {
+            
+            if !nextToken() { return error(em.unexpectedEndOfFile) }
+            if matchMemberAccess() {
                 var base: Expression = Value(name: identifier.value, exprType: .unresolved,
-                                             startCursor: token.startCursor, endCursor: token.endCursor)
+                                             startCursor: tok.startCursor, endCursor: tok.endCursor)
                 // @Todo: resolve type of base
                 while matchMemberAccess() {
                     if let error = doMemberAccess(of: base, in: scope).assign(&base) { return .failure(error) }
@@ -552,7 +554,6 @@ extension Parser {
                     }
                     else { return error(em.assignPassedNotValue(statement), tok.startCursor, tok.endCursor) }
                 }
-                if !nextToken() { return error(em.unexpectedEndOfFile) }
             }
         case is Punctuator: return error(em.expectedExpression)
         case is Separator: return error(em.expectedExpression)

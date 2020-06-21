@@ -117,7 +117,10 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
         var string = "[Variable] \(name): \(exprType) "
         if flags.contains(.isConstant) { string.append("(constant) ") }
         if let exp = expression { string.append("= \(exp) ") }
-        else { string.append("[uninitialized] ") }
+        else {
+            if exprType is StructureType { string.append("[zero initialized] ") }
+            else { string.append("[uninitialized] ") }
+        }
         return string
     }
     
