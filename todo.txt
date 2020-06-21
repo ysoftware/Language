@@ -1,9 +1,9 @@
 LEXER TODO
 
 ✅ escaping quotes in strings
+✅ add EOF token
 
 -- properly eat whitespaces
--- add EOF token
 -- hex/bin numbers
 
 PARSER TODO
@@ -35,5 +35,5 @@ PARSER TODO
 
 IR Gen TODO
 
--- structures
+✅ structures
 -- arrays
