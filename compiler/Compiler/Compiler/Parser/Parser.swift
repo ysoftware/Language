@@ -520,7 +520,22 @@ extension Parser {
             case .int(let value): expression = IntLiteral(value: value)
             case .bool(let value): expression = IntLiteral(value: value ? 1 : 0, exprType: .bool)
             case .float(let value): expression = FloatLiteral(value: value)
-            case .string(let value): expression = StringLiteral(value: value)
+            case .string(let value):
+                if scope === globalScope {
+                    expression = StringLiteral(value: value)
+                }
+                else { // convert string literal to global constant
+                    var decl: VariableDeclaration! = stringLiterals[value]
+                    if decl == nil {
+                        let count = stringLiterals.count
+                        let id = "StringLiteral\(count)"
+                        decl = VariableDeclaration(name: id, exprType: .string,
+                                                   flags: .isConstant, expression: StringLiteral(value: value))
+                        stringLiterals[value] = decl
+                        statements.insert(decl, at: 0)
+                    }
+                    expression = Value(name: decl.name, exprType: .string)
+                }
             }
             if !nextToken() { return error(em.unexpectedEndOfFile) }
         case let identifier as Identifier:
@@ -669,12 +684,14 @@ final class Parser {
     
     // Variables
     
-    let em: ErrorMessage = ErrorMessage()
+    var statements: [Statement] = []
+    var stringLiterals: [String: VariableDeclaration] = [:]
     var unresolved: [String: [Ast]] = [:] /// all with type unresolved
     var globalScope = Scope() /// all declarations in global scope
+    
+    let em: ErrorMessage = ErrorMessage()
     var i = 0
     var token: Token
-    var statements: [Statement] = []
     var entry: ProcedureDeclaration?
     
     func parse() -> Result<Code, ParserError> {

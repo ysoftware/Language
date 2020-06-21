@@ -10,12 +10,13 @@ struct Rect {
     size: Vector;
 }
 
-RECT :: "Origin: %dx%d, Size: %dx%d\n";
-func printRect(rect: Rect) { printf(RECT, rect.origin.x, rect.origin.y, rect.size.x, rect.size.y); }
+func printRect(rect: Rect) { 
+    printf("Origin: %dx%d, Size: %dx%d\n", rect.origin.x, rect.origin.y, rect.size.x, rect.size.y); 
+}
 
-VECTOR :: "Vector: %dx%d\n";
-func printVector(vector: Vector) { printf(VECTOR, vector.x, vector.y); }
-
+func printVector(vector: Vector) { 
+    printf("Vector: %dx%d\n", vector.x, vector.y); 
+}
 
 func rectCenter(rect: Rect) -> Vector {
     a : Vector;
