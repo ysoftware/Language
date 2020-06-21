@@ -153,10 +153,10 @@ final class IR {
                     
                     if procedure.arguments.count > 0 {
                         for arg in procedure.arguments {
-                            let argCount = count()
+                            let argValue = "%\(count())"
                             let scopeIdent = String(repeating: "\t", count: ident+1)
                             emitLocal("\(scopeIdent)%\(arg.name) = alloca \(matchType(arg.exprType))")
-                            emitLocal("\(scopeIdent)store \(matchType(arg.exprType)) %\(argCount), \(matchType(arg.exprType))* %\(arg.name)")
+                            emitLocal("\(scopeIdent)store \(matchType(arg.exprType)) \(argValue), \(matchType(arg.exprType))* %\(arg.name)")
                         }
                         emitLocal()
                     }

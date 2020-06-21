@@ -2,7 +2,6 @@ func printf(format: String, arguments: Int32, ...) #foreign;
 
 X :: "Position.x is %d\n";
 Y :: "Position.y is %d\n";
-A :: "a is %d!\n";
 
 struct Point {
     x: Int;
@@ -14,16 +13,13 @@ func main(count: Int, arguments: Int8**) -> Int {
     // allocated to size
     position : Point;
 
-    a: Int;
-    printf(A, a);
-
 /*
     // rValue
     position.x = 15;
     position.y = 30;
 */
 
-    //printf(X, position.x);
+    printf(X, position.x);
     printf(Y, position.y);
 
     return 0;
