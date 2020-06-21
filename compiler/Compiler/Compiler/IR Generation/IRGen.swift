@@ -204,15 +204,28 @@ final class IR {
                     }
                 }
                 
-            case let variable as Assignment:
-                break
-                // @Todo: reimplement with proper assignment to rvalue
+            case let assign as Assignment:
                 
-//                let (expCode, expVal) = getExpressionResult(variable.expression, ident: ident)
-//                emitLocal("; assignment to \(variable.receiverId)")
-//                emitLocal(expCode)
-//                let type = matchType(variable.expression.exprType)
-//                emitLocal("store \(type) \(expVal), \(type)* %\(variable.receiverId)")
+                emitLocal()
+                emitLocal("; assignment")
+                
+                var receiver = ""
+                if let value = assign.receiver as? Value {
+                    receiver = "%\(value.name)" // @Todo: id for different scopes
+                }
+                else if let access = assign.receiver as? MemberAccess {
+                    // this is rValue member access, IRGen for member value as expression is in another place
+                    
+                    let (intermediateCode, memberPointerValue) = getMemberPointerValue(of: access, with: ident)
+                    emitLocal(intermediateCode)
+                    receiver = memberPointerValue
+                }
+                else { report("Unsupported rValue.") }
+                
+                let (expCode, expVal) = getExpressionResult(assign.expression, ident: ident)
+                emitLocal(expCode)
+                let type = matchType(assign.expression.exprType)
+                emitLocal("store \(type) \(expVal), \(type)* \(receiver)")
                 
             case let ret as Return:
                 let (expCode, expVal) = getExpressionResult(ret.value, ident: ident)

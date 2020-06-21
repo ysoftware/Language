@@ -93,7 +93,6 @@ internal extension IR {
                 else {
                     let (eCode, eValue) = getExpressionResult(arg, ident: ident)
                     if let eCode = eCode {
-                        code += "\(identation); argument\n"
                         code += "\(identation)\(eCode)"
                     }
                     arguments.append("\(matchType(arg.exprType)) \(eValue)")
@@ -119,31 +118,13 @@ internal extension IR {
 
         case let access as MemberAccess:
             // this is member access as expression, IRGen for the rValue member access is in another place
-            guard let memberIndex = access.memberIndex else { report("Member access index is not set before IR Gen stage") }
             
-            var code = "\n"
-            code += "\(identation); member access \(access.base.exprType.typeName).\(access.memberName)\n"
-            
-            var (load, val) = getExpressionResult(access.base, ident: ident)
-            load.map { code += "\(identation)\($0)\n" }
-            let baseType = matchType(access.base.exprType)
-            let memberType = matchType(access.exprType)
-            
-            if !(access.base.exprType is PointerType) {
-                let derefValue = "%\(count())"
-                code += "\(identation); getting pointer to base struct instance\n"
-                code += "\(identation)\(derefValue) = alloca \(baseType)\n"
-                code += "\(identation)store \(baseType) \(val), \(baseType)* \(derefValue)\n"
-                val = derefValue
-            }
-            
-            let memberPointerValue = "%\(count())"
-            code += "\(identation)\(memberPointerValue) = getelementptr \(baseType), \(baseType)* \(val), i32 0, i32 \(memberIndex)\n"
-            
-            // @Todo: do recursive member access pointer search for things like:
-            /// `a := frame.size.width`
+            var code = ""
+            let (intermediateCode, memberPointerValue) = getMemberPointerValue(of: access, with: ident)
+            code += intermediateCode
             
             let value = "%\(count())"
+            let memberType = matchType(access.exprType)
             code += "\(identation)\(value) = load \(memberType), \(memberType)* \(memberPointerValue)\n"
 
             return (code, value)
@@ -205,5 +186,34 @@ internal extension IR {
         }
         let argumentsString = arguments.joined(separator: ", ")
         return argumentsString
+    }
+
+    /// Value is the pointer to the member, and the code is what's required to search for it
+    func getMemberPointerValue(of access: MemberAccess, with ident: Int) -> (code: String, value: String) {
+        guard let memberIndex = access.memberIndex else { report("Member access index is not set before IR Gen stage") }
+        let identation = String(repeating: "\t", count: ident)
+        
+        let baseType = matchType(access.base.exprType)
+        
+        var code = "\n"
+        code += "\(identation); member access \(access.base.exprType.typeName).\(access.memberName)\n"
+        
+        var base = ""
+        if let value = access.base as? Value {
+            base = "%\(value.name)"
+        }
+        else {
+            let (load, val) = getExpressionResult(access.base, ident: ident)
+            load.map { code += "\(identation)\($0)\n" }
+            base = val
+        }
+        
+        // @Todo: do recursive member access pointer search for things like:
+        /// `a := frame.size.width`
+        
+        let memberPointerValue = "%\(count())"
+        code += "\(identation)\(memberPointerValue) = getelementptr \(baseType), \(baseType)* \(base), i32 0, i32 \(memberIndex)\n"
+        
+        return (code, memberPointerValue)
     }
 }
