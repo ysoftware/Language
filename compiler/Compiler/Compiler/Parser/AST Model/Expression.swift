@@ -281,3 +281,24 @@ final class VoidLiteral: LiteralExpr {
         self.endCursor = endCursor
     }
 }
+
+final class NullLiteral: LiteralExpr {
+    
+    var isRValue: Bool  { false }
+    
+    var startCursor: Cursor
+    var endCursor: Cursor
+    
+    var debugDescription: String { "[Void]" }
+    
+    var exprType: Type = .void
+    
+    internal init(exprType: Type,
+                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+        self.exprType = exprType
+        self.startCursor = startCursor
+        self.endCursor = endCursor
+        
+        guard !exprType.isResolved || exprType is PointerType else { report("Null literal is always a pointer.") }
+    }
+}

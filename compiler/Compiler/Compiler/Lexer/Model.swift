@@ -24,6 +24,8 @@ enum LiteralToken: Equatable {
     case float(value: Float64)
     case int(value: Int)
     case bool(value: Bool)
+    case null
+    case void
 }
 
 protocol TokenValue {
@@ -103,6 +105,8 @@ final class Token: Equatable, CustomDebugStringConvertible {
             case .float(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
             case .int(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
             case .bool(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
+            case .void: return "[Void]"
+            case .null: return "[Null]"
             }
         }
         else if let keyword = value as? Keyword {

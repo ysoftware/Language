@@ -148,8 +148,10 @@ final class Lexer {
                         || numberRange.contains($0) || $0 == "_" || $0 == "*" }) {
                             value.append(next)
                 }
-                
-                if value == "true" { append(TokenLiteral(value: .bool(value: true)), start, cursor) }
+            
+                if value == "void" { append(TokenLiteral(value: .void), start, cursor) }
+                else if value == "null" { append(TokenLiteral(value: .null), start, cursor) }
+                else if value == "true" { append(TokenLiteral(value: .bool(value: true)), start, cursor) }
                 else if value == "false" { append(TokenLiteral(value: .bool(value: false)), start, cursor) }
                 else if let keyword = Keyword(rawValue: value) { append(keyword, start, cursor) }
                 else if isDirective {

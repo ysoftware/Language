@@ -16,6 +16,8 @@ final class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
+        // @Todo: test member access: both expression and rvalue
+        
         i.testPointers()
         i.testFunctionDeclaration()
         i.testVariableAssign()

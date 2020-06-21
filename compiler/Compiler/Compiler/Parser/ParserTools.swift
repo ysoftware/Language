@@ -13,11 +13,14 @@ extension Parser {
     // @Todo: add append method the same as in Lexer
     // to auto-include the Cursor in the Ast
     
-    // make sure to add dependency for an ast with unresolved type
+    
+    /// make sure to add dependency for an ast with unresolved type
     func resolveMemberTypeAndIndex(name: String, of base: Expression) -> (type: Type, index: Int)? {
         guard !base.exprType.equals(to: .unresolved) else { return nil }
         
-        guard let structType = base.exprType as? StructureType else {
+        var baseType = base.exprType
+        if let pointer = base.exprType as? PointerType { baseType = pointer.pointeeType }
+        guard let structType = baseType as? StructureType else {
             report("Don't call this resolveMemberType for non-struct bases.")
         }
         
@@ -35,7 +38,7 @@ extension Parser {
         return (decl.members[index].exprType, index)
     }
     
-    // make sure to add dependency for an ast with unresolved type
+    /// make sure to add dependency for an ast with unresolved type
     func resolveType(_ name: String) -> Type {
         let type = Type.named(name)
         if type is StructureType {
@@ -123,18 +126,26 @@ extension Parser {
             return UnaryOperator(name: unop.name, exprType: type, argument: arg,
                                  startCursor: unop.startCursor, endCursor: unop.endCursor)
         }
+        if expression is NullLiteral {
+            guard exprType is PointerType else { return nil }
+            return NullLiteral(exprType: exprType,
+                               startCursor: expression.startCursor, endCursor: expression.endCursor)
+        }
         if let int = expression as? IntLiteral {
             guard int.isConvertible(to: exprType) else { return nil }
             if exprType is IntType {
-                return IntLiteral(value: int.value, exprType: exprType)
+                return IntLiteral(value: int.value, exprType: exprType,
+                                  startCursor: expression.startCursor, endCursor: expression.endCursor)
             }
             else {
-                return FloatLiteral(value: Float64(int.value), exprType: exprType)
+                return FloatLiteral(value: Float64(int.value), exprType: exprType,
+                                    startCursor: expression.startCursor, endCursor: expression.endCursor)
             }
         }
         if let float = expression as? FloatLiteral {
             guard float.isConvertible(to: exprType) else { return nil }
-            return FloatLiteral(value: Float64(float.value), exprType: exprType)
+            return FloatLiteral(value: Float64(float.value), exprType: exprType,
+                                startCursor: expression.startCursor, endCursor: expression.endCursor)
         }
         return nil
     }

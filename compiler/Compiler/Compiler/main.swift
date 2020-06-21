@@ -39,7 +39,7 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
         reportTimeSpent(on: "Lexing", from: previousTime, print: PrintTime)
         
         if CommandLine.arguments.contains("-tokens") {
-            print(lexerOutput.tokens)
+            print(lexerOutput.tokens.map { String(describing: $0) }.joined(separator: "\n"))
             quit(0)
         }
         

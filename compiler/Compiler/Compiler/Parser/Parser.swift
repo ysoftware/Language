@@ -520,6 +520,8 @@ extension Parser {
             case .int(let value): expression = IntLiteral(value: value)
             case .bool(let value): expression = IntLiteral(value: value ? 1 : 0, exprType: .bool)
             case .float(let value): expression = FloatLiteral(value: value)
+            case .null: expression = NullLiteral(exprType: .unresolved)
+            case .void: expression = VoidLiteral()
             case .string(let value):
                 if scope === globalScope {
                     expression = StringLiteral(value: value)
