@@ -8,11 +8,9 @@
 
 import Foundation
 
-// @Todo: convert them to #intrinsic? after I learn what intrinsic is.
-let internalProcedures = [
-    "int8PointerToInt32", // func int8PointerToInt32(pointer: Int8*) -> Int32 #foreign;
-    "int32AsInt8Pointer"  // func int32AsInt8Pointer(address: Int32) -> Int8* #foreign;
-]
+let internalProcedures: [ProcedureDeclaration] = [
+    "func pointerToInt(pointer: Any*) -> Int32 #foreign;"
+].compactMap(stringToAST).compactMap { $0.statements.first as? ProcedureDeclaration }
 
 internal extension IR {
     
@@ -20,14 +18,14 @@ internal extension IR {
     func doInternalProcedure(_ call: ProcedureCall, ident: Int) -> (code: String?, value: String) {
         let identation = string(for: ident)
         
-        if call.name == "int8PointerToInt32" {
+        if call.name == "pointerToInt" {
             
             guard call.arguments.count == 1 else {
                 report("\(call.name) expects exactly 1 argument", call.startCursor, call.endCursor)
             }
             
             let arg = call.arguments[0]
-            guard arg.exprType.equals(to: .pointer(.int8)) else {
+            guard arg.exprType is PointerType else {
                 report("\(call.name): Pointer expected, got \(arg.exprType.typeName) instead.",
                     arg.startCursor, arg.endCursor)
             }
@@ -39,31 +37,6 @@ internal extension IR {
             let counter = count()
             let value = "%\(counter)"
             code += "\n\(identation)\(value) = ptrtoint \(matchType(arg.exprType)) \(val) to \(matchType(.int32))"
-            
-            return (code, value)
-        }
-        
-        if call.name == "int32AsInt8Pointer" {
-            
-            // @Todo: this doesn't seem to work: Segmentation fault: 11
-            
-            guard call.arguments.count == 1 else {
-                report("\(call.name) expects exactly 1 argument", call.startCursor, call.endCursor)
-            }
-            
-            let arg = call.arguments[0]
-            guard arg.exprType.equals(to: .int32) else {
-                report("\(call.name): Int32 expected, got \(arg.exprType.typeName) instead.",
-                    arg.startCursor, arg.endCursor)
-            }
-            
-           var code = ""
-            let (load, val) = getExpressionResult(arg, ident: ident)
-            load.map { code += "\(identation)\($0)\n" }
-            
-            let counter = count()
-            let value = "%\(counter)"
-            code += "\n\(identation)\(value) = inttoptr \(matchType(arg.exprType)) \(val) to \(matchType(.pointer(.int8)))"
             
             return (code, value)
         }

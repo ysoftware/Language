@@ -8,6 +8,13 @@
 
 import Foundation
 
+extension UnaryOperator {
+    
+    static let dereference = "*"
+    static let memoryAddress = "&"
+    static let negation = "-"
+}
+
 // with precedence level
 enum Precedence {
     
@@ -35,13 +42,14 @@ enum Precedence {
 
 func returnType(ofUnaryOperation operation: String, arg: Type) -> Type {
     switch operation {
-    case "-":
+    case UnaryOperator.negation:
         return arg
-    case "*":
+        
+    case UnaryOperator.dereference:
         guard let ptr = arg as? PointerType else { report("Value we're trying to dereference is not a pointer.") }
         return ptr.pointeeType
         
-    case "&":
+    case UnaryOperator.memoryAddress:
         return PointerType(pointeeType: arg)
         
     default: report("Unary operation \(operation) is not yet implemented.")

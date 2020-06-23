@@ -13,38 +13,40 @@ extension IR {
         if type is PointerType {
             switch operation {
             case "==", "!=":
-                
+
                 var code = ""
                 let workingType = matchType(type)
                 let instr = instruction(for: operation, type: .int64)
-                
+
                 var lCode: String?, lValue: String = ""
                 if let variable = arguments.0 as? Value {
                     lValue = "%\(variable.name)"
+                    let lPointer = "%\(count())"
+                    code += "\(lPointer) = load \(workingType), \(workingType)* \(lValue)\n"
+                    lValue = lPointer
                 }
                 else {
                     (lCode, lValue) = getExpressionResult(arguments.0, ident: 0)
                     lCode.map { code += "\($0)\n" }
                 }
-                
+
                 var rCode: String?, rValue: String = ""
                 if let variable = arguments.1 as? Value {
                     rValue = "%\(variable.name)"
+                    let rPointer = "%\(count())"
+                    code += "\(rPointer) = load \(workingType), \(workingType)* \(rValue)\n"
+                    rValue = rPointer
                 }
                 else {
                     (rCode, rValue) = getExpressionResult(arguments.1, ident: 0)
                     rCode.map { code += "\($0)\n" }
                 }
                 
-                let lPointer = "%\(count())"
-                let rPointer = "%\(count())"
                 let result = "%\(count())"
-                code += "\(lPointer) = ptrtoint \(workingType)* \(lValue) to \(matchType(.int64))\n"
-                code += "\(rPointer) = ptrtoint \(workingType)* \(rValue) to \(matchType(.int64))\n"
-                code += "\(result) = \(instr) \(matchType(.int64)) \(lPointer), \(rPointer)"
+                code += "\(result) = \(instr) \(workingType) \(lValue), \(rValue)"
                 
                 return (code, result)
-                
+
             default: break
             }
         }
@@ -55,7 +57,7 @@ extension IR {
 func instruction(for operation: String, type: Type) -> String {
     var i = ""
     
-    let int = type is IntType
+    let int = type is IntType || type is PointerType
     let sgn = (type as? IntType)?.isSigned ?? false
     let flt = type is FloatType
     

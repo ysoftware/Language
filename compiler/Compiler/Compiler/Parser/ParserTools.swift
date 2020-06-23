@@ -84,34 +84,6 @@ extension Parser {
         return nil
     }
     
-    /*
-     
-     @Todo: lvalue operations (assignment)
-     @Todo: literal conversion
-     
-     Int32 >> Int16 >> Int8 >> Bool: explicit, check overflow
-     Int32 >> Int64 >> Float32 >> Float64: implicit
-     
-     --- finalized works by expectation
-     
-     1 + 2 + 2147483648 + 1.0
-        binop [Int32] 1 + 2
-        binop [Int64] a + 2147483648
-        binop [Float] b + 1.0
-     Int32 >> Int64 >> Float (we can keep converting it until it's used)
-    
-     a : Int8 = 1 + 2
-        binop [Int32] 1 + 2
-        assign [Int8] a
-     Int32 >> Int8 (finalized)
-     
-     if (0 + 1) { ... }
-        binop [Int32] 0 + 1
-        condition [Bool]
-     Int32 >> Bool (finalized)
-     
-     */
-    
     func convertExpression(_ expression: Expression, to exprType: Type) -> Expression? {
         if let binop = expression as? BinaryOperator {
             guard let left = convertExpression(binop.arguments.0, to: exprType),

@@ -41,7 +41,8 @@ internal extension IR {
             return (code, argValue)
             
         case let call as ProcedureCall:
-            if internalProcedures.contains(call.name) { return doInternalProcedure(call, ident: ident) }
+            if internalProcedures.contains(where: { $0.name == call.name })
+                { return doInternalProcedure(call, ident: ident) }
             
             guard let procedure = procedures[call.name] else {
                 report("Undefined procedure call: \(call.name)")
@@ -117,13 +118,13 @@ internal extension IR {
         case let access as MemberAccess:
             // this is member access as expression, IRGen for the rValue member access is in another place
             
-            let (intermediateCode, memberPointerValue) = getMemberPointerValue(of: access, with: ident)
+            let (intermediateCode, memberPointerValue) = getMemberPointerAddress(of: access, with: ident)
             code += intermediateCode
             
             let value = "%\(count())"
             let memberType = matchType(access.exprType)
-            code += "\(identation)\(value) = load \(memberType), \(memberType)* \(memberPointerValue)\n"
-            
+            code += "\(identation)\(value) = load \(memberType), \(memberType)* \(memberPointerValue)"
+
             return (code, value)
             
         case let op as UnaryOperator:
@@ -206,20 +207,22 @@ internal extension IR {
         return argumentsString
     }
     
-    /// Value is the pointer to the member, and the code is what's required to search for it
-    func getMemberPointerValue(of access: MemberAccess, with ident: Int) -> (code: String, value: String) {
+    /// Returns the `pointer to the member`, and the code is what's required to search for it
+    func getMemberPointerAddress(of access: MemberAccess, with ident: Int) -> (code: String, value: String) {
         guard let memberIndex = access.memberIndex else { report("Member access index is not set before IR Gen stage") }
         let identation = string(for: ident)
+        var baseType = matchType(access.base.exprType)
         
         var code = ""
-
-        let baseType = matchType(access.base.exprType)
         var base = ""
+        
+        code += "\(identation); member access \(access.base.exprType.typeName).\(access.memberName)\n"
+        
         if let value = access.base as? Value {
             base = "%\(value.name)"
         }
         else if let nestedAccess = access.base as? MemberAccess {
-            let (load, val) = getMemberPointerValue(of: nestedAccess, with: ident)
+            let (load, val) = getMemberPointerAddress(of: nestedAccess, with: ident)
             code += load
             base = val
         }
@@ -229,11 +232,17 @@ internal extension IR {
             base = val
         }
         
-        code += "\(identation); member access \(access.base.exprType.typeName).\(access.memberName)\n"
-        let memberPointerValue = "%\(count())"
+        if let pointer = access.base.exprType as? PointerType { // deref pointer first
+            let type = matchType(pointer)
+            let deref = base
+            base = "%\(count())"
+            code += "\(identation); dereferencing\n"
+            code += "\(identation)\(base) = load \(type), \(type)* \(deref)\n"
+            baseType = matchType(pointer.pointeeType)
+        }
         
-        let index0 = (access.base.exprType as? PointerType)?.pointeeType is StructureType ? "" : "i32 0, "
-        code += "\(identation)\(memberPointerValue) = getelementptr \(baseType), \(baseType)* \(base), \(index0)i32 \(memberIndex)\n"
+        let memberPointerValue = "%\(count())"
+        code += "\(identation)\(memberPointerValue) = getelementptr \(baseType), \(baseType)* \(base), i32 0, i32 \(memberIndex)\n"
         
         return (code, memberPointerValue)
     }

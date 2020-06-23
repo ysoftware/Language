@@ -1,86 +1,65 @@
-func printf(format: String, arguments: Int32, ...) #foreign;
+func printf(format: String, arguments: Int, ...) #foreign;
+
+// @Todo: implement heap allocation
 
 struct Node {
-    nextNode: Node*;
+    next: Node*;
     value: Int;
 }
 
 struct List {
-    firstNode: Node*;
-    lastNode: Node*;
-    count: Int;
-}
-
-// @Todo
-// + null literal
-// + getting pointer of element
-// member access of a pointer
-// pointer comparison
-// pointer as boolean expression (null checking)
-
-func printList(list: List) {
-    printf("List. Count: %d\n", list.count);
-    node := list.firstNode;
-    index := 0;
-    nextNode := node.nextNode;
-    
-    /*
-    while (nextNode != null) {
-        //printf("  %d: %d\n", index, node.value);
-        node = node.nextNode;
-        index = index + 1;
-    }
-    */
-}
-
-func append(list: List*, value: Int) {
-/*
-    node: Node*;
-    node.value = value;
-
-    if (list.count > 0) {
-        list.lastNode.nextNode = node;
-        list.lastNode = node;
-    }
-    else {
-        list.firstNode = node;
-        list.lastNode = node;
-    }
-
-    list.count = list.count + 1;
-    */
+    head: Node*;
 }
 
 func main(count: Int, arguments: Int8**) -> Int {
     list: List;
-    printList(list);
 
-    append(&list, 0);
-    printList(list);
+    node1: Node;
+    node1.value = 1;
+    list.head = &node1;
 
-    append(&list, 1);
-    printList(list);
+    if (list.head != null) {
+        node2: Node;
+        node2.value = 2;
+        list.head.next = &node2;
 
-    append(&list, 1);
-    printList(list);
+        if (list.head.next != null) {
+            node3: Node;
+            node3.value = 3;
+            list.head.next.next = &node3;
 
-    append(&list, 2);
-    printList(list);
+            if (list.head.next.next != null) {
+                node4: Node;
+                node4.value = 4;
+                list.head.next.next.next = &node4;
+            }
+        }
+    }
 
-    append(&list, 3);
-    printList(list);
+    first := list.head;
+    if (first != null) {
+        printf("1: %d\n", first.value);
 
-    append(&list, 5);
-    printList(list);
+        second := first.next;
+        if (second != null) {
+            printf("2: %d\n", second.value);
 
-    append(&list, 8);
-    printList(list);
+            third := second.next;
+            if (third != null) {
+                printf("3: %d\n", third.value);
 
-    append(&list, 13);
-    printList(list);
+                fourth := third.next;
+                if (fourth != null) {
+                    printf("4: %d\n", fourth.value);
 
-    append(&list, 21);
-    printList(list);
+                    fifth := fourth.next;
+                    if (fifth != null) {
+                        printf("5: %d\n", fifth.value);
+                    }
+                }
+            }
+        }
+    }
 
     return 0;
 }

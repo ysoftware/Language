@@ -173,3 +173,14 @@ func quit(_ code: Int32) -> Never {
     reportTimeSpent(print: true)
     exit(code)
 }
+
+func stringToAST(_ string: String) -> Code? {
+    do {
+        let lexerOutput = try Lexer(string).analyze().get()
+        let code = try Parser(lexerOutput.tokens).parse().get()
+        return code
+    }
+    catch {
+        return nil
+    }
+}

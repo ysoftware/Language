@@ -103,6 +103,7 @@ class PredictedType: Type, Equatable {
 }
 
 class VoidType: Type { }
+class AnyType: Type { }
 
 extension Type {
     
@@ -116,6 +117,9 @@ extension Type {
         case (let a as StructureType, let b as StructureType): return a == b
         case (is UnresolvedType, is UnresolvedType): return true
         case (is VoidType, is VoidType): return true
+            
+        case (_, is AnyType): return true
+        case (is AnyType, _): return true
         default: return false
         }
     }
@@ -153,7 +157,8 @@ extension Type {
 
         case "String": return PointerType(pointeeType: .int8)
         case "Void": return .void
-    
+        case "Any": return .any
+
         default:
             if identifier.hasSuffix("*") {
                 let name = String(identifier[..<identifier.endIndex(offsetBy: -1)])
@@ -174,6 +179,7 @@ extension Type {
     static let int64 = IntType(size: 64)
     static let string = PointerType(pointeeType: Type.int8)
     static let void = VoidType()
+    static let any = AnyType()
     static let unresolved = UnresolvedType()
     
     static func `struct`(_ name: String) -> StructureType {

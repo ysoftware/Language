@@ -84,7 +84,7 @@ extension Parser {
         if !expectingType.equals(to: .unresolved) {
             // @Todo: resolve expression type
             guard expr.exprType.equals(to: expectingType) else {
-                return error(em.assignTypeMismatch(expectingType, expr.exprType))
+                return error(em.assignTypeMismatch(expectingType, expr.exprType), expr.startCursor, expr.endCursor)
             }
         }
         
@@ -206,7 +206,7 @@ extension Parser {
         let end = lastToken.endCursor
         var returnType: Type = .unresolved
         
-        let foundDecl = scope.declarations[name.value] // ?? internalProcedures[name.value]
+        let foundDecl = scope.declarations[name.value] ?? internalProcedures.first(where: { $0.name == name.value })
         
         if let statement = foundDecl { // else - proceed
             if let procDecl = statement as? ProcedureDeclaration {

@@ -37,3 +37,8 @@ IR Gen TODO
 
 ✅ structures
 -- arrays
+
+
+BUGS
+
+// endless loop: if (pointer != null) {  printf("%d\n", pointerToInt(pointer))); }

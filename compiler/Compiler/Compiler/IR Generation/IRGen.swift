@@ -33,7 +33,7 @@ final class IR {
     }
     
     /// Write a line of IR text into the global scope
-    private func emitGlobal(_ string: String) {
+    internal func emitGlobal(_ string: String) {
         globalScope += string + "\n"
     }
     
@@ -138,7 +138,7 @@ final class IR {
                 
                 emitGlobal("")
                 emitGlobal("; struct decl: \(structure.name)")
-                emitGlobal("%Structure\(structure.name) = type { \(structure.members.map { matchType($0.exprType) }.joined(separator: ", ")) }")
+                emitGlobal("%\(structure.name)__struct = type { \(structure.members.map { matchType($0.exprType) }.joined(separator: ", ")) }")
                 
             case let procedure as ProcedureDeclaration:
                 globalCounter = 0
@@ -203,7 +203,7 @@ final class IR {
                     else {
                         emitLocal("store \(type) zeroinitializer, \(type)* %\(variable.name)")
                     }
-                    emitLocal()
+                    emitLocal("\n")
                 }
                 
             case let assign as Assignment:
@@ -218,7 +218,7 @@ final class IR {
                 else if let access = assign.receiver as? MemberAccess {
                     // this is rValue member access, IRGen for member value as expression is in another place
                     
-                    let (intermediateCode, memberPointerValue) = getMemberPointerValue(of: access, with: ident)
+                    let (intermediateCode, memberPointerValue) = getMemberPointerAddress(of: access, with: ident)
                     emitLocal(intermediateCode)
                     receiver = memberPointerValue
                 }

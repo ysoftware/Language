@@ -2,3 +2,4 @@ compiler/Compiler/Compiler.xcodeproj/project.xcworkspace/
 output.app
 output.ll
 output.o
+output.s
