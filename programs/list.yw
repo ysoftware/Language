@@ -1,5 +1,7 @@
 func printf(format: String, arguments: Int, ...) #foreign;
 
+// @Todo: size of
+// @Todo: casting (different sizes of Int, Void* to other pointers)
 // @Todo: implement heap allocation
 
 struct Node {

@@ -17,30 +17,6 @@ extension String {
     subscript(index: Int) -> Character { self[startIndex(offsetBy: index)] }
 }
 
-extension Result where Failure == ParserError {
-    
-    func assign(_ pointer: inout Success?) -> ParserError? {
-        switch self {
-        case .success(let value): pointer = value; return nil
-        case .failure(let error): return error
-        }
-    }
-    
-    func assign(_ pointer: inout Success) -> ParserError? {
-        switch self {
-        case .success(let value): pointer = value; return nil
-        case .failure(let error): return error
-        }
-    }
-    
-    func then(_ block: (Success)->Void) -> ParserError? {
-        switch self {
-        case .success(let value): block(value); return nil
-        case .failure(let error): return error
-        }
-    }
-}
-
 extension Ast {
     
     func equals(to ast: Ast?) -> Bool {
@@ -177,7 +153,7 @@ func quit(_ code: Int32) -> Never {
 func stringToAST(_ string: String) -> Code? {
     do {
         let lexerOutput = try Lexer(string).analyze().get()
-        let code = try Parser(lexerOutput.tokens).parse().get()
+        let code = try Parser(lexerOutput.tokens).parse()
         return code
     }
     catch {

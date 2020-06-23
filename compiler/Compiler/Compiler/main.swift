@@ -43,7 +43,7 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             quit(0)
         }
         
-        let result = try Parser(lexerOutput.tokens).parse().get()
+        let result = try Parser(lexerOutput.tokens).parse()
         reportTimeSpent(on: "Parsing", from: previousTime, print: PrintTime)
         
         if CommandLine.arguments.contains("-ast") {

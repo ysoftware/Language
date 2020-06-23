@@ -141,14 +141,14 @@ extension Parser {
     }
     
     /// returns the error set at the current point
-    func error<T>(_ error: String, procedure: String = #function, line: Int = #line,
-                  _ start: Cursor? = nil, _ end: Cursor? = nil) -> Result<T, ParserError> {
+    func error(_ error: String, procedure: String = #function, line: Int = #line,
+               _ start: Cursor? = nil, _ end: Cursor? = nil) -> ParserError {
         let startC = start ?? lastToken.endCursor.advancingCharacter()
         let endC = end ?? startC
         let context = "Error in: \(procedure) #\(line)"
         let error = ParserError(fileName: fileName, startCursor: startC, endCursor: endC,
                                 message: error, context: context)
-        return .failure(error)
+        return error
     }
     
     /// advances the counter
