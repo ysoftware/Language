@@ -49,7 +49,7 @@ final class Lexer {
     var i = 0
     var char: Character
     
-    func analyze() -> Result<LexerOutput, LexerError> {    
+    func analyze() throws -> LexerOutput {    
         loop: while stringCount > i {
             switch char {
                 
@@ -66,11 +66,11 @@ final class Lexer {
                 if isMultiline {
                     nextChar(3)
                     if !consume("\n") {
-                        return error(.newlineExpectedBeforeMultilineStringLiteral, cursor, cursor)
+                        throw error(.newlineExpectedBeforeMultilineStringLiteral, cursor, cursor)
                     }
                 }
                 else {
-                    if !nextChar() { return error(.unexpectedEndOfFile, cursor, cursor) }
+                    if !nextChar() { throw error(.unexpectedEndOfFile, cursor, cursor) }
                 }
                 
                 
@@ -80,7 +80,7 @@ final class Lexer {
                     
                     if char == "\\" {
                         guard let next = peekNext()
-                            else { return error(.unexpectedEndOfFile, cursor, cursor) }
+                            else { throw error(.unexpectedEndOfFile, cursor, cursor) }
                         
                         switch next {
                         case "0":  value.append(Character(UnicodeScalar(0)))
@@ -89,21 +89,21 @@ final class Lexer {
                         case "\\": value.append("\\")
                         case "t":  value.append("\t")
                         case "\"": value.append("\"")
-                        default: return error(.unexpectedCharacterToEscape, cursor, cursor)
+                        default: throw error(.unexpectedCharacterToEscape, cursor, cursor)
                         }
-                        if !nextChar() || !nextChar() { return error(.unexpectedEndOfFile, cursor, cursor) }
+                        if !nextChar() || !nextChar() { throw error(.unexpectedEndOfFile, cursor, cursor) }
                         continue
                     }
                     
                     if isMultiline {
-                        if peekNext() == nil { return error(.unexpectedEndOfFile, cursor, cursor) }
+                        if peekNext() == nil { throw error(.unexpectedEndOfFile, cursor, cursor) }
                         else if isNextThreeQuotes() {
-                            return error(.newlineExpectedAfterMultilineStringLiteral, cursor, cursor)
+                            throw error(.newlineExpectedAfterMultilineStringLiteral, cursor, cursor)
                         }
                         else if char == "\n", isNextThreeQuotes(after: 1) {
                             nextChar(4)
                             if let next = peekNext(), next != "\n", next != ";" {
-                                return error(.newlineExpectedAfterMultilineStringLiteral, cursor, cursor)
+                                throw error(.newlineExpectedAfterMultilineStringLiteral, cursor, cursor)
                             }
                             else {
                                 append(TokenLiteral(value: .string(value: value)), start, cursor)
@@ -116,11 +116,11 @@ final class Lexer {
                             append(TokenLiteral(value: .string(value: value)), start, cursor)
                             break
                         }
-                        else if peekNext() == "\n" { return error(.newLineInStringLiteral, cursor, cursor) }
+                        else if peekNext() == "\n" { throw error(.newLineInStringLiteral, cursor, cursor) }
                     }
                     
                     value.append(char)
-                    if !nextChar() { return error(.unexpectedEndOfFile, cursor, cursor) }
+                    if !nextChar() { throw error(.unexpectedEndOfFile, cursor, cursor) }
                 }
                 
             case ";",  ",":
@@ -134,11 +134,11 @@ final class Lexer {
                 let start = cursor
                 let isDirective = consume(string: ["#"])
                 if isDirective {
-                    if !nextChar() { return error(.emptyDirectiveName, start, cursor) }
-                    else if char == " " { return error(.emptyDirectiveName, start, cursor) }
+                    if !nextChar() { throw error(.emptyDirectiveName, start, cursor) }
+                    else if char == " " { throw error(.emptyDirectiveName, start, cursor) }
                     else if !lowercaseRange.contains(char)
                         && !uppercaseRange.contains(char) && char != "_" {
-                        return error(.unexpectedDirectiveName, start, cursor)
+                        throw error(.unexpectedDirectiveName, start, cursor)
                     }
                 }
                 
@@ -155,11 +155,11 @@ final class Lexer {
                 else if value == "false" { append(TokenLiteral(value: .bool(value: false)), start, cursor) }
                 else if let keyword = Keyword(rawValue: value) { append(keyword, start, cursor) }
                 else if isDirective {
-                    if value.isEmpty { return error(.emptyDirectiveName, start, cursor) }
+                    if value.isEmpty { throw error(.emptyDirectiveName, start, cursor) }
                     append(Directive(value: value), start, cursor)
                 }
                 else {
-                    if value == "_" { return error(.invalidIdentifierUnderscore, start, cursor) }
+                    if value == "_" { throw error(.invalidIdentifierUnderscore, start, cursor) }
                     append(Identifier(value: value), start, cursor)
                 }
                 
@@ -177,10 +177,10 @@ final class Lexer {
                 let numLitSymbols = Array("_.e-")
                 while let next = consumeNext(where: { numberRange.contains($0) || numLitSymbols.contains($0) }) {
                     if value.count >= 1 && next == "-" && value.last != "e" {
-                        return error(.unexpectedMinusInNumberLiteral, start, cursor)
+                        throw error(.unexpectedMinusInNumberLiteral, start, cursor)
                     }
                     else if next == "." && value.contains(".") || next == "e" && value.contains("e") {
-                        return error((next == "." ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral), start, cursor)
+                        throw error((next == "." ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral), start, cursor)
                     }
                     if next == "_" { continue }
                     value.append(next)
@@ -188,7 +188,7 @@ final class Lexer {
                 
                 if let next = peekNext() {
                     if !(separators + punctuators + operators).contains([next]) {
-                        return error(.unexpectedCharacter, start, cursor)
+                        throw error(.unexpectedCharacter, start, cursor)
                     }
                 }
                 
@@ -269,11 +269,11 @@ final class Lexer {
                 else {
                     // for some reason?
                     print(char)
-                    return error(.unexpectedCharacter, cursor, cursor)
+                    throw error(.unexpectedCharacter, cursor, cursor)
                 }
             }
             guard nextChar() else { append(EOF(), cursor, cursor); break }
         }
-        return .success(LexerOutput(tokens: tokens, linesProcessed: cursor.lineNumber))
+        return LexerOutput(tokens: tokens, linesProcessed: cursor.lineNumber)
     }
 }

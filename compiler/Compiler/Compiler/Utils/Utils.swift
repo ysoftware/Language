@@ -152,7 +152,7 @@ func quit(_ code: Int32) -> Never {
 
 func stringToAST(_ string: String) -> Code? {
     do {
-        let lexerOutput = try Lexer(string).analyze().get()
+        let lexerOutput = try Lexer(string).analyze()
         let code = try Parser(lexerOutput.tokens).parse()
         return code
     }

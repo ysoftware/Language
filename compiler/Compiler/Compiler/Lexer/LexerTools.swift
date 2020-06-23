@@ -24,8 +24,8 @@ extension Lexer {
     
     /// returns the error set at the current point
     @inline(__always)
-    func error(_ error: LexerError.Message, _ start: Cursor, _ end: Cursor) -> Result<LexerOutput, LexerError> {
-        .failure(LexerError(fileName: fileName, startCursor: start, endCursor: end, error))
+    func error(_ error: LexerError.Message, _ start: Cursor, _ end: Cursor) -> LexerError {
+        LexerError(fileName: fileName, startCursor: start, endCursor: end, error)
     }
     
     /// advances the counter

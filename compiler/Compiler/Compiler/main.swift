@@ -34,7 +34,7 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
     }
     
     do {
-        let lexerOutput = try Lexer(code).analyze().get()
+        let lexerOutput = try Lexer(code).analyze()
         loc = lexerOutput.linesProcessed
         reportTimeSpent(on: "Lexing", from: previousTime, print: PrintTime)
         
