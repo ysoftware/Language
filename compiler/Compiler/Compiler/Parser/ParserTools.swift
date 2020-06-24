@@ -11,13 +11,13 @@ import Foundation
 extension Parser {
 
     /// make sure to add dependency for an ast with unresolved type
-    func resolveMemberTypeAndIndex(name: String, of base: Expression) -> (type: Type, index: Int)? {
+    func resolveMemberTypeAndIndex(name: String, of base: Expression) throws -> (type: Type, index: Int)? {
         guard !base.exprType.equals(to: .unresolved) else { return nil }
         
         var baseType = base.exprType
         if let pointer = base.exprType as? PointerType { baseType = pointer.pointeeType }
         guard let structType = baseType as? StructureType else {
-            report("Don't call this resolveMemberType for non-struct bases.")
+            throw error(em.memberAccessNonStruct(baseType), base.startCursor, base.endCursor)
         }
         
         guard let decl = globalScope.declarations[structType.name] as? StructDeclaration else {
@@ -29,8 +29,23 @@ extension Parser {
         return (decl.members[index].exprType, index)
     }
     
+    func resolveType(named name: String) -> Type? {
+        let type = Type.named(name)
+        if type is StructureType {
+            guard let decl = globalScope.declarations[name] else {
+                return .unresolved
+            }
+            if let structure = decl as? StructDeclaration {
+                return StructureType(name: structure.name)
+            }
+            return nil
+        }
+        return type
+    }
+    
     /// make sure to add dependency for an ast with unresolved type
-    func resolveType(_ name: String) -> Type {
+    func resolveType(of expression: Expression) -> Type {
+        let name = expression.exprType.typeName
         let type = Type.named(name)
         if type is StructureType {
             guard let decl = globalScope.declarations[name] else {

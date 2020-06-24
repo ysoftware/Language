@@ -25,7 +25,8 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[Procedure] \(name) -> \(returnType) "
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        var string = "[Procedure\(c)] \(name) -> \(returnType) "
         string.append("; args: ")
         string.append(arguments.map { "\($0)" }.joined(separator: ", "))
         if flags.contains(.isVarargs) { string.append("... ") }
@@ -82,7 +83,8 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[Struct] \(name) "
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        var string = "[Struct\(c)] \(name) "
         members.forEach { string.append("\n        [Member] \($0.name): \($0.exprType.typeName)") }
         return string
     }
@@ -114,7 +116,8 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[Variable] \(name): \(exprType) "
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        var string = "[VarDecl\(c)] \(name): \(exprType) "
         if flags.contains(.isConstant) { string.append("(constant) ") }
         if let exp = expression { string.append("= \(exp) ") }
         else {
@@ -159,7 +162,8 @@ final class Assignment: Statement, Equatable {
     }
     
     var debugDescription: String {
-        "[Assign] \(receiver) = \(expression)"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[Assign\(c) \(receiver) = \(expression)]"
     }
     
     let receiver: Ast

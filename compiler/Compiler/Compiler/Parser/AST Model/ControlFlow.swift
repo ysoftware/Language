@@ -20,7 +20,8 @@ final class Condition: Statement, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[If] \(condition)\n    Then: \(block)"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        var string = "[If\(c)] \(condition)\n    Then: \(block)"
         if !elseBlock.isEmpty { string.append("\n    Else: \(elseBlock)") }
         return string
     }
@@ -52,7 +53,8 @@ final class WhileLoop: Statement, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[While] "
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        var string = "[While\(c)] "
         if let label = userLabel { string.append("(\(label)) ") }
         string.append("\(condition) \(block)")
         return string
@@ -86,7 +88,8 @@ final class Break: Statement, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[Break] "
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        var string = "[Break\(c)] "
         if let label = userLabel { string.append("(\(label)) ") }
         return string
     }
@@ -114,7 +117,8 @@ final class Continue: Statement, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[Continue]"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        var string = "[Continue\(c)]"
         if let label = userLabel { string.append("(\(label)) ") }
         return string
     }
@@ -142,7 +146,8 @@ final class Return: Statement, Equatable {
     }
     
     var debugDescription: String {
-        "Return \(value)"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[Return\(c) \(value)]"
     }
     
     var value: Expression {

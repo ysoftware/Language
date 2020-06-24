@@ -5,17 +5,14 @@ IRGEN
 - make IRGen throw errors
 
 PARSER
+- unit test member access
 - local variable id for different scopes
 - unit test error cursors
-- unit test member access
 - verify all paths of a procedure return a value
-- check what happens when we're specifying the type of base 
-  with a name, but not for a structure declaration, but for a procedure declaration
-  maybe we should split those kinds of declarations?
-  but then the conflict resolution will be messier
 
 
 LEXER
+- defer
 - arrays
 - subscript access
 - properly eat whitespaces

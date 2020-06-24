@@ -22,7 +22,8 @@ final class Value: Expression, Equatable {
     }
     
     var debugDescription: String {
-        "[Value] \(name): \(exprType)"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[Value\(c)] \(name): \(exprType)"
     }
     
     var name: String
@@ -51,7 +52,8 @@ final class MemberAccess: Expression, Equatable {
     }
     
     var debugDescription: String {
-        "[Member] \(memberName): \(exprType.typeName) of \(base)"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[Member\(c)] \(memberName): \(exprType.typeName) of \(base)"
     }
     
     var memberIndex: Int? = nil
@@ -87,7 +89,8 @@ final class UnaryOperator: Expression, Equatable {
     }
     
     var debugDescription: String {
-        "\(name){ \(argument) }"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "\(name){ \(argument)\(c) }"
     }
     
     var name: String
@@ -121,7 +124,8 @@ final class BinaryOperator: Expression, Equatable {
     }
     
     var debugDescription: String {
-        "[\(arguments.0) \(name) \(arguments.1)]"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[Binop\(c) \(arguments.0) \(name) \(arguments.1)]"
     }
     
     var name: String
@@ -152,7 +156,8 @@ final class ProcedureCall: Expression, Statement, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[Call] \(name)->\(exprType)"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        var string = "[Call\(c)] \(name)->\(exprType)"
         if !arguments.isEmpty {
             string += "\n("
             string += arguments.map { String(describing: $0) }.joined(separator: ", ")
@@ -187,7 +192,8 @@ final class StringLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "String(\"\(value.reescaped)\")"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[String\(c) \"\(value.reescaped)\"]"
     }
     
     internal init(value: String,
@@ -213,7 +219,8 @@ final class IntLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "\(exprType.typeName)(\(value))"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[\(exprType.typeName)\(c) \(value)]"
     }
     
     internal init(value: Int, exprType: Type = .int,
@@ -244,7 +251,8 @@ final class FloatLiteral: LiteralExpr, Equatable {
     }
     
     var debugDescription: String {
-        "Float(\(value))"
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[Float\(c) \(value)]"
     }
     
     internal init(value: Float64, exprType: Type = .float,
@@ -272,7 +280,10 @@ final class VoidLiteral: LiteralExpr {
     var startCursor: Cursor
     var endCursor: Cursor
     
-    var debugDescription: String { "[Void]" }
+    var debugDescription: String {
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[Void\(c)]"
+    }
     
     var exprType: Type = .void
     
@@ -289,7 +300,10 @@ final class NullLiteral: LiteralExpr {
     var startCursor: Cursor
     var endCursor: Cursor
     
-    var debugDescription: String { "[Void]" }
+    var debugDescription: String {
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[null\(c)]"
+    }
     
     var exprType: Type = .void
     

@@ -56,6 +56,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "-cursors"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-ast"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -64,7 +68,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/yerokhin/Documents/GitHub/Language/programs/list.yw"
+            argument = "/Users/yerokhin/Documents/GitHub/Language/programs/test.yw"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

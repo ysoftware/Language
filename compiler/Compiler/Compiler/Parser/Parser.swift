@@ -28,7 +28,7 @@ extension Parser {
             throw error(em.expectedMemberIdentifier, token.startCursor, token.endCursor)
         }
         let member = memberIdent.value.value
-        let info = resolveMemberTypeAndIndex(name: member, of: base)
+        let info = try resolveMemberTypeAndIndex(name: member, of: base)
         let memberType = info?.type ?? .unresolved
         let memberIndex = info?.index
         let access = MemberAccess(base: base, memberName: member, memderIndex: memberIndex, exprType: memberType,
@@ -42,9 +42,9 @@ extension Parser {
     func matchAssignment(in scope: Scope) throws -> Ast? {
         
         if let identifier = token.value as? Identifier {
-            if !nextToken() { throw error(em.unexpectedEndOfFile) }
             var base: Expression = Value(name: identifier.value, exprType: .unresolved,
                                          startCursor: token.startCursor, endCursor: token.endCursor)
+            if !nextToken() { throw error(em.unexpectedEndOfFile) }
             while matchMemberAccess() {
                 base = try doMemberAccess(of: base, in: scope)
             }
@@ -133,8 +133,11 @@ extension Parser {
         if let t = expr?.exprType {
             type = t
         }
-        else if let name = declType?.value.value {
-            type = resolveType(name)
+        else if let declType = declType {
+            guard let resolvedType = resolveType(named: declType.value.value) else {
+                throw error(em.declTypeIsDeclaration(), declType.token.startCursor, declType.token.endCursor)
+            }
+            type = resolvedType
         }
         else { throw error(em.varDeclRequiresType) } // @Todo: check cursors and if this error is even valid
         
@@ -227,7 +230,7 @@ extension Parser {
                     
                     // @Todo: check that dependency is added correctly for unresolved
                     if !declArgument.exprType.isResolved {
-                        arguments[i].exprType = resolveType(declArgument.exprType.typeName)
+                        arguments[i].exprType = resolveType(of: declArgument)
                     }
                     else if !declArgument.exprType.equals(to: arguments[i].exprType) {
                         throw error(em.callArgumentTypeMismatch(
@@ -274,11 +277,13 @@ extension Parser {
                 guard token.value is Identifier else {
                     throw error(em.procExpectedArgumentName, token.startCursor, token.endCursor)
                 }
-                guard let argName = consumeIdent()?.value.value, consumePunct(":"),
-                    let argType = consumeIdent()?.value
+                guard let argNameTok = consumeIdent(), consumePunct(":"), let argTypeTok = consumeIdent()
                     else { throw error(em.procExpectedArgumentType) }
                 // @Todo: change argument from Type to something that will also contain argument name and label
-                arguments.append(Value(name: argName, exprType: .named(argType.value)))
+                // @Todo: type check arguments
+                arguments.append(Value(name: argNameTok.value.value, exprType: .named(argTypeTok.value.value),
+                                       startCursor: argNameTok.token.startCursor,
+                                       endCursor: argTypeTok.token.endCursor))
             }
             if !consumeSep(",") { break }
         }
@@ -660,38 +665,8 @@ extension Parser {
         }
         return statements
     }
-}
-
-// MARK: - Parser
-
-final class Parser {
-    
-    init(fileName: String? = nil, _ tokens: [Token]) {
-        self.fileName = fileName
-        self.tokens = tokens
-        self.token = tokens[i]
-        self.em.p = self
-    }
-    
-    let fileName: String?
-    let tokens: [Token]
-    
-    // Variables
-    
-    var statements: [Statement] = []
-    var stringLiterals: [String: VariableDeclaration] = [:]
-    var unresolved: [String: [Ast]] = [:] /// all with type unresolved
-    var globalScope = Scope() /// all declarations in global scope
-    
-    let em: ErrorMessage = ErrorMessage()
-    var i = 0
-    var token: Token
-    var entry: ProcedureDeclaration?
     
     func parse() throws -> Code {
-        
-        // Cycle
-
         loop: while tokens.count > i {
             
             switch token.value  {
@@ -735,4 +710,31 @@ final class Parser {
         }
         return Code(statements)
     }
+}
+
+// MARK: - Parser
+
+final class Parser {
+    
+    init(fileName: String? = nil, _ tokens: [Token]) {
+        self.fileName = fileName
+        self.tokens = tokens
+        self.token = tokens[i]
+        self.em.p = self
+    }
+    
+    let fileName: String?
+    let tokens: [Token]
+    
+    // Variables
+    
+    var statements: [Statement] = []
+    var stringLiterals: [String: VariableDeclaration] = [:]
+    var unresolved: [String: [Ast]] = [:] /// all with type unresolved
+    var globalScope = Scope() /// all declarations in global scope
+    
+    let em: ErrorMessage = ErrorMessage()
+    var i = 0
+    var token: Token
+    var entry: ProcedureDeclaration?
 }

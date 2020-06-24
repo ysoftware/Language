@@ -71,6 +71,11 @@ extension Parser {
             "Return type is expected to be '\(e)', but expression provided evaluates to '\(g)'."
         }
         
+        // member access
+        func memberAccessNonStruct(_ t: Type) -> String {
+            "Trying to perform member access on a non-struct value of '\(t)'"
+        }
+        
         // operation
         func binopArgTypeMatch(_ l: Type, r: Type) -> String {
             "Argument types don't match. Left is '\(l)', right is '\(r)'."
@@ -93,6 +98,7 @@ extension Parser {
         func assignNotRValue(_ n: String) -> String { "\(n) is not an rvalue." }
 
         // var decl
+        func declTypeIsDeclaration() -> String { "Type specified matches to a declaration." }
         let varDeclExpectedEquals = "Expected '=' or ':' for the variable or constant declaration."
         func varDeclTypeMismatch(_ e: Type, _ g: Type) -> String { "Type supplied '\(g)' does not match the type '\(e)' as specified." }
         let varDeclRequiresType = "Variable declaration without expression requires type to be specified."

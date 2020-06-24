@@ -12,6 +12,7 @@ let startTime = CFAbsoluteTimeGetCurrent()
 var previousTime = startTime
 var loc = 0
 
+let PrintCursors = CommandLine.arguments.contains("-cursors")
 let PrintTime = CommandLine.arguments.contains("-time")
 let Silent = CommandLine.arguments.contains("-silent")
 let PrintPasses = CommandLine.arguments.contains("--print-passes")
@@ -101,7 +102,7 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             // @Todo: refactor out and clean up
             
             let lineNumber = pe.startCursor.lineNumber
-            print("Unexpected parser error on line \(lineNumber)")
+            print("Unexpected parser error @ \(pe.startCursor)")
             if let c = pe.context { print("Context: \(c)") }
             print("")
         
