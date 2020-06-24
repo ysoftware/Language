@@ -38,6 +38,33 @@ final class Value: Expression, Equatable {
     }
 }
 
+final class SizeOf: Expression, Equatable {
+    
+    var isRValue: Bool { false }
+    
+    var startCursor: Cursor
+    var endCursor: Cursor
+    
+    static func == (lhs: SizeOf, rhs: SizeOf) -> Bool {
+        lhs.type.equals(to: rhs.type)
+    }
+    
+    var debugDescription: String {
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[SizeOf\(c) \(type.typeName)]"
+    }
+    
+    var exprType: Type
+    var type: Type
+    
+    internal init( type: Type, startCursor: Cursor, endCursor: Cursor) {
+        self.startCursor = startCursor
+        self.endCursor = endCursor
+        self.type = type
+        exprType = .int32
+    }
+}
+
 final class MemberAccess: Expression, Equatable {
     
     var isRValue: Bool { true }

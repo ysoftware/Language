@@ -39,6 +39,14 @@ internal extension IR {
             code += "\(argValue) = load \(type), \(type)* %\(variable.name)"
             return (code, argValue)
             
+        case let sizeof as SizeOf:
+            let ptr = "%\(count())"
+            let value = "%\(count())"
+            code += "; sizeof \(sizeof.type.typeName)\n"
+            code += "\(ptr) = getelementptr \(matchType(sizeof.type)), \(matchType(sizeof.type))* null, i32 1\n"
+            code += "\(value) = ptrtoint \(matchType(sizeof.type))* \(ptr) to i32\n"
+            return (code, value)
+            
         case let call as ProcedureCall:
             if internalProcedures.contains(where: { $0.name == call.name }) { return doInternalProcedure(call) }
             

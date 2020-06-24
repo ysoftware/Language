@@ -1,0 +1,16 @@
+func printf(format: String, arguments: Int, ...) #foreign;
+ 
+struct Node {
+    next: Node*;
+    value: Int;
+    value2: Int;
+    value3: Int;
+}
+
+func main() -> Int {
+
+    nodeSize := sizeof Node;
+    printf("size of Node is %d\n", nodeSize);
+
+    return 0;
+}

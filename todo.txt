@@ -1,8 +1,16 @@
 TODO
 
+FEATURE
+- allocation
+- defer
+- arrays
+- subscript access
+
+
 IRGEN
 - refactor common features to procedures: doAlloc, doStore, doLoad, doGEP
 - make IRGen throw errors
+
 
 PARSER
 - unit test member access
@@ -12,14 +20,12 @@ PARSER
 
 
 LEXER
-- defer
-- arrays
-- subscript access
 - properly eat whitespaces
 - proc call doesn't fail without semicolon at the end
 
 
 BUGS
+- struct Node { /* value: Int; */ } Expected brackets after structure members. 
 - let code = "1struct c { a: String; b :: 1; }" // this passes (with 1 at the start)
 - you can pass string literal with no error as while condition
 - endless loop: if (pointer != null) {  printf("%d\n", pointerToInt(pointer))); }

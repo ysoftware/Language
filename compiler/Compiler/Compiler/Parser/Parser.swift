@@ -508,6 +508,21 @@ extension Parser {
         
         let expression: Expression
         switch token.value {
+            
+        case let keyword as Keyword:
+            guard keyword == .sizeof else {
+                print("Expression unknown: \(token)")
+                throw error(em.notImplemented, token.startCursor, token.endCursor)
+            }
+            let start = token.startCursor
+            guard nextToken(), let typeIdent = consumeIdent() else {
+                throw error(em.sizeofExpectedType, token.startCursor, token.endCursor)
+            }
+            let type = Type.named(typeIdent.value.value)
+            // @Todo: depend on this type to be resolved
+            
+            expression = SizeOf(type: type, startCursor: start, endCursor: typeIdent.token.endCursor)
+            
         case let literal as TokenLiteral:
             switch literal.value {
             case .int(let value): expression = IntLiteral(value: value)
@@ -586,30 +601,29 @@ extension Parser {
                     return statements
                 }
             case let keyword as Keyword: // @Clean: this is a copy from the main loop
-                if keyword == .func {
+                switch keyword {
+                case .func:
                     throw error(em.procNestedNotSupported, token.startCursor, token.endCursor)
-                }
-                if keyword == .break {
+                case .break:
                     let decl = try doBreak(in: scope)
                     statements.append(decl)
-                    break
-                }
-                if keyword == .continue {
+                    break loop
+                case .continue:
                     let decl = try doContinue(in: scope)
                     statements.append(decl)
-                    break
-                }
-                if keyword == .if {
+                    break loop
+                case .if:
                     let decl = try doIf(in: scope)
                     statements.append(decl)
-                    break
+                    break loop
+                default: break
                 }
+                
                 if matchWhile() {
                     let decl = try doWhile(in: scope)
                     statements.append(decl)
-                    break
                 }
-                if consumeKeyword(.return) {
+                else if consumeKeyword(.return) {
                     var returnExpression: Expression?
                     if !consumeSep(";") {
                         returnExpression = try doExpression(in: scope, expectSemicolon: false)
@@ -619,10 +633,11 @@ extension Parser {
                         value: returnExpression ?? VoidLiteral(),
                         startCursor: lastToken.startCursor, endCursor: end)
                     statements.append(returnStatement)
-                    break
                 }
-                print("Unexpected keyword: \(keyword.rawValue)")
-                throw error(em.notImplemented, token.startCursor, token.endCursor)
+                else {
+                    print("Unexpected keyword: \(keyword.rawValue)")
+                    throw error(em.notImplemented, token.startCursor, token.endCursor)
+                }
                 
             case is Identifier: // @Clean: this is a copy from the main loop
                 
