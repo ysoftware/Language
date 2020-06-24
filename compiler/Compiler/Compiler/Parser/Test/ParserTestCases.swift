@@ -71,7 +71,6 @@ func print3() { x :: 1; }
     
     func testStructDeclaration() {
         // @Todo: finish this test
-//        let code = "1struct c { a: String; b :: 1; }" // @Lexer @Todo: this passes (with 1 at the start)
         let code = "x := 1.0; struct A { a: String; b :: 1; c := b; d := x; }"
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
@@ -164,7 +163,6 @@ struct Value { a := getInt(); b := getString(); }
     }
     
     func testWhileLoopBreak() {
-        // @Todo: you can pass string literal with no error as while condition
         let code = "func main() { loop: while (true) { loop1: while (true) { break loop; }}}"
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
@@ -207,9 +205,6 @@ struct Value { a := getInt(); b := getString(); }
     }
     
     func testPrecedence() {
-        // @Todo: this should result in a expression of type float (because of 0.5)
-        // let code = "func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 - 0.5; }"
-        
         let code = "func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 == 0; }"
         
         let op11 = binop("+", .int, (int(5), int(3)))

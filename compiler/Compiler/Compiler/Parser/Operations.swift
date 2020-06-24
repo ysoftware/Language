@@ -99,7 +99,6 @@ func precedence(of operation: String) -> Int? {
 }
 
 func isAccepting(_ operation: String, argType: Type) -> Bool {
-    // @Todo: if we do operator overload, we will then add an overload table and check it here
     let math: [Type] = [.int, .int8, .int16, .int32, .int64, .float, .double, .half]
     
     switch operation {

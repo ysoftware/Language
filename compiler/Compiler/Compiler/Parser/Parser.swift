@@ -8,8 +8,6 @@
 
 // Constants
 
-// @Todo: proc call doesn't fail without semicolon at the end
-
 extension Parser {
     
     // MARK: - R VALUES -
@@ -486,8 +484,6 @@ extension Parser {
     /// A single unit expression: `literal`, `value`, `procedure call`.
     func doExpr(in scope: Scope) throws -> Expression {
         let start = token.startCursor
-        
-        // @Todo: subscript
 
         var arg: Expression!
         if consumePunct("(") {

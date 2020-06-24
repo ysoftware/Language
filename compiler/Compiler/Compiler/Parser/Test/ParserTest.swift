@@ -16,8 +16,6 @@ final class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
-        // @Todo: test member access: both expression and rvalue
-        
         i.testPointers()
         i.testFunctionDeclaration()
         i.testVariableAssign()
@@ -43,9 +41,6 @@ final class ParserTest {
     
     func printErrorCase(caseName: String = #function, _ code: String,
                         _ resultAST: Result<Code, ParserError>, _ expect: ParserError) {
-        
-        // @Todo: error testing
-        // @Todo: test exact cursors
         
         switch resultAST {
         case .success(let result):

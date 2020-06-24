@@ -10,10 +10,6 @@ import Foundation
 
 extension Parser {
 
-    // @Todo: add append method the same as in Lexer
-    // to auto-include the Cursor in the Ast
-    
-    
     /// make sure to add dependency for an ast with unresolved type
     func resolveMemberTypeAndIndex(name: String, of base: Expression) -> (type: Type, index: Int)? {
         guard !base.exprType.equals(to: .unresolved) else { return nil }
@@ -24,11 +20,6 @@ extension Parser {
             report("Don't call this resolveMemberType for non-struct bases.")
         }
         
-        // @Todo: Test what happens when we're specifying the type of base
-        // with a name, but not for a structure declaration, but for a procedure declaration
-        //
-        // maybe we should split those kinds of declarations?
-        // but then the conflict resolution will be messier
         guard let decl = globalScope.declarations[structType.name] as? StructDeclaration else {
             return nil
         }
@@ -58,9 +49,7 @@ extension Parser {
         return type
     }
     
-    func firstNotMatchingReturnStatement(in code: Code, to returnType: Type) -> Return? {
-        // @Todo: static analysis that all paths return a value
-        
+    func firstNotMatchingReturnStatement(in code: Code, to returnType: Type) -> Return? {    
         for stat in code.statements {
             if let returnStat = stat as? Return {
                 if !returnStat.value.exprType.equals(to: returnType) {

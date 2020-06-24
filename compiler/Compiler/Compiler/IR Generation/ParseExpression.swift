@@ -60,24 +60,15 @@ internal extension IR {
                 // for now, doing that manually
                 
                 if let arg = arg as? Value {
+                    // @Todo: somehow check if it's a string literal
+                    // else we just load the value
                     if arg.exprType.equals(to: .string) {
-                        
-                        // @Todo: make it work with dynamic strings somehow
-                        // I don't think we have to calculate its length before doing this?
-                        // there has to be another way!
-                        
-                        // @Todo: make it work with all other references
-                        // now this only works with references to constant string literals
-                        // by 'hacky' keeping a list of those while parsing AST
-                        
-                        // @Todo: should we emit a string literal here, not expect AST to do it for us?
-                        // if so, emit a new literal only if a literal with the same value does not exist yet
                         guard let literal = stringLiterals[arg.name] else {
                             report("Undefined symbol \(arg.name)")
                         }
                         
                         let argValue = "%\(count())"
-                        let length = literal.value.count + 1 // @Todo: properly check null termination for strings
+                        let length = literal.value.count + 1
                         code += "\(identation)\(argValue) = getelementptr [\(length) x i8], [\(length) x i8]* @\(arg.name), i32 0, i32 0"
                         arguments.append("i8* \(argValue)")
                     }
@@ -157,9 +148,6 @@ internal extension IR {
         case let op as BinaryOperator:
             
             if let (load, resultValue) = specialCase(for: op.name, type: op.operatorType, arguments: op.arguments) {
-                
-                // @Todo: don't pass identation, but add it afterwards (everywhere)
-                
                 code += load
                 return (code, resultValue)
             }

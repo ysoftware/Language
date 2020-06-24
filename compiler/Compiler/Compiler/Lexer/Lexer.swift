@@ -8,8 +8,6 @@
 
 // Constants
 
-// @Todo: properly eat whitespaces
-
 fileprivate let punctuators: [[Character]] = [
     "...", ".", ":", "(", ")", "{", "}", "[", "]", "->"
 ].map { Array($0) }

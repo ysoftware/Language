@@ -10,9 +10,6 @@ import Foundation
 
 final class IR {
     
-    // @Todo: arrays
-    // @Todo: structs
-    
     internal var stringLiterals: [String: StringLiteral] = [:]
     internal var procedures: [String: ProcedureDeclaration] = [:]
     internal var structures: [String: StructDeclaration] = [:]
@@ -188,9 +185,6 @@ final class IR {
                     emitGlobal("@\(variable.name) = private unnamed_addr constant [\(literal.value.count + 1) x i8] c\"\(value)\"")
                 }
                 else {
-                    // @Todo: support constant variables
-                    // do it at ast building?
-                    
                     emitLocal("; declaration of \(variable.name)")
                     let type = matchType(variable.exprType)
                     emitLocal("%\(variable.name) = alloca \(type)")

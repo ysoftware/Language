@@ -1,44 +1,30 @@
-LEXER TODO
+TODO
 
-✅ escaping quotes in strings
-✅ add EOF token
+IRGEN
+- refactor identation
+- make IRGen throw errors
 
--- properly eat whitespaces
--- hex/bin numbers
+PARSER
+- local variable id for different scopes
+- unit test error cursors
+- unit test member access
+- verify all paths of a procedure return a value
+- check what happens when we're specifying the type of base 
+  with a name, but not for a structure declaration, but for a procedure declaration
+  maybe we should split those kinds of declarations?
+  but then the conflict resolution will be messier
 
-PARSER TODO
 
-✅ procedure head            func printf(format: String, arguments: Int32, ...) -> Void #foreign
-✅ procedure body            return
-✅ procedure call            a = printf(format: a, arguments: b, a);
-✅ variable declaration      a := 1; a : Int = 1;
-✅ constant declaration      a :: 1; a : Int : 1;
-✅ struct declaration        struct Name {  }
-✅ type inference 1st pass   a = proc_a();
-✅ if else
-✅ while loop
-✅ break, continue
-✅ binary operators          a+b; a-b; a/b; a*a;
-✅ unary operators           -a; ~a; !a; *a; (B)a ; ^a;
-✅ variable assignment       a = b;
-
--- constant expressions
--- variable assignment as binary operation
--- switch
--- array literal             a : Int[3] = [1]; a := (Float[3])[1]
--- tuple literal             a : (Int, String) = (1, "a"); 
--- struct instance literal   x := Struct { a = 1, b = 2 }; // all unspecified are left as default
--- type inference 2nd pass
-
--- add scope to Ast (to ident debug output)
--- add cursor to Ast (for 2nd pass error messaging)
-
-IR Gen TODO
-
-✅ structures
--- arrays
+LEXER
+- arrays
+- subscript access
+- properly eat whitespaces
+- proc call doesn't fail without semicolon at the end
 
 
 BUGS
 
-// endless loop: if (pointer != null) {  printf("%d\n", pointerToInt(pointer))); }
+- let code = "1struct c { a: String; b :: 1; }" // this passes (with 1 at the start)
+- you can pass string literal with no error as while condition
+- endless loop: if (pointer != null) {  printf("%d\n", pointerToInt(pointer))); }
+- func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 - 0.5; } // should resolve to float (because of 0.5)
