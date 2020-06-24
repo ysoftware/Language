@@ -16,7 +16,7 @@ extension ParserTest {
     
         func testVariableDeclaration() {
             let code = """
-    func main() { a : String; b := 1; c :: "hello"; d : Int = 1;
+    func main() { a : String; b := 1; c :: 1; d : Int = 1;
     e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; i : Int8*; }
     """
             let tokens = try! Lexer(code).analyze().tokens
@@ -24,7 +24,7 @@ extension ParserTest {
             
             printResultCase(code, result, Code([main([
                 vDecl("a", .string, nil), vDecl("b", .int, int(1)),
-                vDecl("c", .string, string("hello"), const: true), vDecl("d", .int, int(1)),
+                vDecl("c", .int, int(1), const: true), vDecl("d", .int, int(1)),
                 vDecl("e", .bool, bool(true), const: true), vDecl("f", .float, float(1)),
                 vDecl("g", .bool, bool(false), const: true),
                 vDecl("h", .int64, int(5_000_000_000_000), const: true),
@@ -91,8 +91,8 @@ func print3() { x :: 1; }
         
         let code = """
 func getInt() -> Int { return 1; }
-func getString() -> String { return "hello"; }
-struct Value { a := getInt(); b := getString(); }
+func getFloat() -> Float { return 0.2; }
+struct Value { a := getInt(); b := getFloat(); }
 """
         
         let tokens = try! Lexer(code).analyze().tokens
@@ -103,13 +103,13 @@ struct Value { a := getInt(); b := getString(); }
                 id: "getInt", name: "getInt", arguments: [],
                 returnType: .int, flags: [], scope: Code([Return(value: int(1))])),
             ProcedureDeclaration(
-                id: "getString", name: "getString", arguments: [],
-                returnType: .string, flags: [], scope: Code([
-                    Return(value: string("hello"))
+                id: "getFloat", name: "getFloat", arguments: [],
+                returnType: .float, flags: [], scope: Code([
+                    Return(value: float(0.2))
                 ])),
             StructDeclaration(name: "Value", members: [
                 vDecl("a", .int, ProcedureCall(name: "getInt", exprType: .int, arguments: [])),
-                vDecl("b", .string, ProcedureCall(name: "getString", exprType: .string, arguments: []))
+                vDecl("b", .float, ProcedureCall(name: "getFloat", exprType: .float, arguments: []))
             ])
         ]))
     }

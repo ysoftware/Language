@@ -98,7 +98,7 @@ final class ParserTest {
             if !result.equals(to: expect) {
                 failed += 1
                 print("\n\(caseName)".color(.lightRed))
-                print("\"\(code)\"\n".color(.cyan))
+                print("\(code)\n".color(.cyan))
                 if result.statements.count != expect.statements.count {
                     print("Counts don't match:".color(.lightGray),
                     result.statements.count,

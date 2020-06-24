@@ -1,8 +1,6 @@
 TODO
 
 FEATURE
-- casting (Void* to Any*)
-- allocation
 - defer
 - arrays
 - subscript access
