@@ -1,0 +1,19 @@
+func printf(format: String, arguments: Int, ...) #foreign;
+func malloc(size: Int32) -> Void* #foreign;
+ 
+struct Node {
+    next: Node*;
+    value: Int;
+}
+
+func main() -> Int {
+
+    nodeSize := sizeof Node;
+    printf("size of Node is %d\n", nodeSize);
+
+    node: Node* = cast(Node*) malloc(nodeSize);
+    node.value = 4;
+    printf("Node value is %d\n", node.value);
+
+    return 0;
+}

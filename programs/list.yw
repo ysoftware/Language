@@ -1,69 +1,40 @@
+func malloc(size: Int) -> Void* #foreign;
 func printf(format: String, arguments: Int, ...) #foreign;
-
-// @Todo: size of
-// @Todo: casting (different sizes of Int, Void* to other pointers)
-// @Todo: implement heap allocation
 
 struct Node {
     next: Node*;
     value: Int;
 }
 
-struct List {
-    head: Node*;
+func print(head: Node) {
+    current := &head;
+    while (current != null) {
+        printf("%d\n", current.value);
+        current = current.next;
+    }
+}
+
+func append(head: Node*, value: Int) {
+    node := cast(Node*) malloc(sizeof Node);
+    node.value = value;
+
+    current := head;
+    while (current.next != null) {
+        current = current.next;
+    }
+    current.next = node;
 }
 
 func main(count: Int, arguments: Int8**) -> Int {
-    list: List;
+    head : Node;
+    head.value = 6;
 
+    append(&head, 5);
+    append(&head, 4);
+    append(&head, 3);
+    append(&head, 2);
+    append(&head, 1);
+    print(head);
     
-
-    node1: Node;
-    node1.value = 1;
-    list.head = &node1;
-
-    if (list.head != null) {
-        node2: Node;
-        node2.value = 2;
-        list.head.next = &node2;
-
-        if (list.head.next != null) {
-            node3: Node;
-            node3.value = 3;
-            list.head.next.next = &node3;
-
-            if (list.head.next.next != null) {
-                node4: Node;
-                node4.value = 4;
-                list.head.next.next.next = &node4;
-            }
-        }
-    }
-
-    first := list.head;
-    if (first != null) {
-        printf("1: %d\n", first.value);
-
-        second := first.next;
-        if (second != null) {
-            printf("2: %d\n", second.value);
-
-            third := second.next;
-            if (third != null) {
-                printf("3: %d\n", third.value);
-
-                fourth := third.next;
-                if (fourth != null) {
-                    printf("4: %d\n", fourth.value);
-
-                    fifth := fourth.next;
-                    if (fifth != null) {
-                        printf("5: %d\n", fifth.value);
-                    }
-                }
-            }
-        }
-    }
-
     return 0;
 }

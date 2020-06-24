@@ -102,6 +102,11 @@ extension Parser {
             return UnaryOperator(name: unop.name, exprType: type, argument: arg,
                                  startCursor: unop.startCursor, endCursor: unop.endCursor)
         }
+        if let sizeof = expression as? SizeOf {
+            guard let int = exprType as? IntType, int.size >= 16 else { return nil }
+            return SizeOf(type: sizeof.type, exprType: exprType,
+                          startCursor: sizeof.startCursor, endCursor: sizeof.endCursor)
+        }
         if expression is NullLiteral {
             guard exprType is PointerType else { return nil }
             return NullLiteral(exprType: exprType,

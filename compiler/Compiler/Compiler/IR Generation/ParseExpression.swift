@@ -125,17 +125,18 @@ internal extension IR {
             return (code, value)
             
         case let op as UnaryOperator:
-            code += "; unary operator: \(op.name)\n"
             var value = ""
             
             // pointer dereference (*a)
-            if op.name == "*" {
+            if op.name == UnaryOperator.dereference {
                 let (load, val) = getExpressionResult(op.argument)
                 value = "%\(count())"
                 load.map { code += "\($0)\n" }
+                
+                code += "; unary operator: * (pointer dereference) \n"
                 code += "\(value) = load \(matchType(op.exprType)), \(matchType(op.operatorType)) \(val)"
             }
-            else if op.name == "&" {
+            else if op.name == UnaryOperator.memoryAddress {
                 if let variable = op.argument as? Value {
                     value = "%\(variable.name)"
                 }
@@ -144,6 +145,13 @@ internal extension IR {
                     load.map { code += "\($0)\n" }
                     value = val
                 }
+            }
+            else if op.name == UnaryOperator.cast {
+                let (load, val) = getExpressionResult(op.argument)
+                value = "%\(count())"
+                load.map { code += "\($0)\n" }
+                code += "; unary operator: cast \n"
+                code += "\(value) = bitcast \(matchType(op.argument.exprType)) \(val) to \(matchType(op.exprType))"
             }
             else {
                 report("Unsupported expression:\n\(expression)")

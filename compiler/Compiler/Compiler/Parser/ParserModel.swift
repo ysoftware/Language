@@ -66,7 +66,12 @@ extension Parser {
         let expectedExpression = "Expected expression."
         let expectedParentheses = "Parentheses are expected around the condition expression."
         let exprExpectedBrackets = "Expected closing bracket after expression."
+        
+        // sizeof
         let sizeofExpectedType = "Type name is expected after 'sizeof'."
+
+        // cast
+        let castExpectsTypeInBrackets = "Expected type in round brackets after 'cast'."
 
         func returnTypeNotMatching(_ e: Type, _ g: Type) -> String {
             "Return type is expected to be '\(e)', but expression provided evaluates to '\(g)'."

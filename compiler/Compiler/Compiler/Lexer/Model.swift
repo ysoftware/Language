@@ -66,6 +66,7 @@ enum Keyword: String, CaseIterable, Equatable, TokenValue {
     case `switch`
     case `case`
     case `return`
+    case cast
     case sizeof
     
     static let all = allCases.map(\.rawValue)

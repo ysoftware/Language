@@ -13,6 +13,7 @@ extension UnaryOperator {
     static let dereference = "*"
     static let memoryAddress = "&"
     static let negation = "-"
+    static let cast = "cast"
 }
 
 // with precedence level
@@ -51,6 +52,9 @@ func returnType(ofUnaryOperation operation: String, arg: Type) -> Type {
         
     case UnaryOperator.memoryAddress:
         return PointerType(pointeeType: arg)
+        
+    case UnaryOperator.cast:
+        return .any
         
     default: report("Unary operation \(operation) is not yet implemented.")
     }

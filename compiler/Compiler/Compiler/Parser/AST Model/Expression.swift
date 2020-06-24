@@ -57,11 +57,11 @@ final class SizeOf: Expression, Equatable {
     var exprType: Type
     var type: Type
     
-    internal init( type: Type, startCursor: Cursor, endCursor: Cursor) {
+    internal init( type: Type, exprType: Type = .int32, startCursor: Cursor, endCursor: Cursor) {
         self.startCursor = startCursor
         self.endCursor = endCursor
         self.type = type
-        exprType = .int32
+        self.exprType = exprType
     }
 }
 
@@ -117,6 +117,9 @@ final class UnaryOperator: Expression, Equatable {
     
     var debugDescription: String {
         let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        if name == UnaryOperator.cast {
+            return "[Cast\(c) to \(exprType.typeName)] \(argument)"
+        }
         return "\(name){ \(argument)\(c) }"
     }
     

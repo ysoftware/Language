@@ -510,18 +510,30 @@ extension Parser {
         switch token.value {
             
         case let keyword as Keyword:
-            guard keyword == .sizeof else {
+            switch keyword {
+            case .sizeof:
+                let start = token.startCursor
+                guard nextToken(), let typeIdent = consumeIdent() else {
+                    throw error(em.sizeofExpectedType, token.startCursor, token.endCursor)
+                }
+                let type = Type.named(typeIdent.value.value)
+                // @Todo: depend on this type to be resolved
+                expression = SizeOf(type: type, startCursor: start, endCursor: typeIdent.token.endCursor)
+            case .cast:
+                let start = token.startCursor
+                guard nextToken(), consumePunct("("), let typeIdent = consumeIdent(), consumePunct(")") else {
+                    throw error(em.castExpectsTypeInBrackets, token.startCursor, token.endCursor)
+                }
+                let type = Type.named(typeIdent.value.value)
+                // @Todo: depend on this type to be resolved
+                let expr = try doExpression(in: scope, expectSemicolon: false)
+                expression = UnaryOperator(name: "cast", exprType: type, argument: expr,
+                                           startCursor: start, endCursor: expr.endCursor)
+                
+            default:
                 print("Expression unknown: \(token)")
                 throw error(em.notImplemented, token.startCursor, token.endCursor)
             }
-            let start = token.startCursor
-            guard nextToken(), let typeIdent = consumeIdent() else {
-                throw error(em.sizeofExpectedType, token.startCursor, token.endCursor)
-            }
-            let type = Type.named(typeIdent.value.value)
-            // @Todo: depend on this type to be resolved
-            
-            expression = SizeOf(type: type, startCursor: start, endCursor: typeIdent.token.endCursor)
             
         case let literal as TokenLiteral:
             switch literal.value {
