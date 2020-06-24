@@ -16,9 +16,9 @@ final class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
+        i.testVariableAssign()
         i.testPointers()
         i.testFunctionDeclaration()
-        i.testVariableAssign()
         i.testErrorReturnTypeNotMatching()
         i.testReturnTypeLiteralConversion()
         i.testBinopLiteralConversion()

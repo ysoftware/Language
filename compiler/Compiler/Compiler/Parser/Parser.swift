@@ -42,12 +42,22 @@ extension Parser {
     func matchAssignment(in scope: Scope) throws -> Ast? {
         
         if let identifier = token.value as? Identifier {
-            var base: Expression = Value(name: identifier.value, exprType: .unresolved,
+            
+            // find variable in scope
+            guard let ast = scope.declarations[identifier.value]
+                else { throw error(em.assignUndeclared(identifier.value), token.startCursor, token.endCursor) }
+            guard let varDecl = ast as? VariableDeclaration
+                else { throw error(em.assignPassedNotValue(ast), token.startCursor, token.endCursor) }
+            guard !varDecl.flags.contains(.isConstant)
+                else { throw error(em.assignConst(identifier.value), token.startCursor, token.endCursor) }
+            
+            var base: Expression = Value(name: identifier.value, exprType: varDecl.exprType,
                                          startCursor: token.startCursor, endCursor: token.endCursor)
             if !nextToken() { throw error(em.unexpectedEndOfFile) }
             while matchMemberAccess() {
                 base = try doMemberAccess(of: base, in: scope)
             }
+            // @Todo: check root member access base existence
             
             guard consumeOp("=") else { throw error(em.unexpectedMemberAccess, base.startCursor, base.endCursor) }
             return base
@@ -60,19 +70,8 @@ extension Parser {
         let start = rValue.startCursor
         
         var expectingType: Type!
-        if let value = rValue as? Value {
-            // find variable in scope
-            guard let ast = scope.declarations[value.name]
-                else { throw error(em.assignUndeclared(value.name), rValue.startCursor, rValue.endCursor) }
-            guard let varDecl = ast as? VariableDeclaration
-                else { throw error(em.assignPassedNotValue(ast), rValue.startCursor, rValue.endCursor) }
-            guard !varDecl.flags.contains(.isConstant)
-                else { throw error(em.assignConst(value.name), rValue.startCursor, rValue.endCursor) }
-            expectingType = varDecl.exprType
-        }
-        else if let memberAccess = rValue as? MemberAccess {
-            expectingType = memberAccess.exprType
-            // check root member access base existence
+        if let expr = rValue as? Expression {
+            expectingType = expr.exprType
         }
         
         let expr = try doExpression(in: scope)
