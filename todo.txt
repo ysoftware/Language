@@ -1,7 +1,7 @@
 TODO
 
 IRGEN
-- refactor identation
+- refactor common features to procedures: doAlloc, doStore, doLoad, doGEP
 - make IRGen throw errors
 
 PARSER
@@ -20,7 +20,6 @@ LEXER
 
 
 BUGS
-
 - let code = "1struct c { a: String; b :: 1; }" // this passes (with 1 at the start)
 - you can pass string literal with no error as while condition
 - endless loop: if (pointer != null) {  printf("%d\n", pointerToInt(pointer))); }

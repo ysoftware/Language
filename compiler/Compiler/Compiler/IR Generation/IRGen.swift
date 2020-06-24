@@ -19,7 +19,7 @@ final class IR {
     
     /// Use this to generate LLVM IR code
     func generateIR(globalScope ast: Code) -> String {
-        let code = processStatements(ast.statements, ident: 0, contexts: [])
+        let code = processStatements(ast.statements, indentLevel: 0, contexts: [])
         return globalScope + "\n" + code
     }
     
@@ -31,22 +31,21 @@ final class IR {
     
     /// Write a line of IR text into the global scope
     internal func emitGlobal(_ string: String) {
-        globalScope += string + "\n"
+        if string.isEmpty { globalScope += "\n" }
+        else { globalScope += "\(string)\n" }
     }
     
     /// Process statements and return IR text
     private func processStatements(_ statements: [Statement],
-                                   ident: Int,
+                                   indentLevel: Int = 1,
                                    contexts: [StatementContext]) -> String {
         
-        var scope = ""
-        let identation = string(for: ident)
-        
+        var code = ""
         /// Write a line of IR text into the local scope
         func emitLocal(_ string: String? = "") {
             guard let string = string else { return }
-            if string.isEmpty { scope += "" }
-            else { scope += "\(identation)\(string)\n" }
+            if string.isEmpty { code += "\n" }
+            else { code += indentString(string, level: indentLevel) + "\n" }
         }
         
         // All statements go here
@@ -61,7 +60,7 @@ final class IR {
                                           breakLabel: continueLabel,
                                           continueLabel: "%\(counter)")
                 
-                let (expCode, expVal) = getExpressionResult(loop.condition, ident: ident)
+                let (expCode, expVal) = getExpressionResult(loop.condition)
                 emitLocal()
                 emitLocal("br label %\(counter) ; terminating previous block")
                 emitLocal()
@@ -70,7 +69,6 @@ final class IR {
                 emitLocal("br i1 \(expVal), label %\(bodyLabel), label %\(continueLabel)")
                 
                 let loopBody = processStatements(loop.block.statements,
-                                                 ident: ident + 1,
                                                  contexts: contexts + [context])
                 emitLocal()
                 emitLocal("\(bodyLabel): ; user label \(loop.userLabel ?? "[not set]")")
@@ -96,7 +94,7 @@ final class IR {
                 
             case let condition as Condition:
                 let hasElse = !condition.elseBlock.isEmpty
-                let (expCode, expVal) = getExpressionResult(condition.condition, ident: ident)
+                let (expCode, expVal) = getExpressionResult(condition.condition)
                 
                 let counter = count()
                 let bodyLabel = "; %\(counter) if.\(counter).body"
@@ -108,18 +106,14 @@ final class IR {
                 emitLocal(expCode)
                 emitLocal("br i1 \(expVal), label %\(counter), label %\(elseLabel)")
                 
-                let ifBody = processStatements(condition.block.statements,
-                                               ident: ident + 1,
-                                               contexts: contexts)
+                let ifBody = processStatements(condition.block.statements, contexts: contexts)
                 emitLocal()
                 emitLocal("\(bodyLabel):")
                 emitLocal(ifBody)
                 emitLocal("br label %\(continueLabel)")
                 
                 if hasElse {
-                    let elseBody = processStatements(condition.elseBlock.statements,
-                                                     ident: ident + 1,
-                                                     contexts: contexts)
+                    let elseBody = processStatements(condition.elseBlock.statements, contexts: contexts)
                     emitLocal()
                     emitLocal("\(elseLabel):")
                     emitLocal(elseBody)
@@ -152,25 +146,25 @@ final class IR {
                     if procedure.arguments.count > 0 {
                         for arg in procedure.arguments {
                             let argValue = "%\(count())"
-                            let scopeIdent = string(for: ident + 1)
-                            emitLocal("\(scopeIdent)%\(arg.name) = alloca \(matchType(arg.exprType))")
-                            emitLocal("\(scopeIdent)store \(matchType(arg.exprType)) \(argValue), \(matchType(arg.exprType))* %\(arg.name)")
+                            
+                            let argString = """
+                            ; procedure arguments
+                            %\(arg.name) = alloca \(matchType(arg.exprType))
+                            store \(matchType(arg.exprType)) \(argValue), \(matchType(arg.exprType))* %\(arg.name)
+                            """
+                            emitLocal(indentString(argString, level: 1))
                         }
                         emitLocal()
                     }
                     
                     _ = count() // implicit entry block takes the next name
-
-                    let body = processStatements(procedure.scope.statements,
-                                                 ident: ident + 1,
-                                                 contexts: contexts)
-
-                    emitLocal(body)
+                    let body = processStatements(procedure.scope.statements, contexts: contexts)
+                    emitLocal(body.trimmingCharacters(in: .newlines))
                     emitLocal("}\n")
                 }
                 
             case let call as ProcedureCall:
-                let (expCode, _) = getExpressionResult(call, ident: ident)
+                let (expCode, _) = getExpressionResult(call)
                 emitLocal(expCode)
                 
             case let variable as VariableDeclaration:
@@ -190,14 +184,13 @@ final class IR {
                     emitLocal("%\(variable.name) = alloca \(type)")
                     
                     if let expression = variable.expression {
-                        let (expCode, expVal) = getExpressionResult(expression, ident: ident)
+                        let (expCode, expVal) = getExpressionResult(expression)
                         emitLocal(expCode)
                         emitLocal("store \(type) \(expVal), \(type)* %\(variable.name)")
                     }
                     else {
                         emitLocal("store \(type) zeroinitializer, \(type)* %\(variable.name)")
                     }
-                    emitLocal("\n")
                 }
                 
             case let assign as Assignment:
@@ -212,19 +205,20 @@ final class IR {
                 else if let access = assign.receiver as? MemberAccess {
                     // this is rValue member access, IRGen for member value as expression is in another place
                     
-                    let (intermediateCode, memberPointerValue) = getMemberPointerAddress(of: access, with: ident)
+                    let (intermediateCode, memberPointerValue) = getMemberPointerAddress(of: access)
                     emitLocal(intermediateCode)
                     receiver = memberPointerValue
                 }
                 else { report("Unsupported rValue.") }
                 
-                let (expCode, expVal) = getExpressionResult(assign.expression, ident: ident)
+                let (expCode, expVal) = getExpressionResult(assign.expression)
                 emitLocal(expCode)
                 let type = matchType(assign.expression.exprType)
                 emitLocal("store \(type) \(expVal), \(type)* \(receiver)")
                 
             case let ret as Return:
-                let (expCode, expVal) = getExpressionResult(ret.value, ident: ident)
+                let (expCode, expVal) = getExpressionResult(ret.value)
+                emitLocal()
                 emitLocal(expCode)
                 if expVal == "void" { emitLocal("ret void") }
                 else { emitLocal("ret \(matchType(ret.value.exprType)) \(expVal)") }
@@ -234,7 +228,7 @@ final class IR {
             }
         }
         
-        return scope.trimmingCharacters(in: .newlines)
+        return code
     }
     
     /// Remove % before label if it's unnamed, % is added later while emiting

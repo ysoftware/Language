@@ -15,11 +15,9 @@ let internalProcedures: [ProcedureDeclaration] = [
 internal extension IR {
     
     // @Todo: refactor into IRGenError
-    func doInternalProcedure(_ call: ProcedureCall, ident: Int) -> (code: String?, value: String) {
-        let identation = string(for: ident)
+    func doInternalProcedure(_ call: ProcedureCall) -> (code: String?, value: String) {
         
         if call.name == "pointerToInt" {
-            
             guard call.arguments.count == 1 else {
                 report("\(call.name) expects exactly 1 argument", call.startCursor, call.endCursor)
             }
@@ -31,12 +29,12 @@ internal extension IR {
             }
             
            var code = ""
-            let (load, val) = getExpressionResult(arg, ident: ident)
-            load.map { code += "\(identation)\($0)\n" }
+            let (load, val) = getExpressionResult(arg)
+            load.map { code += "\($0)\n" }
             
             let counter = count()
             let value = "%\(counter)"
-            code += "\n\(identation)\(value) = ptrtoint \(matchType(arg.exprType)) \(val) to \(matchType(.int32))"
+            code += "\n\(value) = ptrtoint \(matchType(arg.exprType)) \(val) to \(matchType(.int32))"
             
             return (code, value)
         }

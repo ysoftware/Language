@@ -26,7 +26,7 @@ extension IR {
                     lValue = lPointer
                 }
                 else {
-                    (lCode, lValue) = getExpressionResult(arguments.0, ident: 0)
+                    (lCode, lValue) = getExpressionResult(arguments.0)
                     lCode.map { code += "\($0)\n" }
                 }
 
@@ -38,7 +38,7 @@ extension IR {
                     rValue = rPointer
                 }
                 else {
-                    (rCode, rValue) = getExpressionResult(arguments.1, ident: 0)
+                    (rCode, rValue) = getExpressionResult(arguments.1)
                     rCode.map { code += "\($0)\n" }
                 }
                 

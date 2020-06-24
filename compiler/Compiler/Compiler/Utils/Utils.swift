@@ -62,7 +62,7 @@ func compileAndSave(ir: String, output: String = "output") throws {
     reportTimeSpent(on: "GCC", from: previousTime, print: PrintTime)
     
 //    try FileManager.default.removeItem(atPath: urlIR.path)
-//    try FileManager.default.removeItem(atPath: urlO.path)
+    try FileManager.default.removeItem(atPath: urlO.path)
 }
 
 func outputCommand(_ app: String, _ result: (status: Int32, output: String, error: String)) {
