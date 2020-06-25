@@ -619,15 +619,15 @@ extension Parser {
                 case .break:
                     let decl = try doBreak(in: scope)
                     statements.append(decl)
-                    break loop
+                    continue loop
                 case .continue:
                     let decl = try doContinue(in: scope)
                     statements.append(decl)
-                    break loop
+                    continue loop
                 case .if:
                     let decl = try doIf(in: scope)
                     statements.append(decl)
-                    break loop
+                    continue loop
                 default: break
                 }
                 

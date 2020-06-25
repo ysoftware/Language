@@ -124,9 +124,7 @@ final class IR {
                 emitLocal("\(continueLabel):")
                 
             case let structure as StructDeclaration:
-                
                 structures[structure.name] = structure
-                
                 emitGlobal("")
                 emitGlobal("; struct decl: \(structure.name)")
                 emitGlobal("%\(structure.name)__struct = type { \(structure.members.map { matchType($0.exprType) }.joined(separator: ", ")) }")
@@ -194,7 +192,6 @@ final class IR {
                 }
                 
             case let assign as Assignment:
-                
                 emitLocal()
                 emitLocal("; assignment")
                 
@@ -222,13 +219,14 @@ final class IR {
                 emitLocal(expCode)
                 if expVal == "void" { emitLocal("ret void") }
                 else { emitLocal("ret \(matchType(ret.value.exprType)) \(expVal)") }
+                _ = count() // eat basic block
                 
             default:
                 report("Undefined expression:\n\(expression)")
             }
         }
         
-        return code
+        return code.trimmingCharacters(in: .newlines)
     }
     
     /// Remove % before label if it's unnamed, % is added later while emiting
