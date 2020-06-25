@@ -136,14 +136,16 @@ internal extension IR {
                 code += "; unary operator: * (pointer dereference) \n"
                 code += "\(value) = load \(matchType(op.exprType)), \(matchType(op.operatorType)) \(val)"
             }
-            else if op.name == UnaryOperator.memoryAddress {
+            else if op.name == UnaryOperator.memoryAddress { // &value
                 if let variable = op.argument as? Value {
                     value = "%\(variable.name)"
                 }
                 else {
                     let (load, val) = getExpressionResult(op.argument)
                     load.map { code += "\($0)\n" }
-                    value = val
+                    value = "%\(count())"
+                    code += "\(value) = alloca \(matchType(op.argument.exprType))\n"
+                    code += "store \(matchType(op.argument.exprType)) \(val), \(matchType(op.argument.exprType))* \(value)\n"
                 }
             }
             else if op.name == UnaryOperator.cast {
