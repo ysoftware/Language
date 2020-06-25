@@ -1,4 +1,5 @@
 func malloc(size: Int) -> Void* #foreign;
+func free(pointer: Void*) #foreign;
 func printf(format: String, arguments: Int, ...) #foreign;
 
 struct Node {
@@ -6,15 +7,21 @@ struct Node {
     value: Int;
 }
 
-func print(head: Node) {
+func list_print(head: Node) {
+    useSeparator := false;
     current := &head;
     while (current != null) {
-        printf("%d\n", current.value);
+        if (useSeparator) {
+            printf(", ", 0);
+        }
+        printf("%d", current.value);
         current = current.next;
+        useSeparator = true;
     }
+    printf("\n", 0);
 }
 
-func append(head: Node*, value: Int) {
+func list_append(head: Node*, value: Int) {
     node := cast(Node*) malloc(sizeof Node);
     node.value = value;
 
@@ -25,16 +32,78 @@ func append(head: Node*, value: Int) {
     current.next = node;
 }
 
-func main(count: Int, arguments: Int8**) -> Int {
-    head : Node;
-    head.value = 6;
+func list_removing_element_at(head: Node*, index: Int) -> Node* { // new head: nullable
+    if (index == 0) {
+        free(cast(Void*) head);
+        return head.next;
+    }
 
-    append(&head, 5);
-    append(&head, 4);
-    append(&head, 3);
-    append(&head, 2);
-    append(&head, 1);
-    print(head);
+    previous := head;
+    i := 0;
+
+    while (previous.next != null) {
+        i = i + 1;
+        if (index == i) { 
+            break;
+        }
+        previous = previous.next;
+    }
+
+    if (index > i) {
+        return head;
+    }
+
+    current := previous.next;
+    next := current.next;
+    previous.next = next;
+
+    free(cast(Void*) current);
+    return head;
+}
+
+func list_get_value_at(head: Node*, index: Int) -> Int* { // value: nullable
+    if (index == 0) {
+        return &head.value;
+    }
+
+    current := head.next;
+    i := 0;
+
+    while (current != null) {
+        i = i + 1;
+        if (index == i) {
+            break;
+        }
+        current = current.next;
+    }
+
+    if (index > i) {
+        return null;
+    }
     
+    return &current.value;
+}
+
+func main(count: Int, arguments: Int8**) -> Int {
+
+    head := cast(Node*) malloc(sizeof Node);
+    head.value = 0;
+
+    list_append(head, 1);
+    list_append(head, 2);
+    list_append(head, 3);
+    list_append(head, 4);
+    list_append(head, 5);
+
+    head = list_removing_element_at(head, 5);
+    head = list_removing_element_at(head, 3);
+    head = list_removing_element_at(head, 0);
+    head = list_removing_element_at(head, 9);
+
+    if (*list_get_value_at(head, 0) != 1) { return 1; }
+    if (*list_get_value_at(head, 1) != 2) { return 2; }
+    if (*list_get_value_at(head, 2) != 4) { return 3; }
+
+    printf("OK\n", 0);
     return 0;
 }
