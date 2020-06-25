@@ -225,6 +225,7 @@
 				1FFF348C24711E3100389B0C /* Sources */,
 				1FFF348D24711E3100389B0C /* Frameworks */,
 				1FFF348E24711E3100389B0C /* CopyFiles */,
+				1F513E2924A539F400805C0F /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -267,6 +268,26 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1F513E2924A539F400805C0F /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cp ${TARGET_BUILD_DIR}/${TARGET_NAME} ${PROJECT_DIR}/../../yw.app\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1FFF348C24711E3100389B0C /* Sources */ = {

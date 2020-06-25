@@ -53,11 +53,11 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "--no-color"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-cursors"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-ast"
@@ -65,11 +65,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-file"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/yerokhin/Documents/GitHub/Language/programs/frame.yw"
-            isEnabled = "NO">
+            argument = "/Users/yerokhin/Documents/GitHub/Language/tests.yw"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-run"

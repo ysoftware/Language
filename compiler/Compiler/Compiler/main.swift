@@ -18,9 +18,23 @@ let Silent = CommandLine.arguments.contains("-silent")
 let PrintPasses = CommandLine.arguments.contains("--print-passes")
 let ColorCode = !CommandLine.arguments.contains("--no-color")
 
+let KeepIR = CommandLine.arguments.contains("-llvm")
+let KeepGCC = CommandLine.arguments.contains("-gcc")
+
+let RunOutput = CommandLine.arguments.contains("-run")
+
+var outputPath = "output.app"
+if CommandLine.arguments.contains("-o"), let i = CommandLine.arguments.firstIndex(of: "-o") {
+    guard CommandLine.arguments.count > i + 1 else {
+        print("usage: ./compiler -o <filename>")
+        quit(1)
+    }
+    outputPath = CommandLine.arguments[i + 1]
+}
+
 if let i = CommandLine.arguments.firstIndex(of: "-file") {
     guard CommandLine.arguments.count > i + 1 else {
-        print("usage: ./compiler -file <filename> (-run)")
+        print("usage: ./compiler -file <filename>")
         quit(1)
     }
     
@@ -58,12 +72,10 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
         reportTimeSpent(on: "Frontend", from: startTime, print: PrintTime)
         
         do {
-            let appname = "output"
-            try compileAndSave(ir: ir, output: appname)
+            try compileAndSave(ir: ir, output: outputPath)
             
-            if CommandLine.arguments.contains("-run") {
-//                let output = try runCommand("/usr/local/opt/llvm/bin/lli", ["\(appname).ll"])
-                let output = try runCommand("./\(appname).app", [])
+            if RunOutput {
+                let output = try runCommand("./\(outputPath)", [])
                 reportTimeSpent(on: "Running", from: previousTime, print: PrintTime)
                 outputCommand("PROGRAM", output)
             }

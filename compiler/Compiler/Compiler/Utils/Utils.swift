@@ -45,11 +45,9 @@ extension Ast {
     }
 }
 
-func compileAndSave(ir: String, output: String = "output") throws {
-    let path = FileManager.default.currentDirectoryPath
-    
-    let urlIR = URL(fileURLWithPath: path).appendingPathComponent("\(output).ll")
-    let urlO = URL(fileURLWithPath: path).appendingPathComponent("\(output).o")
+func compileAndSave(ir: String, output: String) throws {
+    let urlIR = URL(fileURLWithPath: "\(output).ll")
+    let urlO = URL(fileURLWithPath: "\(output).o")
     
     try ir.write(to: urlIR, atomically: true, encoding: .utf8)
     
@@ -57,12 +55,16 @@ func compileAndSave(ir: String, output: String = "output") throws {
     outputCommand("LLVM", llvmResult)
     reportTimeSpent(on: "LLVM", from: previousTime, print: PrintTime)
     
-    let gccResult = try runCommand("/usr/bin/gcc", ["-o", "\(output).app", urlO.path])
+    let gccResult = try runCommand("/usr/bin/gcc", ["-o", "\(output)", urlO.path])
     outputCommand("GCC", gccResult)
     reportTimeSpent(on: "GCC", from: previousTime, print: PrintTime)
     
-//    try FileManager.default.removeItem(atPath: urlIR.path)
-    try FileManager.default.removeItem(atPath: urlO.path)
+    if !KeepIR {
+        try FileManager.default.removeItem(atPath: urlIR.path)
+    }
+    if !KeepGCC {
+        try FileManager.default.removeItem(atPath: urlO.path)
+    }
 }
 
 func outputCommand(_ app: String, _ result: (status: Int32, output: String, error: String)) {
