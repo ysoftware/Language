@@ -268,7 +268,8 @@ extension Parser {
         while tokens.count > i { // PROCEDURE ARGUMENTS DECLARATION
             if (token.value as? Punctuator)?.value == ")" { break }
             if consumePunct("...") {
-                if arguments.isEmpty { throw error(em.procExpectedArgumentBeforeVarargs, tokens[i-2].endCursor.advancingCharacter()) }
+                if arguments.isEmpty { throw error(em.procExpectedArgumentBeforeVarargs,
+                                                   tokens[i-2].endCursor.advancingCharacter()) }
                 flags.insert(.isVarargs)
                 break
             }
