@@ -111,15 +111,16 @@ extension Type {
         switch (self, value) {
         case (let a as IntType, let b as IntType): return a == b
         case (let a as FloatType, let b as FloatType): return a == b
-        case (let a as PointerType, let b as PointerType): return a == b
         case (let a as ArrayType, let b as ArrayType): return a == b
         case (let a as PredictedType, let b as PredictedType): return a == b
         case (let a as StructureType, let b as StructureType): return a == b
         case (is UnresolvedType, is UnresolvedType): return true
         case (is VoidType, is VoidType): return true
             
-        case (_, is AnyType): return true
-        case (is AnyType, _): return true
+        case (let a as PointerType, let b as PointerType):
+            return a.pointeeType.equals(to: b.pointeeType)
+            
+        case (_, is AnyType), (is AnyType, _): return true
         default: return false
         }
     }

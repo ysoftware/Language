@@ -158,6 +158,7 @@ struct LexerError: Error {
         case emptyDirectiveName = "Directive identifier is expected after #."
         case unexpectedDirectiveName = "Unexpected characters in a directive identifier after #."
         case unexpectedCharacter = "Unexpected character."
+        case nonASCIICharacter = "Non-ASCII character."
         case invalidIdentifierUnderscore = "'_' is not a valid identifier."
     }
 

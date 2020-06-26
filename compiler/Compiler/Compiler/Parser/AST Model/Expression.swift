@@ -122,7 +122,7 @@ final class UnaryOperator: Expression, Equatable {
         if name == UnaryOperator.cast {
             return "[Cast\(c) to \(exprType.typeName)] \(argument)"
         }
-        return "\(name){ \(argument)\(c) }"
+        return "[\(name) \(exprType.typeName): \(argument)\(c)]"
     }
     
     var name: String

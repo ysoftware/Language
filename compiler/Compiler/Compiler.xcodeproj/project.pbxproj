@@ -285,7 +285,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp ${TARGET_BUILD_DIR}/${TARGET_NAME} ${PROJECT_DIR}/../../yw.app\n";
+			shellScript = "rm -rf ${PROJECT_DIR}/../../yw.app\ncp ${TARGET_BUILD_DIR}/${TARGET_NAME} ${PROJECT_DIR}/../../yw.app\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

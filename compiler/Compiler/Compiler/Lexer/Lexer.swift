@@ -265,9 +265,14 @@ final class Lexer {
                     break
                 }
                 else {
-                    // for some reason?
-                    print(char)
-                    throw error(.unexpectedCharacter, cursor, cursor)
+                    print("Error: \(char)    [@Todo: rework lexer errors]")
+                    
+                    if !char.isASCII {
+                        throw error(.nonASCIICharacter, start.withdrawingCharacter(), cursor)
+                    }
+                    else {
+                        throw error(.unexpectedCharacter, start.withdrawingCharacter(), cursor)
+                    }
                 }
             }
             guard nextChar() else { append(EOF(), cursor, cursor); break }

@@ -333,7 +333,8 @@ struct Value { a := getInt(); b := getFloat(); }
         let code = """
 func main() {
     a : Int**;
-    b : Int* = *a; // getting a pointer to 'a'
+    b : Int*   = *a; // getting value of 'a'
+    c : Int*** = &a; // getting a pointer to 'a'
 }
 """
         let tokens = try! Lexer(code).analyze().tokens
@@ -342,6 +343,8 @@ func main() {
         printResultCase(code, result, Code([ main([
             vDecl("a", .pointer(.pointer(.int)), nil),
             vDecl("b", .pointer(.int),  unop("*", .pointer(.int), val("a", .pointer(.pointer(.int))))),
+            vDecl("c", .pointer(.pointer(.pointer(.int))),
+                  unop("&", .pointer(.pointer(.pointer(.int))), val("a", .pointer(.pointer(.int))))),
             ret(VoidLiteral())
         ])]))
     }

@@ -28,6 +28,16 @@ struct Cursor: Equatable, CustomDebugStringConvertible {
         return next
     }
     
+    func withdrawingCharacter() -> Cursor {
+        var next = self
+        next.withdrawCharacter()
+        return next
+    }
+    
+    mutating func withdrawCharacter(by count: Int = 1) {
+        character -= count
+    }
+    
     mutating func advanceCharacter(by count: Int = 1) {
         character += count
     }
