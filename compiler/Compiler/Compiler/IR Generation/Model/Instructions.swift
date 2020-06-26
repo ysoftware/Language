@@ -22,7 +22,7 @@ extension IR {
                 if let variable = arguments.0 as? Value {
                     lValue = "%\(variable.name)"
                     let lPointer = "%\(count())"
-                    code += "\(lPointer) = load \(workingType), \(workingType)* \(lValue)\n"
+                    code += doLoad(from: lValue, into: lPointer, valueType: type)
                     lValue = lPointer
                 }
                 else {
@@ -34,7 +34,7 @@ extension IR {
                 if let variable = arguments.1 as? Value {
                     rValue = "%\(variable.name)"
                     let rPointer = "%\(count())"
-                    code += "\(rPointer) = load \(workingType), \(workingType)* \(rValue)\n"
+                    code += doLoad(from: rValue, into: rPointer, valueType: type)
                     rValue = rPointer
                 }
                 else {

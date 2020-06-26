@@ -34,16 +34,15 @@ internal extension IR {
             return (nil, "\(literal.value)")
             
         case let variable as Value:
-            let type = matchType(variable.exprType)
             let argValue = "%\(count())"
-            code += "\(argValue) = load \(type), \(type)* %\(variable.name)"
+            code += doLoad(from: "%\(variable.name)", into: argValue, valueType: variable.exprType)
             return (code, argValue)
             
         case let sizeof as SizeOf:
             let ptr = "%\(count())"
             let value = "%\(count())"
             code += "; sizeof \(sizeof.type.typeName)\n"
-            code += "\(ptr) = getelementptr \(matchType(sizeof.type)), \(matchType(sizeof.type))* null, i32 1\n"
+            code += doGEP(of: "null", into: ptr, valueType: sizeof.type, indices: [1])
             code += "\(value) = ptrtoint \(matchType(sizeof.type))* \(ptr) to i32\n"
             return (code, value)
             
@@ -75,7 +74,8 @@ internal extension IR {
                         
                         let argValue = "%\(count())"
                         let length = literal.value.count + 1
-                        code += "\(argValue) = getelementptr [\(length) x i8], [\(length) x i8]* @\(arg.name), i32 0, i32 0"
+                        let type = ArrayType(elementType: .int8, size: length)
+                        code += doGEP(of: "@\(arg.name)", into: argValue, valueType: type, indices: [0, 0])
                         arguments.append("i8* \(argValue)")
                     }
                     else {
@@ -96,19 +96,18 @@ internal extension IR {
                 code += "\n"
             }
             
+            code += "; procedure \(procedure.name)\n"
             let returnType = matchType(procedure.returnType)
             let argValues = arguments.joined(separator: ", ")
             let argumentsString = getProcedureArgumentString(from: procedure, printName: false)
             
             var value = ""
-            code += "; procedure \(procedure.name)\n"
-            if call.exprType.equals(to: .void) {
-                code += "call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
-            }
-            else {
+            if !call.exprType.equals(to: .void) {
                 value = "%\(count())"
-                code += "\(value) = call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
+                code += "\(value) = "
             }
+            
+            code += "call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
             return (code, value)
             
             
@@ -117,11 +116,8 @@ internal extension IR {
             
             let (intermediateCode, memberPointerValue) = getMemberPointerAddress(of: access)
             code += intermediateCode
-            
             let value = "%\(count())"
-            let memberType = matchType(access.exprType)
-            code += "\(value) = load \(memberType), \(memberType)* \(memberPointerValue)"
-
+            code += doLoad(from: memberPointerValue, into: value, valueType: access.exprType)
             return (code, value)
             
         case let op as UnaryOperator:
@@ -134,7 +130,7 @@ internal extension IR {
                 load.map { code += "\($0)\n" }
                 
                 code += "; unary operator: * (pointer dereference) \n"
-                code += "\(value) = load \(matchType(op.exprType)), \(matchType(op.operatorType)) \(val)"
+                code += doLoad(from: val, into: value, valueType: op.exprType)
             }
             else if op.name == UnaryOperator.memoryAddress { // &value
                 if let variable = op.argument as? Value {
@@ -144,8 +140,8 @@ internal extension IR {
                     let (load, val) = getExpressionResult(op.argument)
                     load.map { code += "\($0)\n" }
                     value = "%\(count())"
-                    code += "\(value) = alloca \(matchType(op.argument.exprType))\n"
-                    code += "store \(matchType(op.argument.exprType)) \(val), \(matchType(op.argument.exprType))* \(value)\n"
+                    code += doAlloca(value, op.argument.exprType)
+                    code += doStore(from: val, into: value, valueType: op.argument.exprType)
                 }
             }
             else if op.name == UnaryOperator.cast {
@@ -214,7 +210,7 @@ internal extension IR {
     /// Returns the `pointer to the member`, and the code is what's required to search for it
     func getMemberPointerAddress(of access: MemberAccess) -> (code: String, value: String) {
         guard let memberIndex = access.memberIndex else { report("Member access index is not set before IR Gen stage") }
-        var baseType = matchType(access.base.exprType)
+        var baseType = access.base.exprType
         
         var code = ""
         var base = ""
@@ -234,17 +230,16 @@ internal extension IR {
         }
         
         code += "; member access \(access.base.exprType.typeName).\(access.memberName)\n"
-        if let pointer = access.base.exprType as? PointerType { // deref pointer first
-            let type = matchType(pointer)
+        if let pointerType = access.base.exprType as? PointerType { // deref pointer first
             let deref = base
             base = "%\(count())"
             code += "; dereferencing\n"
-            code += "\(base) = load \(type), \(type)* \(deref)\n"
-            baseType = matchType(pointer.pointeeType)
+            code += doLoad(from: deref, into: base, valueType: pointerType)
+            baseType = pointerType.pointeeType
         }
         
         let memberPointerValue = "%\(count())"
-        code += "\(memberPointerValue) = getelementptr \(baseType), \(baseType)* \(base), i32 0, i32 \(memberIndex)\n"
+        code += doGEP(of: base, into: memberPointerValue, valueType: baseType, indices: [0, memberIndex])
         
         return (code, memberPointerValue)
     }

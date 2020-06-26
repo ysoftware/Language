@@ -54,26 +54,27 @@ final class IR {
             
             case let loop as WhileLoop:
                 let counter = count()
+                let counterVal = "%\(counter)"
                 let bodyLabel = "loop.\(counter).body"
                 let continueLabel = "loop.\(counter).continue"
                 let context = LoopContext(userLabel: loop.userLabel,
                                           breakLabel: continueLabel,
-                                          continueLabel: "%\(counter)")
+                                          continueLabel: counterVal)
                 
                 let (expCode, expVal) = getExpressionResult(loop.condition)
                 emitLocal()
-                emitLocal("br label %\(counter) ; terminating previous block")
+                emitLocal(doBr(counterVal))
                 emitLocal()
-                emitLocal("; %\(counter) loop.\(counter).condition")
+                emitLocal("; \(counter) loop.\(counter).condition")
                 emitLocal(expCode)
-                emitLocal("br i1 \(expVal), label %\(bodyLabel), label %\(continueLabel)")
+                emitLocal(doBr(if: "i1 \(expVal)", then: "%\(bodyLabel)", else: "%\(continueLabel)"))
                 
                 let loopBody = processStatements(loop.block.statements,
                                                  contexts: contexts + [context])
                 emitLocal()
                 emitLocal("\(bodyLabel): ; user label \(loop.userLabel ?? "[not set]")")
                 emitLocal(loopBody)
-                emitLocal("br label %\(counter)")
+                emitLocal(doBr(counterVal))
                 
                 // continue
                 emitLocal()
@@ -83,14 +84,13 @@ final class IR {
                 _ = count() // eat block # after br
                 let label = getLoopContext(from: contexts, with: br.userLabel).breakLabel
                 emitLocal()
-                emitLocal("br label %\(normalizeLabel(label)) ; loop break, user label \(br.userLabel ?? "[not set]")")
+                emitLocal(doBr("%\(normalizeLabel(label))"))
                 
             case let cont as Continue:
                 _ = count() // eat block # after br
                 let label = getLoopContext(from: contexts, with: cont.userLabel).continueLabel
                 emitLocal()
-                emitLocal("br label %\(normalizeLabel(label)) ; loop continue, user label \(cont.userLabel ?? "[not set]")")
-                
+                emitLocal(doBr("%\(normalizeLabel(label))"))
                 
             case let condition as Condition:
                 let hasElse = !condition.elseBlock.isEmpty
@@ -104,20 +104,20 @@ final class IR {
                 emitLocal()
                 emitLocal("; if condition")
                 emitLocal(expCode)
-                emitLocal("br i1 \(expVal), label %\(counter), label %\(elseLabel)")
+                emitLocal(doBr(if: "i1 \(expVal)", then: "%\(counter)", else: "%\(elseLabel)"))
                 
                 let ifBody = processStatements(condition.block.statements, contexts: contexts)
                 emitLocal()
                 emitLocal("\(bodyLabel):")
                 emitLocal(ifBody)
-                emitLocal("br label %\(continueLabel)")
+                emitLocal(doBr("%\(continueLabel)"))
                 
                 if hasElse {
                     let elseBody = processStatements(condition.elseBlock.statements, contexts: contexts)
                     emitLocal()
                     emitLocal("\(elseLabel):")
                     emitLocal(elseBody)
-                    emitLocal("br label %\(continueLabel) ; exiting else.\(counter)")
+                    emitLocal(doBr("%\(continueLabel)"))
                 }
                 
                 emitLocal()
@@ -143,13 +143,10 @@ final class IR {
                     
                     if procedure.arguments.count > 0 {
                         for arg in procedure.arguments {
-                            let argValue = "%\(count())"
                             
-                            let argString = """
-                            ; procedure arguments
-                            %\(arg.name) = alloca \(matchType(arg.exprType))
-                            store \(matchType(arg.exprType)) \(argValue), \(matchType(arg.exprType))* %\(arg.name)
-                            """
+                            var argString = "; procedure arguments\n"
+                            argString += doAlloca("%\(arg.name)", arg.exprType)
+                            argString += doStore(from: "%\(count())", into: "%\(arg.name)", valueType: arg.exprType)
                             emitLocal(indentString(argString, level: 1))
                         }
                         emitLocal()
@@ -178,16 +175,15 @@ final class IR {
                 }
                 else {
                     emitLocal("; declaration of \(variable.name)")
-                    let type = matchType(variable.exprType)
-                    emitLocal("%\(variable.name) = alloca \(type)")
+                    emitLocal(doAlloca("%\(variable.name)", variable.exprType))
                     
                     if let expression = variable.expression {
                         let (expCode, expVal) = getExpressionResult(expression)
                         emitLocal(expCode)
-                        emitLocal("store \(type) \(expVal), \(type)* %\(variable.name)")
+                        emitLocal(doStore(from: expVal, into: "%\(variable.name)", valueType: variable.exprType))
                     }
                     else {
-                        emitLocal("store \(type) zeroinitializer, \(type)* %\(variable.name)")
+                        emitLocal(doStore(from: "zeroinitializer", into: "%\(variable.name)", valueType: variable.exprType))
                     }
                 }
                 
@@ -210,8 +206,7 @@ final class IR {
                 
                 let (expCode, expVal) = getExpressionResult(assign.expression)
                 emitLocal(expCode)
-                let type = matchType(assign.expression.exprType)
-                emitLocal("store \(type) \(expVal), \(type)* \(receiver)")
+                emitLocal(doStore(from: expVal, into: receiver, valueType: assign.expression.exprType))
                 
             case let ret as Return:
                 let (expCode, expVal) = getExpressionResult(ret.value)
