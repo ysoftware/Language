@@ -16,6 +16,7 @@ final class ParserTest {
         let i = ParserTest()
         i.failed = 0
         
+        i.testMemberAccess()
         i.testVariableAssign()
         i.testPointers()
         i.testFunctionDeclaration()
@@ -99,31 +100,39 @@ final class ParserTest {
                 failed += 1
                 print("\n\(caseName)".color(.lightRed))
                 print("\(code)\n".color(.cyan))
-                if result.statements.count != expect.statements.count {
-                    print("Counts don't match:".color(.lightGray),
-                    result.statements.count,
-                    "Expected:".color(.lightGray),
-                    expect.statements.count,
-                    "\n===".color(.darkGray))
-                    print(result)
-                    print("===\n\n".color(.darkGray))
-                }
-                else {
-                    for i in 0..<result.statements.count {
-                        if !expect.equals(to: result) {
-                            print("Mismatch in:\n".color(.lightGray),
-                                  result.statements[i],
-                                  "\nExpected:\n".color(.lightGray),
-                                  expect.statements[i],
-                                  "\n\n")
-                        }
-                    }
-                }
+                printMismatches(result.statements, expect.statements)
             }
             else {
                 guard PrintPasses else { return }
                 let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
                 print("OK \(name)".color(.lightGray))
+            }
+        }
+    }
+    
+    private func printMismatches(_ result: [Statement], _ expect: [Statement]) {
+        if result.count != expect.count {
+            print("Counts don't match:".color(.lightGray), result.count,
+            "Expected:".color(.lightGray), expect.count, "\n===".color(.darkGray))
+            print(result)
+            print("===\n\n".color(.darkGray))
+        }
+        else {
+            for i in 0..<result.count {
+                if let resultBlock = result[i] as? Condition, let expectBlock = expect[i] as? Condition {
+                    printMismatches(resultBlock.block.statements, expectBlock.block.statements)
+                    printMismatches(resultBlock.elseBlock.statements, expectBlock.elseBlock.statements)
+                }
+                else if let resultBlock = result[i] as? WhileLoop, let expectBlock = expect[i] as? WhileLoop {
+                    printMismatches(resultBlock.block.statements, expectBlock.block.statements)
+                }
+                else if let resultBlock = result[i] as? ProcedureDeclaration, let expectBlock = expect[i] as? ProcedureDeclaration {
+                    printMismatches(resultBlock.scope.statements, expectBlock.scope.statements)
+                }
+                else if !expect[i].equals(to: result[i]) {
+                    print("Mismatch in:\n".color(.lightGray), result[i],
+                          "\nExpected:\n".color(.lightGray), expect[i], "\n\n")
+                }
             }
         }
     }
@@ -146,6 +155,10 @@ final class ParserTest {
     
     func vAssign(_ name: String, _ expr: Expression) -> Assignment {
         Assignment(receiver: val(name, expr.exprType), expression: expr)
+    }
+    
+    func rValAssign(_ ast: Ast, _ expr: Expression) -> Assignment {
+        Assignment(receiver: ast, expression: expr)
     }
     
     func binop(_ name: String, _ type: Type, _ arguments: (Expression, Expression)) -> BinaryOperator {

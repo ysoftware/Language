@@ -3,7 +3,7 @@ func system(command: String) -> Int #foreign;
 
 func main(count: Int, arguments: Int8**) -> Int {
 
-    system("./yw.app -run -file ./tests/list.yw -run --no-output");
+    system("./yw.app -run -file ./tests/list.yw -run");
 
     return 0;
 }

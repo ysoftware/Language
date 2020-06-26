@@ -76,11 +76,13 @@ final class MemberAccess: Expression, Equatable {
         lhs.base.equals(to: rhs.base)
             && lhs.memberName == rhs.memberName
             && lhs.exprType.equals(to: rhs.exprType)
+            && lhs.memberIndex == rhs.memberIndex
     }
     
     var debugDescription: String {
         let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
-        return "[Member\(c)] \(memberName): \(exprType.typeName) of \(base)"
+        let i = memberIndex != nil ? "\(memberIndex!)" : "_"
+        return "[Member \(i)\(c)] \(memberName): \(exprType.typeName) of \(base)"
     }
     
     var memberIndex: Int? = nil

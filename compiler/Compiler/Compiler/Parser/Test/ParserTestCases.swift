@@ -14,24 +14,49 @@ func parserResult<T>(_ block: () throws -> T) -> Result<T, ParserError> {
 
 extension ParserTest {
     
-        func testVariableDeclaration() {
-            let code = """
+    func testMemberAccess() {
+        let code = """
+    struct Vector { x: Int; y: Int; }
+    func main() { vec : Vector; x := vec.x; vec.x = x; }
+    """
+        let tokens = try! Lexer(code).analyze().tokens
+        let result = parserResult(Parser(tokens).parse)
+        
+        let accessX = MemberAccess(base: val("vec", .struct("Vector")),
+                                   memberName: "x", memderIndex: 0, exprType: .int)
+        
+        printResultCase(code, result, Code([
+            StructDeclaration(name: "Vector", members: [
+                vDecl("x", .int, nil),
+                vDecl("y", .int, nil)
+            ]),
+            main([
+                vDecl("vec", .struct("Vector"), nil),
+                vDecl("x", .int, accessX),
+                rValAssign(accessX, val("x", .int)),
+                ret(VoidLiteral())
+            ])
+        ]))
+    }
+    
+    func testVariableDeclaration() {
+        let code = """
     func main() { a : String; b := 1; c :: 1; d : Int = 1;
     e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; i : Int8*; }
     """
-            let tokens = try! Lexer(code).analyze().tokens
-            let result = parserResult(Parser(tokens).parse)
-            
-            printResultCase(code, result, Code([main([
-                vDecl("a", .string, nil), vDecl("b", .int, int(1)),
-                vDecl("c", .int, int(1), const: true), vDecl("d", .int, int(1)),
-                vDecl("e", .bool, bool(true), const: true), vDecl("f", .float, float(1)),
-                vDecl("g", .bool, bool(false), const: true),
-                vDecl("h", .int64, int(5_000_000_000_000), const: true),
-                vDecl("i", .pointer(.int8), nil),
-                ret(VoidLiteral())
-            ])]))
-        }
+        let tokens = try! Lexer(code).analyze().tokens
+        let result = parserResult(Parser(tokens).parse)
+        
+        printResultCase(code, result, Code([main([
+            vDecl("a", .string, nil), vDecl("b", .int, int(1)),
+            vDecl("c", .int, int(1), const: true), vDecl("d", .int, int(1)),
+            vDecl("e", .bool, bool(true), const: true), vDecl("f", .float, float(1)),
+            vDecl("g", .bool, bool(false), const: true),
+            vDecl("h", .int64, int(5_000_000_000_000), const: true),
+            vDecl("i", .pointer(.int8), nil),
+            ret(VoidLiteral())
+        ])]))
+    }
 
     func testVariableAssign() {
         let code = "func main() { a := 1; a = a + 1; }"

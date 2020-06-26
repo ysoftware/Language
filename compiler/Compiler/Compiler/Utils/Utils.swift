@@ -39,6 +39,7 @@ extension Ast {
         case (let l as StringLiteral, let r as StringLiteral): return l == r
         case (let l as IntLiteral, let r as IntLiteral): return l == r
         case (let l as FloatLiteral, let r as FloatLiteral): return l == r
+        case (let l as MemberAccess, let r as MemberAccess): return l == r
         case (is VoidLiteral, is VoidLiteral): return true
         default: return false
         }

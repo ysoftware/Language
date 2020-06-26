@@ -20,7 +20,6 @@ let ColorCode = !CommandLine.arguments.contains("--no-color")
 
 let KeepIR = CommandLine.arguments.contains("-llvm")
 let KeepGCC = CommandLine.arguments.contains("-gcc")
-
 let RunOutput = CommandLine.arguments.contains("-run")
 
 var outputPath = "output.app"
