@@ -255,7 +255,9 @@ extension Parser {
     func doProcDecl(in scope: Scope) throws -> ProcedureDeclaration {
         let start = token.startCursor
         guard consumeKeyword(.func) else { report("can't call doProcDecl without checking for keyword first") }
-        guard let procName = consumeIdent()?.value else { throw error(em.procExpectedName) }
+        guard let procName = consumeIdent()?.value else {
+            throw error(em.procExpectedName(token), token.startCursor, token.endCursor)
+        }
         guard consumePunct("(") else { throw error(em.expectedParentheses) }
         let end = lastToken.endCursor
         let returnType: Type
@@ -519,6 +521,16 @@ extension Parser {
                 let type = Type.named(typeIdent.value.value)
                 // @Todo: depend on this type to be resolved
                 expression = SizeOf(type: type, startCursor: start, endCursor: typeIdent.token.endCursor)
+            case .new:
+                let start = token.startCursor
+                guard nextToken() else { throw error(em.unexpectedEndOfFile) }
+                guard let declType = consumeIdent() else { throw error(em.newExpectsTypeIdent) }
+                // @Todo: resolve type
+                guard let type = resolveType(named: declType.value.value) else {
+                    throw error(em.declTypeIsDeclaration(), declType.token.startCursor, declType.token.endCursor)
+                }
+                let new = New(type: type, startCursor: start, endCursor: declType.token.endCursor)
+                expression = new
             case .cast:
                 let start = token.startCursor
                 guard nextToken(), consumePunct("("), let typeIdent = consumeIdent(), consumePunct(")") else {
@@ -628,6 +640,15 @@ extension Parser {
                     let decl = try doIf(in: scope)
                     statements.append(decl)
                     continue loop
+                case .free:
+                    let start = token.startCursor
+                    guard nextToken() else { throw error(em.unexpectedEndOfFile) }
+                    let expr = try doExpression(in: scope, expectSemicolon: true)
+                    let type = resolveType(of: expr)
+                    guard type is PointerType else { throw error(em.freeExpectsPointer) }
+                    let free = Free(expression: expr, startCursor: start, endCursor: expr.endCursor)
+                    statements.append(free)
+                    continue loop
                 default: break
                 }
                 
@@ -639,6 +660,8 @@ extension Parser {
                     var returnExpression: Expression?
                     if !consumeSep(";") {
                         returnExpression = try doExpression(in: scope, expectSemicolon: false)
+                        // @Todo: should be expectSemicolon: true?
+                        // are we even eating a semicolon?
                     }
                     let end = returnExpression?.endCursor ?? lastToken.endCursor
                     let returnStatement = Return(

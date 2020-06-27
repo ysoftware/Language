@@ -1,5 +1,5 @@
 func malloc(size: Int) -> Void* #foreign;
-func free(pointer: Void*) #foreign;
+func `free`(pointer: Void*) #foreign;
 func printf(format: String, arguments: Int, ...) #foreign;
 
 struct Node {
@@ -22,7 +22,7 @@ func list_print(head: Node) {
 }
 
 func list_append(head: Node*, value: Int) {
-    node := cast(Node*) malloc(sizeof Node);
+    node := new Node;
     node.value = value;
 
     current := head;
@@ -34,7 +34,7 @@ func list_append(head: Node*, value: Int) {
 
 func list_removing_element_at(head: Node*, index: Int) -> Node* { // new head: nullable
     if (index == 0) {
-        free(cast(Void*) head);
+        free head;
         return head.next;
     }
 
@@ -57,7 +57,7 @@ func list_removing_element_at(head: Node*, index: Int) -> Node* { // new head: n
     next := current.next;
     previous.next = next;
 
-    free(cast(Void*) current);
+    free current;
     return head;
 }
 
@@ -86,7 +86,8 @@ func list_get_value_at(head: Node*, index: Int) -> Int* { // value: nullable
 
 func main(count: Int, arguments: Int8**) -> Int {
 
-    head := cast(Node*) malloc(sizeof Node);
+    printf("List: ", 0);
+    head := new Node;
     head.value = 0;
 
     list_append(head, 1);

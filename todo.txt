@@ -1,12 +1,15 @@
 TODO
 
 FEATURE
+- allocation via new (alloc + zero init + bitcast)
 - defer
 - arrays
 - subscript access
 
 
 IRGEN
+- move sizeof to a global value
+- move string literal to a global value (from Parser responsibility to IRGen) to match sizeof
 - refactor common features to procedures: doAlloc, doStore, doLoad, doGEP
 - make IRGen throw errors
 

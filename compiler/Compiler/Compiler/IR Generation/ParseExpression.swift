@@ -110,6 +110,21 @@ internal extension IR {
             code += "call \(returnType) (\(argumentsString)) @\(procedure.name) (\(argValues))"
             return (code, value)
             
+        case let new as New:
+            code += "; new \(new.type.typeName)\n"
+            
+            let ptrVal = "%\(count())"
+            let sizeVal = "%\(count())"
+            let mallocVal = "%\(count())"
+            let value = "%\(count())"
+
+            code += doGEP(of: "null", into: ptrVal, valueType: new.type, indices: [1])
+            code += "\(sizeVal) = ptrtoint \(matchType(new.exprType)) \(ptrVal) to i32\n"
+            code += "\(mallocVal) = call i8* (i32) @malloc (i32 \(sizeVal))\n"
+            code += "\(value) = bitcast \(matchType(.pointer(.int8))) \(mallocVal) to \(matchType(new.exprType))\n"
+            code += doStore(from: "zeroinitializer", into: value, valueType: new.type)
+            
+            return (code, value)
             
         case let access as MemberAccess:
             // this is member access as expression, IRGen for the rValue member access is in another place

@@ -67,16 +67,16 @@ extension Parser {
         let expectedParentheses = "Parentheses are expected around the condition expression."
         let exprExpectedBrackets = "Expected closing bracket after expression."
         
-        // sizeof
-        let sizeofExpectedType = "Type name is expected after 'sizeof'."
-
-        // cast
-        let castExpectsTypeInBrackets = "Expected type in round brackets after 'cast'."
-
         func returnTypeNotMatching(_ e: Type, _ g: Type) -> String {
             "Return type is expected to be '\(e)', but expression provided evaluates to '\(g)'."
         }
         
+        // other
+        let sizeofExpectedType = "Type name is expected after 'sizeof'."
+        let castExpectsTypeInBrackets = "Expected type in round brackets after 'cast'."
+        let newExpectsTypeIdent = "Expected type identifier after 'new'."
+        let freeExpectsPointer = "Expected expression of pointer type after 'free'."
+
         // member access
         func memberAccessNonStruct(_ t: Type) -> String {
             "Trying to perform member access on a non-struct value of '\(t)'"
@@ -148,7 +148,7 @@ extension Parser {
         let procUndeclaredDirective = "Undeclared procedure directive."
         let procMainRedecl = "Redeclaration of the entry procedure."
         let procReturnTypeExpected = "Expected a return type after '->'."
-        let procExpectedName = "Expected procedure name after 'func'."
+        func procExpectedName(_ g: Token) -> String { "Expected procedure name identifier after 'func'. Got \(g) instead." }
         let procNotReturning = "Expected a return statement in a non-void procedure."
         
         // struct declaration

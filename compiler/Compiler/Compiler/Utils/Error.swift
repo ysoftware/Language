@@ -22,9 +22,9 @@ struct Cursor: Equatable, CustomDebugStringConvertible {
         self.character = character
     }
     
-    func advancingCharacter() -> Cursor {
+    func advancingCharacter(by count: Int = 1) -> Cursor {
         var next = self
-        next.advanceCharacter()
+        next.advanceCharacter(by: count)
         return next
     }
     

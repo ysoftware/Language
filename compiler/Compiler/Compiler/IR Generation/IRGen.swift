@@ -45,7 +45,7 @@ final class IR {
         func emitLocal(_ string: String? = "") {
             guard let string = string else { return }
             if string.isEmpty { code += "\n" }
-            else { code += indentString(string, level: indentLevel) + "\n" }
+            else { code += indentString(string.trimmingCharacters(in: .newlines), level: indentLevel) + "\n" }
         }
         
         // All statements go here
@@ -123,6 +123,18 @@ final class IR {
                 emitLocal()
                 emitLocal("\(continueLabel):")
                 
+            case let free as Free:
+                let (eCode, eVal) = getExpressionResult(free.expression)
+                guard let ptrType = free.expression.exprType as? PointerType else {
+                    report("Free with expression of type that's not pointer")
+                }
+                
+                emitLocal("; free")
+                emitLocal(eCode)
+                let bitcastVal = "%\(count())"
+                emitLocal("\(bitcastVal) = bitcast \(matchType(ptrType)) \(eVal) to \(matchType(.pointer(.int8)))")
+                emitLocal("call void (i8*) @free (i8* \(bitcastVal))\n")
+                
             case let structure as StructDeclaration:
                 structures[structure.name] = structure
                 emitGlobal("")
@@ -149,7 +161,6 @@ final class IR {
                             argString += doStore(from: "%\(count())", into: "%\(arg.name)", valueType: arg.exprType)
                             emitLocal(indentString(argString, level: 1))
                         }
-                        emitLocal()
                     }
                     
                     _ = count() // implicit entry block takes the next name

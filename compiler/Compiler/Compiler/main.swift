@@ -18,7 +18,7 @@ let Silent = CommandLine.arguments.contains("-silent")
 let PrintPasses = CommandLine.arguments.contains("--print-passes")
 let ColorCode = !CommandLine.arguments.contains("--no-color")
 
-let KeepIR = CommandLine.arguments.contains("-llvm")
+let KeepIR = CommandLine.arguments.contains("-ir")
 let KeepGCC = CommandLine.arguments.contains("-gcc")
 let RunOutput = CommandLine.arguments.contains("-run")
 

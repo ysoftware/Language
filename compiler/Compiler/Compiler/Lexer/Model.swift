@@ -68,7 +68,9 @@ enum Keyword: String, CaseIterable, Equatable, TokenValue {
     case `return`
     case cast
     case sizeof
-    
+    case new
+    case free
+
     static let all = allCases.map(\.rawValue)
 }
 
@@ -98,23 +100,24 @@ final class Token: Equatable, CustomDebugStringConvertible {
     }
     
     var debugDescription: String {
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
         if let string = value as? StringValueToken {
-            return "[\(tokenType)] \"\(string.value)\" (\(startCursor)-\(endCursor))"
+            return "[\(tokenType) \"\(string.value)\"\(c)]"
         }
         else if let literal = value as? TokenLiteral {
             switch literal.value {
-            case .string(let value): return "[Literal] '\(value.reescaped)' (\(startCursor)-\(endCursor))"
-            case .float(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
-            case .int(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
-            case .bool(let value): return "[Literal] '\(value)' (\(startCursor)-\(endCursor))"
-            case .void: return "[Void]"
-            case .null: return "[Null]"
+            case .string(let value): return "[Literal '\(value.reescaped)'\(c)]"
+            case .float(let value): return "[Literal '\(value)'\(c)]"
+            case .int(let value): return "[Literal '\(value)'\(c)]"
+            case .bool(let value): return "[Literal '\(value)'\(c)]"
+            case .void: return "[Void\(c)]"
+            case .null: return "[Null\(c)]"
             }
         }
         else if let keyword = value as? Keyword {
-            return "[Keyword] '\(keyword.rawValue)' (\(startCursor)-\(endCursor))"
+            return "[Keyword \(keyword.rawValue)]"
         }
-        else { return "Token \(value) (\(startCursor)-\(endCursor))" }
+        else { return "[Token \(value)\(c)]" }
     }
     
     let startCursor: Cursor

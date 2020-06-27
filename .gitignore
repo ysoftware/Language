@@ -4,3 +4,4 @@ output.ll
 output.o
 output.s
 yw.app
+output.app.ll

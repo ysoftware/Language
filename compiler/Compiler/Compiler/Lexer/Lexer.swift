@@ -126,7 +126,7 @@ final class Lexer {
                 let start = cursor
                 append(Separator(value: String(char)), start, cursor)
                 
-            case lowercaseRange, uppercaseRange, "_", "#":
+            case lowercaseRange, uppercaseRange, "_", "#", "`":
                 // KEYWORDS / IDENTIFIERS / DIRECTIVES / BOOL LITERALS
                 
                 let start = cursor
@@ -143,15 +143,27 @@ final class Lexer {
                 var value = String(char)
                 while let next = consumeNext(where: {
                     lowercaseRange.contains($0) || uppercaseRange.contains($0)
-                        || numberRange.contains($0) || $0 == "_" || $0 == "*" }) {
+                        || numberRange.contains($0) || $0 == "_" || $0 == "*" || $0 == "`" }) {
                             value.append(next)
                 }
-            
-                if value == "void" { append(TokenLiteral(value: .void), start, cursor) }
+                
+                let isNotKeyword = value.first == "`" && value.last == "`" && value.count >= 3
+                if isNotKeyword {
+                    value = String(value[value.startIndex(offsetBy: 1)..<value.endIndex(offsetBy: -1)])
+                }
+                
+                if let idx = value.firstIndex(of: "`") {
+                    let i = value.distance(from: value.startIndex, to: idx)
+                    let c = start.advancingCharacter(by: i-1) // @Todo: weird to do this to get the right cursor
+                    
+                    throw error(.unexpectedCharacter, c, c)
+                }
+                
+                if value == "void" { append(TokenLiteral(value: .void), start, start) }
                 else if value == "null" { append(TokenLiteral(value: .null), start, cursor) }
                 else if value == "true" { append(TokenLiteral(value: .bool(value: true)), start, cursor) }
                 else if value == "false" { append(TokenLiteral(value: .bool(value: false)), start, cursor) }
-                else if let keyword = Keyword(rawValue: value) { append(keyword, start, cursor) }
+                else if !isNotKeyword, let keyword = Keyword(rawValue: value) { append(keyword, start, cursor) }
                 else if isDirective {
                     if value.isEmpty { throw error(.emptyDirectiveName, start, cursor) }
                     append(Directive(value: value), start, cursor)
