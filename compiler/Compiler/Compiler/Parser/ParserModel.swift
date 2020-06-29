@@ -66,7 +66,8 @@ extension Parser {
         let expectedExpression = "Expected expression."
         let expectedParentheses = "Parentheses are expected around the condition expression."
         let exprExpectedBrackets = "Expected closing bracket after expression."
-        
+        func unexpectedToken(_ t: String) -> String { "Unexpected token: '\(t)'." }
+
         func returnTypeNotMatching(_ e: Type, _ g: Type) -> String {
             "Return type is expected to be '\(e)', but expression provided evaluates to '\(g)'."
         }

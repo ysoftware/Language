@@ -636,6 +636,8 @@ extension Parser {
                 if punct.value == "}" { // done with the scope
                     return statements
                 }
+                throw error(em.unexpectedToken(punct.value), token.startCursor, token.endCursor)
+                
             case let keyword as Keyword: // @Clean: this is a copy from the main loop
                 switch keyword {
                 case .func:
@@ -661,7 +663,8 @@ extension Parser {
                     let free = Free(expression: expr, startCursor: start, endCursor: expr.endCursor)
                     statements.append(free)
                     continue loop
-                default: break
+                default:
+                    break
                 }
                 
                 if matchWhile() {
@@ -682,8 +685,7 @@ extension Parser {
                     statements.append(returnStatement)
                 }
                 else {
-                    print("Unexpected keyword: \(keyword.rawValue)")
-                    throw error(em.notImplemented, token.startCursor, token.endCursor)
+                    throw error(em.unexpectedToken(keyword.rawValue), token.startCursor, token.endCursor)
                 }
                 
             case is Identifier: // @Clean: this is a copy from the main loop
@@ -711,8 +713,7 @@ extension Parser {
                     break
                 }
                 
-                print("(statements loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
-                throw error(em.notImplemented, token.startCursor, token.endCursor)
+                throw error(em.unexpectedToken("\(token)"), token.startCursor, token.endCursor)
             case is Comment:
                 if !nextToken() { break loop }
             case let separator as Separator:
@@ -721,8 +722,7 @@ extension Parser {
             case is EOF:
                 break loop
             default:
-                print("(statements loop) Unexpected token\n\(token)\n")
-                throw error(em.notImplemented, token.startCursor, token.endCursor)
+                throw error(em.unexpectedToken("\(token)"), token.startCursor, token.endCursor)
             }
         }
         return statements
