@@ -135,6 +135,7 @@ extension Type {
         case let a as PredictedType: return a.requirement.typeName
         case let a as StructureType: return a.name
         case is UnresolvedType: return "[Unresolved]"
+        case is AnyType: return "Any"
         default: report("typeName: Unknown type.")
         }
     }

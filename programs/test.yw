@@ -2,5 +2,8 @@ func printf(format: String, arguments: Int, ...) #foreign;
 
 func main(count: Int, arguments: Int8**) -> Int {
 
+    obj := new Int; 
+    &obj = 1;
+
     return 0;
 }

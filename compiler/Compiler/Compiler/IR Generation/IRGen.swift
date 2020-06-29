@@ -137,9 +137,10 @@ final class IR {
                 
             case let structure as StructDeclaration:
                 structures[structure.name] = structure
+                let members = structure.members.map { matchType($0.exprType) }.joined(separator: ", ")
                 emitGlobal("")
                 emitGlobal("; struct decl: \(structure.name)")
-                emitGlobal("%\(structure.name)__struct = type { \(structure.members.map { matchType($0.exprType) }.joined(separator: ", ")) }")
+                emitGlobal("%\(structure.name)__struct = type { \(members) }")
                 
             case let procedure as ProcedureDeclaration:
                 globalCounter = 0
@@ -182,7 +183,8 @@ final class IR {
                     }
                     stringLiterals[variable.name] = literal
                     // @Todo: properly check null termination for strings
-                    emitGlobal("@\(variable.name) = private unnamed_addr constant [\(literal.value.count + 1) x i8] c\"\(value)\"")
+                    let flags = "private unnamed_addr constant"
+                    emitGlobal("@\(variable.name) = \(flags) [\(literal.value.count + 1) x i8] c\"\(value)\"")
                 }
                 else {
                     emitLocal("; declaration of \(variable.name)")

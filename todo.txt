@@ -1,6 +1,12 @@
 TODO
 
+READ
+- https://habr.com/ru/company/otus/blog/442554/
+
 FEATURE
+- proper variadic procedures 
+    printf(fmt, 1.0, 2); - different types of arguments
+    printf("hi"); - no variadic arguments
 - allocation via new (alloc + zero init + bitcast)
 - defer
 - arrays
@@ -8,6 +14,7 @@ FEATURE
 
 
 IRGEN
+- autoinclude malloc/free
 - move sizeof to a global value
 - move string literal to a global value (from Parser responsibility to IRGen) to match sizeof
 - refactor common features to procedures: doAlloc, doStore, doLoad, doGEP
@@ -27,6 +34,8 @@ LEXER
 - proc call doesn't fail without semicolon at the end
 
 BUGS
+- this should work: obj := new Int; &obj = 1;
+- a is unresolved: pointerToInt(&a) => Unresolved type in IR Gen. -- it could be global, but other things do fail
 - struct Node { /* value: Int; */ } Expected brackets after structure members. 
 - let code = "1struct c { a: String; b :: 1; }" // this passes (with 1 at the start)
 - you can pass string literal with no error as while condition
