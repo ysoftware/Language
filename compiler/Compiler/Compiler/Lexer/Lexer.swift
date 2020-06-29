@@ -231,7 +231,7 @@ final class Lexer {
                             guard nextChar() else { break }
                         }
                     }
-                    append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)), start, cursor)
+                    _ = Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines))
                 }
                 else if consume(string: ["/", "*"]) {
                     var commentLevel = 1
@@ -258,7 +258,7 @@ final class Lexer {
                         }
                         guard nextChar() else { break }
                     }
-                    append(Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines)), start, cursor)
+                    _ = Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines))
                 }
                 else {
                     fallthrough
