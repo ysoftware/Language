@@ -30,12 +30,11 @@ PARSER
 
 
 LEXER
-- rework errors
+- rework error messages and cursors
 - properly eat whitespaces
 - proc call doesn't fail without semicolon at the end
 
 BUGS
-- let code = "1struct c { a: String; b :: 1; }" // this passes (with 1 at the start)
-- you can pass string literal with no error as while condition
+- code with just "1" outputs 0 statements and isn't failing
 - endless loop: if (pointer != null) {  printf("%d\n", pointerToInt(pointer))); }
 - func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 - 0.5; } // should resolve to float (because of 0.5)

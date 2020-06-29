@@ -156,6 +156,7 @@ final class Lexer {
                     let i = value.distance(from: value.startIndex, to: idx)
                     let c = start.advancingCharacter(by: i-1) // @Todo: weird to do this to get the right cursor
                     
+                    print("Error: \(char)    [@Todo: rework lexer errors]")
                     throw error(.unexpectedCharacter, c, c)
                 }
                 
@@ -198,7 +199,7 @@ final class Lexer {
                 
                 if let next = peekNext() {
                     if !(separators + punctuators + operators).contains([next]) {
-                        throw error(.unexpectedCharacter, start, cursor)
+                        throw error(.unexpectedCharacterInNumber, cursor, cursor)
                     }
                 }
                 

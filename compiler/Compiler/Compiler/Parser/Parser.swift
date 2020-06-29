@@ -364,6 +364,12 @@ extension Parser {
         var elseBody: [Statement] = []
         if hasParentheses {
             condition = try doExpression(in: scope, expectSemicolon: false)
+            if condition.exprType.equals(to: .unresolved) {
+                // @Todo: depend if on condition
+            }
+            else if !condition.exprType.equals(to: .bool) {
+                throw error(em.conditionTypeMismatch(condition.exprType), condition.startCursor, condition.endCursor)
+            }
             if !consumePunct(")") { throw error(em.expectedParentheses) }
         }
         // @Todo: match condition type to bool (make the matching procedure)
@@ -406,6 +412,12 @@ extension Parser {
         var condition: Expression!
         if hasParentheses {
             condition = try doExpression(in: scope, expectSemicolon: false)
+            if condition.exprType.equals(to: .unresolved) {
+                // @Todo: depend while on condition
+            }
+            else if !condition.exprType.equals(to: .bool) {
+                throw error(em.conditionTypeMismatch(condition.exprType), condition.startCursor, condition.endCursor)
+            }
             if !consumePunct(")") { throw error(em.expectedParentheses) }
         }
         // @Todo: match condition type to bool (make the matching procedure)

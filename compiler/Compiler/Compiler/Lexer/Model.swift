@@ -160,6 +160,7 @@ struct LexerError: Error {
         case newlineExpectedAfterMultilineStringLiteral = "Multiline string literal is expected to end after a new line."
         case emptyDirectiveName = "Directive identifier is expected after #."
         case unexpectedDirectiveName = "Unexpected characters in a directive identifier after #."
+        case unexpectedCharacterInNumber = "Unexpected character in a number literal."
         case unexpectedCharacter = "Unexpected character."
         case nonASCIICharacter = "Non-ASCII character."
         case invalidIdentifierUnderscore = "'_' is not a valid identifier."
