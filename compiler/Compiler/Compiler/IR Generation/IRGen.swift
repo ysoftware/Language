@@ -181,22 +181,22 @@ final class IR {
                         // @Todo: make sure we have to assert here
                         report("Unsupported character in string literal. Only supporting ascii for now.")
                     }
-                    stringLiterals[variable.name] = literal
+                    stringLiterals[variable.id] = literal
                     // @Todo: properly check null termination for strings
                     let flags = "private unnamed_addr constant"
-                    emitGlobal("@\(variable.name) = \(flags) [\(literal.value.count + 1) x i8] c\"\(value)\"")
+                    emitGlobal("@\(variable.id) = \(flags) [\(literal.value.count + 1) x i8] c\"\(value)\"")
                 }
                 else {
-                    emitLocal("; declaration of \(variable.name)")
-                    emitLocal(doAlloca("%\(variable.name)", variable.exprType))
+                    emitLocal("; declaration of \(variable.id)")
+                    emitLocal(doAlloca("%\(variable.id)", variable.exprType))
                     
                     if let expression = variable.expression {
                         let (expCode, expVal) = getExpressionResult(expression)
                         emitLocal(expCode)
-                        emitLocal(doStore(from: expVal, into: "%\(variable.name)", valueType: variable.exprType))
+                        emitLocal(doStore(from: expVal, into: "%\(variable.id)", valueType: variable.exprType))
                     }
                     else {
-                        emitLocal(doStore(from: "zeroinitializer", into: "%\(variable.name)", valueType: variable.exprType))
+                        emitLocal(doStore(from: "zeroinitializer", into: "%\(variable.id)", valueType: variable.exprType))
                     }
                 }
                 
@@ -206,7 +206,7 @@ final class IR {
                 
                 var receiver = ""
                 if let value = assign.receiver as? Value {
-                    receiver = "%\(value.name)" // @Todo: id for different scopes
+                    receiver = "%\(value.id)"
                 }
                 else if let access = assign.receiver as? MemberAccess {
                     // this is rValue member access, IRGen for member value as expression is in another place

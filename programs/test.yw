@@ -2,8 +2,14 @@ func printf(format: String, arguments: Int, ...) #foreign;
 
 func main(count: Int, arguments: Int8**) -> Int {
 
-    obj := new Int; 
-    &obj = 1;
+    if (true) {
+        a := 1;
+        printf("%d\n", a);
+    }
+    else {
+        a := 2;
+        printf("%d\n", a);
+    }
 
     return 0;
 }

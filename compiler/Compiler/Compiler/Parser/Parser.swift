@@ -141,7 +141,7 @@ extension Parser {
         else { throw error(em.varDeclRequiresType) } // @Todo: check cursors and if this error is even valid
         
         let varDecl = VariableDeclaration(
-            name: identifier.value.value, exprType: type, flags: flags, expression: expr,
+            name: identifier.value.value, scopeId: scope.id, exprType: type, flags: flags, expression: expr,
             startCursor: start, endCursor: end)
         
         // @Todo: check that dependency is added correctly for unresolved
@@ -163,7 +163,7 @@ extension Parser {
         guard consumePunct("{")
             else { throw error(em.structExpectedBrackets) }
         var members: [VariableDeclaration] = []
-        let structScope = globalScope.next()
+        let structScope = nextScope(from: globalScope)
         while tokens.count > i {
             var member: VariableDeclaration?
             if matchVarDecl() {
@@ -259,13 +259,14 @@ extension Parser {
             throw error(em.procExpectedName(token), token.startCursor, token.endCursor)
         }
         guard consumePunct("(") else { throw error(em.expectedParentheses) }
+        scopeCounter = 0 // reset scope counter
         let end = lastToken.endCursor
         let returnType: Type
         let name = procName.value
         var id = "\(procName.value)"
         var arguments: [Value] = []
         var flags = ProcedureDeclaration.Flags()
-        var scope: Code = .empty
+        var code: Code = .empty
         var isForceEntry = false
         while tokens.count > i { // PROCEDURE ARGUMENTS DECLARATION
             if (token.value as? Punctuator)?.value == ")" { break }
@@ -310,17 +311,17 @@ extension Parser {
         else if consumePunct("{") {
             if flags.contains(.isForeign) { throw error(em.procForeignUnexpectedBody) }
             
-            let procedureScope = globalScope.next()
+            let procedureScope = nextScope(from: globalScope)
             arguments.forEach { arg in
-                let decl = VariableDeclaration(name: arg.name, exprType: arg.exprType,
+                let decl = VariableDeclaration(name: arg.name, scopeId: scope.id, exprType: arg.exprType,
                                                flags: [.isConstant], expression: arg)
                 procedureScope.declarations[arg.name] = decl
             }
             
             let statements = try doStatements(in: procedureScope)
-            scope = Code(statements)
+            code = Code(statements)
 
-            while let returnStat = firstNotMatchingReturnStatement(in: scope, to: returnType) {
+            while let returnStat = firstNotMatchingReturnStatement(in: code, to: returnType) {
                 if let fixedExpr = convertExpression(returnStat.value, to: returnType) {
                     returnStat.value = fixedExpr
                     continue
@@ -329,8 +330,8 @@ extension Parser {
                              returnStat.value.startCursor, returnStat.value.endCursor)
             }
             
-            if !(scope.statements.last is Return) {
-                if returnType.equals(to: .void) { scope.statements.append(Return(value: VoidLiteral())) }
+            if !(code.statements.last is Return) {
+                if returnType.equals(to: .void) { code.statements.append(Return(value: VoidLiteral())) }
                 else { throw error(em.procNotReturning) }
             }
         }
@@ -339,7 +340,7 @@ extension Parser {
         }
         let procedure = ProcedureDeclaration(
             id: id, name: name, arguments: arguments,
-            returnType: returnType, flags: flags, scope: scope)
+            returnType: returnType, flags: flags, scope: code)
         let previousForceEntry = entry?.flags.contains(.main) ?? false
         if previousForceEntry && isForceEntry { throw error(em.procMainRedecl, start, end) }
         if name == "main" && entry == nil || isForceEntry {
@@ -374,11 +375,11 @@ extension Parser {
         }
         // @Todo: match condition type to bool (make the matching procedure)
         if !consumePunct("{") { throw error(em.ifExpectedBrackets) }
-        ifBody = try doStatements(in: scope.next())
+        ifBody = try doStatements(in: nextScope(from: scope))
         guard consumePunct("}") else { throw error(em.ifExpectedBrackets) }
         if consumeKeyword(.else) {
             if !consumePunct("{") { throw error(em.ifExpectedBrackets) }
-            elseBody = try doStatements(in: scope.next())
+            elseBody = try doStatements(in: nextScope(from: scope))
             guard consumePunct("}") else { throw error(em.ifExpectedBrackets) }
         }
         let ifStatement = Condition(condition: condition, block: Code(ifBody), elseBlock: Code(elseBody),
@@ -422,7 +423,7 @@ extension Parser {
         }
         // @Todo: match condition type to bool (make the matching procedure)
         if !consumePunct("{") { throw error(em.loopExpectedBrackets) }
-        let loopBody = try doStatements(in: scope.next(as: ContextLoop(label: label)))
+        let loopBody = try doStatements(in: nextScope(from: scope, as: ContextLoop(label: label)))
         guard consumePunct("}") else { throw error(em.loopExpectedBrackets) }
         let whileStatement = WhileLoop(userLabel: label, condition: condition, block: Code(loopBody),
                                        startCursor: start, endCursor: end)
@@ -570,12 +571,12 @@ extension Parser {
                 if scope === globalScope {
                     expression = StringLiteral(value: value)
                 }
-                else { // convert string literal to global constant
+                else { // @Todo: convert string literal to global constant
                     var decl: VariableDeclaration! = stringLiterals[value]
                     if decl == nil {
                         let count = stringLiterals.count
                         let id = "StringLiteral\(count)"
-                        decl = VariableDeclaration(name: id, exprType: .string,
+                        decl = VariableDeclaration(name: id, scopeId: scope.id, exprType: .string,
                                                    flags: .isConstant, expression: StringLiteral(value: value))
                         stringLiterals[value] = decl
                         statements.insert(decl, at: 0)
@@ -793,8 +794,9 @@ final class Parser {
     var statements: [Statement] = []
     var stringLiterals: [String: VariableDeclaration] = [:]
     var unresolved: [String: [Ast]] = [:] /// all with type unresolved
-    var globalScope = Scope() /// all declarations in global scope
+    var globalScope = Scope(id: Scope.globalId) /// all declarations in global scope
     
+    var scopeCounter = 0
     let em: ErrorMessage = ErrorMessage()
     var i = 0
     var token: Token

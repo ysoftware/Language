@@ -150,7 +150,7 @@ final class ParserTest {
     }
     
     func vDecl(_ name: String, _ type: Type, _ expr: Expression?, const: Bool = false) -> VariableDeclaration {
-        VariableDeclaration(name: name, exprType: type, flags: const ? [.isConstant] : [], expression: expr)
+        VariableDeclaration(name: name, scopeId: "", exprType: type, flags: const ? [.isConstant] : [], expression: expr)
     }
     
     func vAssign(_ name: String, _ expr: Expression) -> Assignment {

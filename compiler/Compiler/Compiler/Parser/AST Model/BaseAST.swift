@@ -20,7 +20,7 @@ final class Code: Ast, Equatable {
     }
     
     var debugDescription: String {
-        var string = "[Scope] \(statements.count) statement(s)"
+        var string = "[Scope] \(statements.count) statement\(plural(statements.count))"
         for statement in statements {
             string.append("\n    \(statement.debugDescription)")
         }
@@ -52,6 +52,7 @@ protocol Expression: Ast {
 
 protocol Declaration: Ast {
     var name: String { get }
+    var id: String { get }
 }
 
 protocol LiteralExpr: Expression {

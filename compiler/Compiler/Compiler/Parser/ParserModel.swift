@@ -39,16 +39,14 @@ final class ContextLoop: Context {
 
 final class Scope {
     
+    static let globalId = "global_"
+    
+    var id: String
     var declarations: [String: Ast]
     var contexts: [Context] = []
     
-    func next(as context: Context? = nil) -> Scope {
-        let newScope = Scope(declarations: declarations, contexts: contexts)
-        context.map { newScope.contexts.append($0) }
-        return newScope
-    }
-    
-    internal init(declarations: [String : Ast] = [:], contexts: [Context] = []) {
+    internal init(declarations: [String : Ast] = [:], id: String, contexts: [Context] = []) {
+        self.id = id
         self.declarations = declarations
         self.contexts = contexts
     }

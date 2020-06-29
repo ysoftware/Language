@@ -218,7 +218,6 @@ final class Lexer {
                 
                 // we fallthrough to here from the case above
                 // can expect ".", "e", "-" and number characters
-                let start = cursor
                 var value = ""
                 if consume(string: ["/", "/"]) {
                     guard nextChar() else { break }

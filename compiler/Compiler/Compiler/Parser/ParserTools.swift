@@ -9,6 +9,13 @@
 import Foundation
 
 extension Parser {
+    
+    func nextScope(from: Scope, as context: Context? = nil) -> Scope {
+        let newScope = Scope(declarations: from.declarations, id: "l\(scopeCounter)_", contexts: from.contexts)
+        scopeCounter += 1
+        context.map { newScope.contexts.append($0) }
+        return newScope
+    }
 
     /// make sure to add dependency for an ast with unresolved type
     func resolveMemberTypeAndIndex(name: String, of base: Expression) throws -> (type: Type, index: Int)? {

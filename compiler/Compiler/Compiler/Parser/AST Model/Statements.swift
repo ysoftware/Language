@@ -78,7 +78,7 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     
     var debugDescription: String {
         let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
-        var string = "[Procedure\(c)] \(name) -> \(returnType) "
+        var string = "[Procedure\(c) <\(id)>] \(name) -> \(returnType) "
         string.append("; args: ")
         string.append(arguments.map { "\($0)" }.joined(separator: ", "))
         if flags.contains(.isVarargs) { string.append("... ") }
@@ -136,17 +136,19 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     
     var debugDescription: String {
         let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
-        var string = "[Struct\(c)] \(name) "
+        var string = "[Struct\(c) <\(id)>] \(name) "
         members.forEach { string.append("\n        [Member] \($0.name): \($0.exprType.typeName)") }
         return string
     }
     
     let name: String
+    let id: String
     let members: [VariableDeclaration]
     
     internal init(name: String, members: [VariableDeclaration],
                   startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.name = name
+        self.id = name // @Todo: do ids for generics
         self.members = members
         self.startCursor = startCursor
         self.endCursor = endCursor
@@ -169,7 +171,7 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     
     var debugDescription: String {
         let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
-        var string = "[VarDecl\(c)] \(name): \(exprType) "
+        var string = "[VarDecl\(c) <\(id)>] \(name): \(exprType) "
         if flags.contains(.isConstant) { string.append("(constant) ") }
         if let exp = expression { string.append("= \(exp) ") }
         else {
@@ -186,13 +188,15 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     }
     
     let name: String
+    let id: String
     let exprType: Type
     let flags: Flags
     let expression: Expression?
     
-    internal init(name: String, exprType: Type, flags: VariableDeclaration.Flags, expression: Expression?,
+    internal init(name: String, scopeId: String, exprType: Type, flags: VariableDeclaration.Flags, expression: Expression?,
                   startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.name = name
+        self.id = "\(scopeId)\(name)"
         self.exprType = exprType
         self.flags = flags
         self.expression = expression
