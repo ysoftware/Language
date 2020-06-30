@@ -141,7 +141,7 @@ final class ParserTest {
     func bool(_ val: Bool) -> IntLiteral { IntLiteral(value: val ? 1 : 0, exprType: .bool) }
     func string(_ val: String) -> StringLiteral { StringLiteral(value: val) }
     func float(_ val: Float64) -> FloatLiteral { FloatLiteral(value: val) }
-    func val(_ name: String, _ type: Type) -> Value { Value(name: name, exprType: type) }
+    func val(_ name: String, _ type: Type) -> Value { Value(name: name, id: "", exprType: type) }
     func ret(_ expr: Expression) -> Return { Return(value: expr) }
     
     func main(_ code: [Statement]) -> ProcedureDeclaration {
@@ -150,7 +150,7 @@ final class ParserTest {
     }
     
     func vDecl(_ name: String, _ type: Type, _ expr: Expression?, const: Bool = false) -> VariableDeclaration {
-        VariableDeclaration(name: name, scopeId: "", exprType: type, flags: const ? [.isConstant] : [], expression: expr)
+        VariableDeclaration(name: name, id: "", exprType: type, flags: const ? [.isConstant] : [], expression: expr)
     }
     
     func vAssign(_ name: String, _ expr: Expression) -> Assignment {

@@ -193,10 +193,10 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     let flags: Flags
     let expression: Expression?
     
-    internal init(name: String, scopeId: String, exprType: Type, flags: VariableDeclaration.Flags, expression: Expression?,
+    internal init(name: String, id: String, exprType: Type, flags: VariableDeclaration.Flags, expression: Expression?,
                   startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.name = name
-        self.id = "\(scopeId)\(name)"
+        self.id = id
         self.exprType = exprType
         self.flags = flags
         self.expression = expression

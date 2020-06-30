@@ -31,9 +31,9 @@ final class Value: Expression, Equatable {
     var exprType: Type
      
     // @Todo: not all values get cursors set up. maybe make these explicit without default value?
-    internal init(name: String, exprType: Type, startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+    internal init(name: String, id: String, exprType: Type, startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
         self.name = name
-        self.id = "\(Scope.globalId)_\(name)" // @Todo: change when type is resolved
+        self.id = id
         self.exprType = exprType
         self.startCursor = startCursor
         self.endCursor = endCursor

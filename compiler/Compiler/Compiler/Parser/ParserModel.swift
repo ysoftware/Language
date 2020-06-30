@@ -40,12 +40,13 @@ final class ContextLoop: Context {
 final class Scope {
     
     static let globalId = "global_"
-    
+    static let unresolvedId = "UNRESOLVED"
+
     var id: String
-    var declarations: [String: Ast]
+    var declarations: [String: Declaration]
     var contexts: [Context] = []
     
-    internal init(declarations: [String : Ast] = [:], id: String, contexts: [Context] = []) {
+    internal init(declarations: [String : Declaration] = [:], id: String, contexts: [Context] = []) {
         self.id = id
         self.declarations = declarations
         self.contexts = contexts
@@ -91,9 +92,9 @@ extension Parser {
             "Operation \(n) doesn't support arguments of type '\(t)'."
         }
         
-        func declarationConflict(_ d: Ast) -> String {
+        func declarationConflict(_ d: Declaration) -> String {
             // @Todo point to definition by cursor
-            "Declaration conflicts with another declaration with the same name: '\(d)'."
+            "Declaration conflicts with another declaration with the same name on line \(d.startCursor.lineNumber)."
         }
         
         // var assign

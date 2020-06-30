@@ -51,8 +51,9 @@ extension Parser {
             guard !varDecl.flags.contains(.isConstant)
                 else { throw error(em.assignConst(identifier.value), token.startCursor, token.endCursor) }
             
-            var base: Expression = Value(name: identifier.value, exprType: varDecl.exprType,
-                                         startCursor: token.startCursor, endCursor: token.endCursor)
+            var base: Expression = Value(name: identifier.value, id: "\(scope.id)\(identifier.value)",
+                exprType: varDecl.exprType,
+                startCursor: token.startCursor, endCursor: token.endCursor)
             if !nextToken() { throw error(em.unexpectedEndOfFile) }
             while matchMemberAccess() {
                 base = try doMemberAccess(of: base, in: scope)
@@ -113,6 +114,7 @@ extension Parser {
         
         if expectingExpression {
             expr = try doExpression(in: scope)
+            
             if let declaredTypeName = declType?.value.value, let exprType = expr?.exprType {
                 let declaredType = Type.named(declaredTypeName)
                 
@@ -140,14 +142,16 @@ extension Parser {
         }
         else { throw error(em.varDeclRequiresType) } // @Todo: check cursors and if this error is even valid
         
+        let name = identifier.value.value
+        let id = "\(scope.id)\(name)"
         let varDecl = VariableDeclaration(
-            name: identifier.value.value, scopeId: scope.id, exprType: type, flags: flags, expression: expr,
+            name: name, id: id, exprType: type, flags: flags, expression: expr,
             startCursor: start, endCursor: end)
         
         // @Todo: check that dependency is added correctly for unresolved
         // we're supposed to add this decl as a dependant on the expression
         
-        if let e = verifyNameConflict(varDecl, in: scope) { throw error(e) }
+        try verifyNameConflict(varDecl, in: scope)
         appendDeclaration(varDecl, to: scope)
         return varDecl
     }
@@ -177,18 +181,18 @@ extension Parser {
         }
         let structDecl = StructDeclaration(name: name.value, members: members,
                                            startCursor: start, endCursor: end)
-        if let e = verifyNameConflict(structDecl) { throw error(e) }
+        try verifyNameConflict(structDecl)
         appendDeclaration(structDecl, to: globalScope)
         return structDecl
     }
     
     // MARK: - PROCEDURE CALL -
     
-    func matchProcedureCall() -> Bool {
+    func matchProcCall() -> Bool {
         token.value is Identifier && (peekNext()?.value as? Punctuator)?.value == "("
     }
     
-    func doProcedureCall(in scope: Scope) throws -> ProcedureCall {
+    func doProcCall(in scope: Scope) throws -> ProcedureCall {
         let start = token.startCursor
         guard let (identToken, name) = consumeIdent(), consumePunct("(")
             else { report("call matchProcedureCall required before calling this") }
@@ -284,7 +288,8 @@ extension Parser {
                     else { throw error(em.procExpectedArgumentType) }
                 // @Todo: change argument from Type to something that will also contain argument name and label
                 // @Todo: type check arguments
-                arguments.append(Value(name: argNameTok.value.value, exprType: .named(argTypeTok.value.value),
+                let argName = argNameTok.value.value
+                arguments.append(Value(name: argName, id: "arg_\(scope.id)\(argName)", exprType: .named(argTypeTok.value.value),
                                        startCursor: argNameTok.token.startCursor,
                                        endCursor: argTypeTok.token.endCursor))
             }
@@ -313,7 +318,8 @@ extension Parser {
             
             let procedureScope = nextScope(from: globalScope)
             arguments.forEach { arg in
-                let decl = VariableDeclaration(name: arg.name, scopeId: scope.id, exprType: arg.exprType,
+                let id = "\(scope.id)\(name)"
+                let decl = VariableDeclaration(name: arg.name, id: id, exprType: arg.exprType,
                                                flags: [.isConstant], expression: arg)
                 procedureScope.declarations[arg.name] = decl
             }
@@ -347,7 +353,7 @@ extension Parser {
             entry = procedure
             id = procName.value
         }
-        if let e = verifyNameConflict(procedure) { throw error(e, start, end) }
+        try verifyNameConflict(procedure)
         appendDeclaration(procedure, to: globalScope)
         procedure.startCursor = start
         procedure.endCursor = end
@@ -572,38 +578,48 @@ extension Parser {
                     expression = StringLiteral(value: value)
                 }
                 else { // @Todo: convert string literal to global constant
-                    var decl: VariableDeclaration! = stringLiterals[value]
+                    let count = stringLiterals.count
+                    let id = "\(scope.id)StringLiteral\(count)"
+                    var decl: VariableDeclaration! = stringLiterals[id]
                     if decl == nil {
-                        let count = stringLiterals.count
-                        let id = "StringLiteral\(count)"
-                        decl = VariableDeclaration(name: id, scopeId: scope.id, exprType: .string,
+                        decl = VariableDeclaration(name: id, id: id, exprType: .string,
                                                    flags: .isConstant, expression: StringLiteral(value: value))
-                        stringLiterals[value] = decl
+                        stringLiterals[id] = decl
                         statements.insert(decl, at: 0)
                     }
-                    expression = Value(name: decl.name, exprType: .string)
+                    expression = Value(name: decl.name, id: id, exprType: .string)
                 }
             }
             if !nextToken() { throw error(em.unexpectedEndOfFile) }
         case let identifier as Identifier:
             let tok = token
-            if matchProcedureCall() {
-                expression = try doProcedureCall(in: scope)
+            if matchProcCall() {
+                expression = try doProcCall(in: scope)
                 break
             }
             
             if !nextToken() { throw error(em.unexpectedEndOfFile) }
+
+            var exprType: Type = .unresolved
+            var id = Scope.unresolvedId
+            if let decl = resolveVarDecl(named: identifier.value, in: scope) {
+                id = decl.id
+                exprType = decl.exprType
+            }
+            
             if matchMemberAccess() {
-                var base: Expression = Value(name: identifier.value, exprType: .unresolved,
+                var base: Expression = Value(name: identifier.value, id: id, exprType: exprType,
                                              startCursor: tok.startCursor, endCursor: tok.endCursor)
-                // @Todo: resolve type of base
+                
+                // @Todo: else add to global dependencies
+                
                 while matchMemberAccess() {
                     base = try doMemberAccess(of: base, in: scope)
                 }
                 expression = base
             }
             else {
-                expression = Value(name: identifier.value, exprType: .unresolved)
+                expression = Value(name: identifier.value, id: id, exprType: exprType)
                 if let statement = scope.declarations[identifier.value] {
                     if let variable = statement as? VariableDeclaration {
                         expression.exprType = variable.exprType
@@ -691,8 +707,8 @@ extension Parser {
                 
             case is Identifier: // @Clean: this is a copy from the main loop
                 
-                if matchProcedureCall() {
-                    let decl = try doProcedureCall(in: scope)
+                if matchProcCall() {
+                    let decl = try doProcCall(in: scope)
                     statements.append(decl)
                     break
                 }
@@ -792,7 +808,7 @@ final class Parser {
     // Variables
     
     var statements: [Statement] = []
-    var stringLiterals: [String: VariableDeclaration] = [:]
+    var stringLiterals: [String: VariableDeclaration] = [:] /// id : VarDecl*
     var unresolved: [String: [Ast]] = [:] /// all with type unresolved
     var globalScope = Scope(id: Scope.globalId) /// all declarations in global scope
     

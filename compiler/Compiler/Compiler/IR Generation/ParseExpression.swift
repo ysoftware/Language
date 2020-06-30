@@ -35,7 +35,7 @@ internal extension IR {
             
         case let variable as Value:
             let argValue = "%\(count())"
-            code += doLoad(from: "%\(variable.name)", into: argValue, valueType: variable.exprType)
+            code += doLoad(from: "%\(variable.id)", into: argValue, valueType: variable.exprType)
             return (code, argValue)
             
         case let sizeof as SizeOf:
@@ -68,8 +68,8 @@ internal extension IR {
                     // @Todo: somehow check if it's a string literal
                     // else we just load the value
                     if arg.exprType.equals(to: .string) {
-                        guard let literal = stringLiterals[arg.name] else {
-                            report("Undefined symbol \(arg.name)")
+                        guard let literal = stringLiterals[arg.id] else {
+                            report("Undefined symbol \(arg)")
                         }
                         
                         let argValue = "%\(count())"
@@ -212,7 +212,7 @@ internal extension IR {
     func getProcedureArgumentString(from procedure: ProcedureDeclaration, printName: Bool) -> String {
         var arguments = procedure.arguments.map { (arg: Value)->String in
             var str = "\(matchType(arg.exprType))"
-            if printName { str.append(" %\(arg.name)") }
+            if printName { str.append(" %\(arg.id)") }
             return str
         }
         if procedure.flags.contains(.isVarargs) {
@@ -231,7 +231,7 @@ internal extension IR {
         var base = ""
         
         if let value = access.base as? Value {
-            base = "%\(value.name)"
+            base = "%\(value.id)"
         }
         else if let nestedAccess = access.base as? MemberAccess {
             let (load, val) = getMemberPointerAddress(of: nestedAccess)

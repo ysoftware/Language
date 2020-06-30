@@ -36,6 +36,10 @@ extension Parser {
         return (decl.members[index].exprType, index)
     }
     
+    func resolveVarDecl(named name: String, in scope: Scope) -> VariableDeclaration? {
+        return (scope.declarations[name] ?? globalScope.declarations[name]) as? VariableDeclaration
+    }
+    
     func resolveType(named name: String) -> Type? {
         let type = Type.named(name)
         if type is StructureType {
@@ -144,11 +148,11 @@ extension Parser {
         unresolved[dependency]!.append(statement)
     }
     
-    func verifyNameConflict(_ declaration: Declaration, in scope: Scope? = nil) -> String? {
-        if let d = globalScope.declarations[declaration.name] { return em.declarationConflict(d) }
-        if let d = scope?.declarations[declaration.name] { return em.declarationConflict(d) }
-        // @Todo: improve error message
-        return nil
+    func verifyNameConflict(_ declaration: Declaration, in scope: Scope? = nil) throws {
+        if let d = globalScope.declarations[declaration.name] ?? scope?.declarations[declaration.name] {
+            throw error(em.declarationConflict(d), d.startCursor, d.endCursor)
+        }
+        return
     }
     
     @inline(__always)
