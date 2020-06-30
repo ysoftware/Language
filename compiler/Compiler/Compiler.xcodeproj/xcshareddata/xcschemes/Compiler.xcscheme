@@ -68,7 +68,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/yerokhin/Documents/GitHub/Language/programs/test.yw"
+            argument = "/Users/yerokhin/Documents/GitHub/Language/programs/list.yw"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

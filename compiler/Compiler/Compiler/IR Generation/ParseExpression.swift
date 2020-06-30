@@ -58,12 +58,6 @@ internal extension IR {
             for arg in call.arguments {
                 code += "; argument \(matchType(arg.exprType))\n"
                 
-                // @Todo: don't load the same value argument
-                // if passed twice, like a = add(a, a)
-                
-                // @Todo: dereference all arguments passed by value
-                // for now, doing that manually
-                
                 if let arg = arg as? Value {
                     // @Todo: somehow check if it's a string literal
                     // else we just load the value

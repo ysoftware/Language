@@ -51,8 +51,10 @@ extension Parser {
             guard !varDecl.flags.contains(.isConstant)
                 else { throw error(em.assignConst(identifier.value), token.startCursor, token.endCursor) }
             
-            var base: Expression = Value(name: identifier.value, id: "\(scope.id)\(identifier.value)",
-                exprType: varDecl.exprType,
+            let decl = resolveVarDecl(named: identifier.value, in: scope)
+            let exprType = decl?.exprType ?? .unresolved
+            let id = decl?.id ?? Scope.unresolvedId
+            var base: Expression = Value(name: identifier.value, id: id, exprType: exprType,
                 startCursor: token.startCursor, endCursor: token.endCursor)
             if !nextToken() { throw error(em.unexpectedEndOfFile) }
             while matchMemberAccess() {
@@ -259,15 +261,15 @@ extension Parser {
     func doProcDecl(in scope: Scope) throws -> ProcedureDeclaration {
         let start = token.startCursor
         guard consumeKeyword(.func) else { report("can't call doProcDecl without checking for keyword first") }
-        guard let procName = consumeIdent()?.value else {
+        guard let procNameIdent = consumeIdent()?.value else {
             throw error(em.procExpectedName(token), token.startCursor, token.endCursor)
         }
         guard consumePunct("(") else { throw error(em.expectedParentheses) }
         scopeCounter = 0 // reset scope counter
         let end = lastToken.endCursor
         let returnType: Type
-        let name = procName.value
-        var id = "\(procName.value)"
+        let procName = procNameIdent.value
+        var procId = procName // @Todo: use with generics
         var arguments: [Value] = []
         var flags = ProcedureDeclaration.Flags()
         var code: Code = .empty
@@ -289,7 +291,8 @@ extension Parser {
                 // @Todo: change argument from Type to something that will also contain argument name and label
                 // @Todo: type check arguments
                 let argName = argNameTok.value.value
-                arguments.append(Value(name: argName, id: "arg_\(scope.id)\(argName)", exprType: .named(argTypeTok.value.value),
+                let argId = "\(procId)_arg_\(argName)"
+                arguments.append(Value(name: argName, id: argId, exprType: .named(argTypeTok.value.value),
                                        startCursor: argNameTok.token.startCursor,
                                        endCursor: argTypeTok.token.endCursor))
             }
@@ -305,7 +308,7 @@ extension Parser {
             switch directive.value {
             case "foreign":
                 flags.insert(.isForeign)
-                id = procName.value
+                procId = procName
             case "main":
                 flags.insert(.main)
                 isForceEntry = true
@@ -317,9 +320,11 @@ extension Parser {
             if flags.contains(.isForeign) { throw error(em.procForeignUnexpectedBody) }
             
             let procedureScope = nextScope(from: globalScope)
+            
+            // CREATE PROCEDURE-LOCAL VARIABLES FROM ARGUMENTS
             arguments.forEach { arg in
-                let id = "\(scope.id)\(name)"
-                let decl = VariableDeclaration(name: arg.name, id: id, exprType: arg.exprType,
+                let argId = "\(procId)_arg_\(arg.name)"
+                let decl = VariableDeclaration(name: arg.name, id: argId, exprType: arg.exprType,
                                                flags: [.isConstant], expression: arg)
                 procedureScope.declarations[arg.name] = decl
             }
@@ -345,13 +350,13 @@ extension Parser {
             throw error(em.procExpectedBody)
         }
         let procedure = ProcedureDeclaration(
-            id: id, name: name, arguments: arguments,
+            id: procId, name: procName, arguments: arguments,
             returnType: returnType, flags: flags, scope: code)
         let previousForceEntry = entry?.flags.contains(.main) ?? false
         if previousForceEntry && isForceEntry { throw error(em.procMainRedecl, start, end) }
-        if name == "main" && entry == nil || isForceEntry {
+        if procName == "main" && entry == nil || isForceEntry {
             entry = procedure
-            id = procName.value
+            procId = procName
         }
         try verifyNameConflict(procedure)
         appendDeclaration(procedure, to: globalScope)
@@ -600,12 +605,9 @@ extension Parser {
             
             if !nextToken() { throw error(em.unexpectedEndOfFile) }
 
-            var exprType: Type = .unresolved
-            var id = Scope.unresolvedId
-            if let decl = resolveVarDecl(named: identifier.value, in: scope) {
-                id = decl.id
-                exprType = decl.exprType
-            }
+            let decl = resolveVarDecl(named: identifier.value, in: scope)
+            let exprType = decl?.exprType ?? .unresolved
+            let id = decl?.id ?? Scope.unresolvedId
             
             if matchMemberAccess() {
                 var base: Expression = Value(name: identifier.value, id: id, exprType: exprType,

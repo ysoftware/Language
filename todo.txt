@@ -4,10 +4,9 @@ READ
 - https://habr.com/ru/company/otus/blog/442554/
 
 FEATURE
+- generic procedures and structures
 - this should work: obj := new Int; &obj = 1;
-- proper variadic procedures 
-    printf(fmt, 1.0, 2); - different types of arguments
-    printf("hi"); - no variadic arguments
+- proper variadic procedures [different types of arguments / empty variadic arguments]
 - defer
 - arrays
 - subscript access
@@ -19,6 +18,8 @@ IRGEN
 - move string literal to a global value (from Parser responsibility to IRGen) to match sizeof
 - refactor common features to procedures: doAlloc, doStore, doLoad, doGEP
 - make IRGen throw errors
+- don't load the same value argument if passed twice in call expr, like a = add(a, a)
+- dereference all arguments passed by value in call expr (for now, doing that manually) 
 
 
 PARSER
@@ -26,7 +27,8 @@ PARSER
 - unit test error cursors
 - verify all paths of a procedure return a value
 - write tests for equality methods?
-
+- deal with decl ids:
+    - procedure arguments maybe to have procedure_id in them?
 
 LEXER
 - rework error messages and cursors

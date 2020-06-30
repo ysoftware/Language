@@ -158,8 +158,8 @@ final class IR {
                         for arg in procedure.arguments {
                             
                             var argString = "; procedure arguments\n"
-                            argString += doAlloca("%\(arg.name)", arg.exprType)
-                            argString += doStore(from: "%\(count())", into: "%\(arg.name)", valueType: arg.exprType)
+                            argString += doAlloca("%\(arg.id)", arg.exprType)
+                            argString += doStore(from: "%\(count())", into: "%\(arg.id)", valueType: arg.exprType)
                             emitLocal(indentString(argString, level: 1))
                         }
                     }

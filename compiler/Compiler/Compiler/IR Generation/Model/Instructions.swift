@@ -20,7 +20,7 @@ extension IR {
 
                 var lCode: String?, lValue: String = ""
                 if let variable = arguments.0 as? Value {
-                    lValue = "%\(variable.name)"
+                    lValue = "%\(variable.id)"
                     let lPointer = "%\(count())"
                     code += doLoad(from: lValue, into: lPointer, valueType: type)
                     lValue = lPointer
@@ -32,7 +32,7 @@ extension IR {
 
                 var rCode: String?, rValue: String = ""
                 if let variable = arguments.1 as? Value {
-                    rValue = "%\(variable.name)"
+                    rValue = "%\(variable.id)"
                     let rPointer = "%\(count())"
                     code += doLoad(from: rValue, into: rPointer, valueType: type)
                     rValue = rPointer

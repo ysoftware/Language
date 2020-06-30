@@ -56,14 +56,11 @@
 		1F0A3BDC247F89A7005C91F0 /* LexerTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LexerTools.swift; sourceTree = "<group>"; };
 		1F0A77E5248B73B50028A96D /* Operations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operations.swift; sourceTree = "<group>"; };
 		1F286DA0247450510072120C /* StatementContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementContext.swift; sourceTree = "<group>"; };
-		1F286DA2247453B60072120C /* LoopBreakContinue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopBreakContinue.swift; sourceTree = "<group>"; };
 		1F513E2A24A62C8700805C0F /* IRGenExpr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IRGenExpr.swift; sourceTree = "<group>"; };
 		1F9C96662475736E00BAEC04 /* Lexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lexer.swift; sourceTree = "<group>"; };
 		1F9C9668247574DF00BAEC04 /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		1F9C966B2475AD0300BAEC04 /* Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
 		1FAA3E912472C5F30015C8BD /* CInterop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CInterop.swift; sourceTree = "<group>"; };
-		1FAA3E932472DC530015C8BD /* IfElse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IfElse.swift; sourceTree = "<group>"; };
-		1FAA3E962472DCC50015C8BD /* WhileLoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhileLoop.swift; sourceTree = "<group>"; };
 		1FAA3E982472E09D0015C8BD /* Instructions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Instructions.swift; sourceTree = "<group>"; };
 		1FAA3E9A2472ECB80015C8BD /* ParseExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseExpression.swift; sourceTree = "<group>"; };
 		1FB1EB792476E9E00088F63D /* LexerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LexerTest.swift; sourceTree = "<group>"; };
@@ -126,16 +123,6 @@
 				1FEB7CA524794F600018B9B4 /* Test */,
 			);
 			path = Parser;
-			sourceTree = "<group>";
-		};
-		1FAA3E952472DC570015C8BD /* Test */ = {
-			isa = PBXGroup;
-			children = (
-				1FAA3E932472DC530015C8BD /* IfElse.swift */,
-				1FAA3E962472DCC50015C8BD /* WhileLoop.swift */,
-				1F286DA2247453B60072120C /* LoopBreakContinue.swift */,
-			);
-			path = Test;
 			sourceTree = "<group>";
 		};
 		1FB1EB782476E9D40088F63D /* Test */ = {
@@ -212,7 +199,6 @@
 				1FAA3E9A2472ECB80015C8BD /* ParseExpression.swift */,
 				1F513E2A24A62C8700805C0F /* IRGenExpr.swift */,
 				1FD60C702493E033001FE417 /* InternalProcedures.swift */,
-				1FAA3E952472DC570015C8BD /* Test */,
 				1F286D9F2474503F0072120C /* Model */,
 			);
 			path = "IR Generation";
