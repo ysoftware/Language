@@ -149,7 +149,7 @@ internal extension IR {
             }
             else if op.name == UnaryOperator.memoryAddress { // &value
                 if let variable = op.argument as? Value {
-                    value = "%\(variable.name)"
+                    value = "%\(variable.id)"
                 }
                 else {
                     let (load, val) = getExpressionResult(op.argument)
