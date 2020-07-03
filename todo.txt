@@ -11,16 +11,11 @@ FEATURE
 - arrays
 - subscript access
 
-
 IRGEN
 - autoinclude malloc/free
 - move sizeof to a global value
 - move string literal to a global value (from Parser responsibility to IRGen) to match sizeof
-- refactor common features to procedures: doAlloc, doStore, doLoad, doGEP
 - make IRGen throw errors
-- don't load the same value argument if passed twice in call expr, like a = add(a, a)
-- dereference all arguments passed by value in call expr (for now, doing that manually) 
-
 
 PARSER
 - unit tests ids
@@ -38,3 +33,7 @@ LEXER
 BUGS
 - code with just "1" outputs 0 statements and isn't failing
 - func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 - 0.5; } // should resolve to float (because of 0.5)
+
+OPTIMIZATION
+- don't load the same value argument if passed twice in call expr, like a = add(a, a)
+- dereference all arguments passed by value in call expr (for now, doing that manually) 

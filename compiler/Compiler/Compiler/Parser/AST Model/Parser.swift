@@ -166,6 +166,26 @@ extension Parser {
         guard let name = consumeIdent()?.value
             else { throw error(em.structExpectedName) }
         let end = token.endCursor
+
+        // parse generic types here
+        var genericTypes: [String] = []
+        if consumeOp("<") {
+
+            while true {
+                if genericTypes.count > 0 {
+                    if !consumeSep(",") {
+                        if consumeOp(">") { break }
+                        throw error(em.structExpectedClosingTriangleBracket)
+                    }
+                }
+                guard let typeIdent = consumeIdent() else {
+                    throw error(em.structExpectedGenericType)
+                }
+
+                genericTypes.append(typeIdent.value.value)
+            }
+        }
+
         guard consumePunct("{")
             else { throw error(em.structExpectedBrackets) }
         var members: [VariableDeclaration] = []
@@ -181,7 +201,7 @@ extension Parser {
                 else { throw error(em.structExpectedBracketsEnd) }
             }
         }
-        let structDecl = StructDeclaration(name: name.value, members: members,
+        let structDecl = StructDeclaration(name: name.value, members: members, genericTypes: genericTypes,
                                            startCursor: start, endCursor: end)
         try verifyNameConflict(structDecl)
         appendDeclaration(structDecl, to: globalScope)

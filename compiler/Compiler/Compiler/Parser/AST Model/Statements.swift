@@ -8,33 +8,6 @@
 
 import Foundation
 
-final class New: Expression, Equatable {
-    
-    var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
-    
-    static func == (lhs: New, rhs: New) -> Bool {
-        lhs.type.equals(to: rhs.type)
-    }
-    
-    var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
-        return "[New\(c)]"
-    }
-    
-    var type: Type
-    var exprType: Type
-    
-    internal init(type: Type, startCursor: Cursor, endCursor: Cursor) {
-        self.startCursor = startCursor
-        self.endCursor = endCursor
-        self.type = type
-        self.exprType = .pointer(type)
-    }
-}
-
 final class Free: Statement, Equatable {
     
     var isRValue: Bool  { false }
@@ -122,6 +95,36 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     }
 }
 
+final class TypealiasDeclaration: Declaration, Equatable {
+
+    var isRValue: Bool { false }
+
+    var startCursor: Cursor
+    var endCursor: Cursor
+
+    static func == (lhs: TypealiasDeclaration, rhs: TypealiasDeclaration) -> Bool {
+        return false
+    }
+
+    var debugDescription: String {
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[\(name) (\(id) as \(type.typeName) \(c)]"
+    }
+
+    var name: String
+    var id: String
+    var type: Type
+
+    internal init(name: String, type: Type,
+                  startCursor: Cursor, endCursor: Cursor) {
+        self.startCursor = startCursor
+        self.endCursor = endCursor
+        self.name = name
+        self.id = name
+        self.type = type
+    }
+}
+
 final class StructDeclaration: Statement, Declaration, Equatable {
     
     var isRValue: Bool  { false }
@@ -132,11 +135,15 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     static func == (lhs: StructDeclaration, rhs: StructDeclaration) -> Bool {
         lhs.name == rhs.name
             && lhs.members.elementsEqual(rhs.members) { $0.equals(to: $1) }
+            // @Todo: compare generic types
     }
     
     var debugDescription: String {
         let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
-        var string = "[Struct\(c) <\(id)>] \(name) "
+        var string = "[Struct\(c) (\(id))] \(name) "
+        if !genericTypes.isEmpty {
+            string.append("generic: <\(genericTypes.joined(separator: ", "))> ")
+        }
         members.forEach { string.append("\n        [Member] \($0.name): \($0.exprType.typeName)") }
         return string
     }
@@ -144,9 +151,11 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     let name: String
     let id: String
     let members: [VariableDeclaration]
+    let genericTypes: [String]
     
-    internal init(name: String, members: [VariableDeclaration],
+    internal init(name: String, members: [VariableDeclaration], genericTypes: [String],
                   startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+        self.genericTypes = genericTypes
         self.name = name
         self.id = name // @Todo: do ids for generics
         self.members = members

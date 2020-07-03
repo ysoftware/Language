@@ -29,7 +29,7 @@ extension ParserTest {
             StructDeclaration(name: "Vector", members: [
                 vDecl("x", .int, nil),
                 vDecl("y", .int, nil)
-            ]),
+            ], genericTypes: []),
             main([
                 vDecl("vec", .struct("Vector"), nil),
                 vDecl("x", .int, accessX),
@@ -107,7 +107,7 @@ func print3() { x :: 1; }
                 vDecl("b", .int, int(1), const: true),
                 vDecl("c", .int, val("b", .int)),
                 vDecl("d", .float, val("x", .float)),
-            ])
+            ], genericTypes: [])
         ]))
     }
     
@@ -135,7 +135,7 @@ struct Value { a := getInt(); b := getFloat(); }
             StructDeclaration(name: "Value", members: [
                 vDecl("a", .int, ProcedureCall(name: "getInt", exprType: .int, arguments: [])),
                 vDecl("b", .float, ProcedureCall(name: "getFloat", exprType: .float, arguments: []))
-            ])
+            ], genericTypes: [])
         ]))
     }
     

@@ -163,7 +163,7 @@ final class IR {
                             emitLocal(indentString(argString, level: 1))
                         }
                     }
-                    
+                     
                     _ = count() // implicit entry block takes the next name
                     let body = processStatements(procedure.scope.statements, contexts: contexts)
                     emitLocal(body.trimmingCharacters(in: .newlines))

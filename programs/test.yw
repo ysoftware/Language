@@ -1,16 +1,14 @@
 func printf(format: String, arguments: Int, ...) #foreign;
 
-func main(count: Int, arguments: Int8**) -> Int {
+struct Fuck {
 
-    a := "";
-    if (true) {
-        a := 1;
-        printf("%d\n", a);
-    }
-    else {
-        a := 2;
-        printf("%d\n", a);
-    }
+}
+
+struct Node<T, D, A> {
+
+}
+
+func main(count: Int, arguments: Int8**) -> Int {
 
     return 0;
 }

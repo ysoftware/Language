@@ -156,5 +156,8 @@ extension Parser {
         let structExpectedName = "Expected struct name after 'struct'."
         let structExpectedBrackets = "Expected brackets for structure declaration."
         let structExpectedBracketsEnd = "Expected brackets after structure members."
+        let structExpectedClosingTriangleBracket = "Expected '>' after a list of types for a generic struct declaration."
+        let structExpectedGenericType = "Expected type name for a generic struct declaration."
+        func structExpectedGenericTypeIdent(_ g: Token) -> String { "Expected type name identifier. Got \(g) instead" }
     }
 }

@@ -39,7 +39,8 @@ extension Parser {
     func resolveVarDecl(named name: String, in scope: Scope) -> VariableDeclaration? {
         return (scope.declarations[name] ?? globalScope.declarations[name]) as? VariableDeclaration
     }
-    
+
+    /// nil if error
     func resolveType(named name: String) -> Type? {
         let type = Type.named(name)
         if type is StructureType {

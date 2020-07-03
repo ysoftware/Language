@@ -8,6 +8,33 @@
 
 import Foundation
 
+final class New: Expression, Equatable {
+
+    var isRValue: Bool  { false }
+
+    var startCursor: Cursor
+    var endCursor: Cursor
+
+    static func == (lhs: New, rhs: New) -> Bool {
+        lhs.type.equals(to: rhs.type)
+    }
+
+    var debugDescription: String {
+        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        return "[New\(c)]"
+    }
+
+    var type: Type
+    var exprType: Type
+
+    internal init(type: Type, startCursor: Cursor, endCursor: Cursor) {
+        self.startCursor = startCursor
+        self.endCursor = endCursor
+        self.type = type
+        self.exprType = .pointer(type)
+    }
+}
+
 /// A variable or constant passed by name.
 final class Value: Expression, Equatable {
     
