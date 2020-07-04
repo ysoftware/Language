@@ -349,18 +349,16 @@ extension Parser {
                 break
             }
             else {
-                guard token.value is Identifier else {
+                guard let argNameTok = consumeIdent() else {
                     throw error(em.procExpectedArgumentName, token.startCursor, token.endCursor)
                 }
-                guard let argNameTok = consumeIdent(), consumePunct(":"), let argTypeTok = consumeIdent()
-                    else { throw error(em.procExpectedArgumentType) }
+                guard consumePunct(":") else { throw error(em.procExpectedArgumentType) }
+                let argType = try doType()
                 // @Todo: change argument from Type to something that will also contain argument name and label
-                // @Todo: type check arguments
                 let argName = argNameTok.value.value
                 let argId = "\(procId)_arg_\(argName)"
-                arguments.append(Value(name: argName, id: argId, exprType: .named(argTypeTok.value.value),
-                                       startCursor: argNameTok.token.startCursor,
-                                       endCursor: argTypeTok.token.endCursor))
+                arguments.append(Value(name: argName, id: argId, exprType: argType.type,
+                                       startCursor: argType.range.start, endCursor: argType.range.end))
             }
             if !consumeSep(",") { break }
         }
