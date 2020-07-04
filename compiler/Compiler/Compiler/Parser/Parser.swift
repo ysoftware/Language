@@ -9,6 +9,51 @@
 // Constants
 
 extension Parser {
+
+    // MARK: - TYPE -
+
+    func doType() throws -> (type: Type, range: CursorRange) {
+        guard let ident = consumeIdent() else { throw error(em.expectedType(token), token.startCursor, token.endCursor) }
+
+        var end = ident.token.endCursor
+        var genericTypes: [Type] = []
+
+        if consumeOp("<") {
+            while true {
+                if genericTypes.count > 0 {
+                    if !consumeSep(",") {
+                        if consumeOp(">") {
+                            break
+                        }
+                        throw error(em.structExpectedClosingTriangleBracket, isFatal: true)
+                    }
+                }
+                guard let typeIdent = consumeIdent() else {
+                    throw error(em.structExpectedGenericType, isFatal: true)
+                }
+
+                guard let type = resolveType(named: typeIdent.value.value)
+                    else { throw error(em.expectedType(typeIdent.token), isFatal: true) }
+                genericTypes.append(type)
+            }
+        }
+
+        var type: Type
+        if genericTypes.isEmpty {
+            type = Type.named(ident.value.value)
+        }
+        else {
+            type = StructureType(name: ident.value.value, genericTypes: genericTypes)
+        }
+
+        if consumeOp("*") {
+            type = .pointer(type)
+        }
+
+        end = lastToken.endCursor
+        let range = CursorRange(ident.token.startCursor, end)
+        return (type, range)
+    }
     
     // MARK: - MEMBER ACCESS -
     
@@ -28,7 +73,7 @@ extension Parser {
             throw error(em.expectedMemberIdentifier, token.startCursor, token.endCursor)
         }
         let member = memberIdent.value.value
-        let info = try resolveMemberTypeAndIndex(name: member, of: base)
+        let info = try resolveMemberTypeAndIndex(forName: member, of: base)
         let memberType = info?.type ?? .unresolved
         let memberIndex = info?.index
         let access = MemberAccess(base: base, memberName: member, memderIndex: memberIndex, exprType: memberType,
@@ -107,7 +152,14 @@ extension Parser {
         
         var expr: Expression?
         var flags: VariableDeclaration.Flags = []
-        let declType = consumeIdent()
+
+        var declaredType: (type: Type, range: CursorRange)? = nil
+        do { // no type passed if this fails
+            declaredType = try doType()
+        } catch let error as ParserError {
+            if error.isFatal { throw error }
+        }
+
         var expectingExpression = true
         let end = token.endCursor
         
@@ -116,16 +168,13 @@ extension Parser {
         
         if expectingExpression {
             expr = try doExpression(in: scope)
-            
-            if let declaredTypeName = declType?.value.value, let exprType = expr?.exprType {
-                let declaredType = Type.named(declaredTypeName)
-                
-                if let converted = convertExpression(expr!, to: declaredType) {
+            if let exprType = expr?.exprType, let declaredType = declaredType {
+                if let converted = convertExpression(expr!, to: declaredType.type) {
                     expr = converted
                 }
-                else if !declaredType.equals(to: exprType) {
-                    throw error(em.varDeclTypeMismatch(exprType, declaredType),
-                                 declType?.token.startCursor, declType?.token.endCursor)
+                else if !declaredType.type.equals(to: exprType) {
+                    throw error(em.varDeclTypeMismatch(exprType, declaredType.type),
+                                declaredType.range.start, declaredType.range.end)
                 }
             }
         }
@@ -136,11 +185,8 @@ extension Parser {
         if let t = expr?.exprType {
             type = t
         }
-        else if let declType = declType {
-            guard let resolvedType = resolveType(named: declType.value.value) else {
-                throw error(em.declTypeIsDeclaration(), declType.token.startCursor, declType.token.endCursor)
-            }
-            type = resolvedType
+        else if let declType = declaredType?.type {
+            type = declType
         }
         else { throw error(em.varDeclRequiresType) } // @Todo: check cursors and if this error is even valid
         
@@ -566,14 +612,9 @@ extension Parser {
                 // @Todo: depend on this type to be resolved
                 expression = SizeOf(type: type, startCursor: start, endCursor: typeIdent.token.endCursor)
             case .new:
-                let start = token.startCursor
                 guard nextToken() else { throw error(em.unexpectedEndOfFile) }
-                guard let declType = consumeIdent() else { throw error(em.newExpectsTypeIdent) }
-                // @Todo: resolve type
-                guard let type = resolveType(named: declType.value.value) else {
-                    throw error(em.declTypeIsDeclaration(), declType.token.startCursor, declType.token.endCursor)
-                }
-                let new = New(type: type, startCursor: start, endCursor: declType.token.endCursor)
+                let type = try doType()
+                let new = New(type: type.type, startCursor: type.range.start, endCursor: type.range.end)
                 expression = new
             case .cast:
                 let start = token.startCursor

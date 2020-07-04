@@ -1,14 +1,13 @@
 func printf(format: String, arguments: Int, ...) #foreign;
 
-struct Fuck {
-
-}
-
-struct Node<T, D, A> {
-
+struct Node<T> {
+    next: Node<T>*;
+    value: T;
 }
 
 func main(count: Int, arguments: Int8**) -> Int {
+
+    intList := new Node<Int>;
 
     return 0;
 }

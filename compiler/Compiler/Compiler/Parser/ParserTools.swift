@@ -18,7 +18,7 @@ extension Parser {
     }
 
     /// make sure to add dependency for an ast with unresolved type
-    func resolveMemberTypeAndIndex(name: String, of base: Expression) throws -> (type: Type, index: Int)? {
+    func resolveMemberTypeAndIndex(forName name: String, of base: Expression) throws -> (type: Type, index: Int)? {
         guard !base.exprType.equals(to: .unresolved) else { return nil }
         
         var baseType = base.exprType
@@ -163,12 +163,12 @@ extension Parser {
     
     /// returns the error set at the current point
     func error(_ error: String, procedure: String = #function, line: Int = #line,
-               _ start: Cursor? = nil, _ end: Cursor? = nil) -> ParserError {
+               _ start: Cursor? = nil, _ end: Cursor? = nil, isFatal: Bool = false) -> ParserError {
         let startC = start ?? lastToken.endCursor.advancingCharacter()
         let endC = end ?? startC
         let context = "Error in: \(procedure) #\(line)"
         let error = ParserError(fileName: fileName, startCursor: startC, endCursor: endC,
-                                message: error, context: context)
+                                message: error, context: context, isFatal: isFatal)
         return error
     }
     

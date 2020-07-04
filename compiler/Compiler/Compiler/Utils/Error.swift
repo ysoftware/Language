@@ -8,6 +8,21 @@
 
 import Foundation
 
+struct CursorRange: Equatable, CustomDebugStringConvertible {
+
+    var start: Cursor
+    var end: Cursor
+
+    var debugDescription: String {
+        "\(start)-\(end)"
+    }
+
+    init(_ start: Cursor, _ end: Cursor) {
+        self.start = start
+        self.end = end
+    }
+}
+
 struct Cursor: Equatable, CustomDebugStringConvertible {
     
     var debugDescription: String {

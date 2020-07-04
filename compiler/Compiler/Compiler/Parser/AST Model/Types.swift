@@ -12,8 +12,8 @@ class Type: CustomDebugStringConvertible {
     
     var debugDescription: String { typeName }
     
-    var isResolved: Bool { !(self is UnresolvedType || self is PredictedType) }
-    var predictedType: Type? { (self as? PredictedType)?.predictedType }
+    var isResolved: Bool { !(self is UnresolvedType) }
+//    var predictedType: Type? { (self as? PredictedType)?.predictedType }
 }
 
 class IntType: Type, Equatable {
@@ -79,26 +79,15 @@ class UnresolvedType: Type {
 class StructureType: Type, Equatable {
     
     let name: String
+    let genericTypes: [Type]
     
-    internal init(name: String) {
+    internal init(name: String, genericTypes: [Type] = []) {
         self.name = name
+        self.genericTypes = genericTypes
     }
     
     static func == (lhs: StructureType, rhs: StructureType) -> Bool {
         lhs.name == rhs.name
-    }
-}
-
-class PredictedType: Type, Equatable {
-    
-    let requirement: Type
-    
-    internal init(requirement: Type) {
-        self.requirement = requirement
-    }
-    
-    static func ==(lhs: PredictedType, rhs: PredictedType) -> Bool {
-        lhs.requirement.equals(to: rhs.requirement)
     }
 }
 
@@ -112,7 +101,6 @@ extension Type {
         case (let a as IntType, let b as IntType): return a == b
         case (let a as FloatType, let b as FloatType): return a == b
         case (let a as ArrayType, let b as ArrayType): return a == b
-        case (let a as PredictedType, let b as PredictedType): return a == b
         case (let a as StructureType, let b as StructureType): return a == b
         case (is UnresolvedType, is UnresolvedType): return true
         case (is VoidType, is VoidType): return true
@@ -132,8 +120,12 @@ extension Type {
         case let a as PointerType: return "\(a.pointeeType.typeName)*"
         case let a as ArrayType: return "[\(a.elementType.typeName)]"
         case is VoidType: return "Void"
-        case let a as PredictedType: return a.requirement.typeName
-        case let a as StructureType: return a.name
+        case let a as StructureType:
+            var string = "\(a.name)"
+            if !a.genericTypes.isEmpty {
+                string.append(" generic: <\(a.genericTypes.map(\.typeName).joined(separator: ", "))>")
+            }
+            return string
         case is UnresolvedType: return "[Unresolved]"
         case is AnyType: return "Any"
         default: report("typeName: Unknown type.")

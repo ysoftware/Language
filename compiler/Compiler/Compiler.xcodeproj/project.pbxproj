@@ -115,6 +115,7 @@
 		1F9C966A2475ACF900BAEC04 /* Parser */ = {
 			isa = PBXGroup;
 			children = (
+				1F9C966B2475AD0300BAEC04 /* Parser.swift */,
 				1F0A3BDA247F8924005C91F0 /* ParserTools.swift */,
 				1F0A77E5248B73B50028A96D /* Operations.swift */,
 				1FEB7CAA247A9E950018B9B4 /* ParserModel.swift */,
@@ -182,7 +183,6 @@
 		1FFF349D247120D200389B0C /* AST Model */ = {
 			isa = PBXGroup;
 			children = (
-				1F9C966B2475AD0300BAEC04 /* Parser.swift */,
 				1FFF34B224714AB900389B0C /* BaseAST.swift */,
 				1F0A3BD8247E92A9005C91F0 /* Statements.swift */,
 				1F09BF6A2471B8DF00171D0A /* ControlFlow.swift */,
