@@ -60,7 +60,7 @@ func matchType(_ type: Type) -> String {
     case is UnresolvedType:
         report("Unresolved type in IR Gen.")
     case let structure as StructureType:
-        let genericTypes = structure.genericTypes.map(matchType).joined(separator: "_")
+        let genericTypes = structure.solidTypes.map(matchType).joined(separator: "_")
         return "%\(structure.name)_\(genericTypes)_struct"
     default: report("Unsupported type \(type)")
     }

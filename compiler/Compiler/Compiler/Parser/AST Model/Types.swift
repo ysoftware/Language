@@ -19,9 +19,32 @@ class Type: CustomDebugStringConvertible {
             return pointer.pointeeType.isGeneric
         }
         else if let structType = self as? StructureType {
-            return !structType.genericTypes.isEmpty
+            return !structType.solidTypes.isEmpty
+        }
+        else if let arrayType = self as? ArrayType {
+            return arrayType.elementType.isGeneric
         }
         return false
+    }
+
+    // @Todo: this is a mess
+    /// returns the updated base type 
+    func updateSubtypes(with block: (Type)->Type) -> Type {
+        if let pointer = self as? PointerType {
+            pointer.pointeeType = block(pointer.pointeeType)
+            _ = pointer.pointeeType.updateSubtypes(with: block)
+        }
+        else if let structType = self as? StructureType {
+            for i in 0..<structType.solidTypes.count {
+                structType.solidTypes[i] = block(structType.solidTypes[i])
+                _ = structType.solidTypes[i].updateSubtypes(with: block)
+            }
+        }
+        else if let arrayType = self as? ArrayType {
+            arrayType.elementType = block(arrayType.elementType)
+            _ = arrayType.elementType.updateSubtypes(with: block)
+        }
+        return block(self)
     }
 }
 
@@ -55,7 +78,7 @@ class FloatType: Type, Equatable {
 
 class PointerType: Type, Equatable {
     
-    let pointeeType: Type
+    var pointeeType: Type
     
     internal init(pointeeType: Type) {
         self.pointeeType = pointeeType
@@ -68,7 +91,7 @@ class PointerType: Type, Equatable {
 
 class ArrayType: Type, Equatable {
     
-    let elementType: Type
+    var elementType: Type
     let size: Int
     
     internal init(elementType: Type, size: Int) {
@@ -88,11 +111,11 @@ class UnresolvedType: Type {
 class StructureType: Type, Equatable {
     
     let name: String
-    let genericTypes: [Type]
+    var solidTypes: [Type]
 
-    internal init(name: String, genericTypes: [Type] = []) {
+    internal init(name: String, solidTypes: [Type] = []) {
         self.name = name
-        self.genericTypes = genericTypes
+        self.solidTypes = solidTypes
     }
     
     static func == (lhs: StructureType, rhs: StructureType) -> Bool {
@@ -141,7 +164,7 @@ extension Type {
         case let a as StructureType:
             var string = "\(a.name)"
             if a.isGeneric {
-                string.append("<\(a.genericTypes.map(\.typeName).joined(separator: ", "))>")
+                string.append("<\(a.solidTypes.map(\.typeName).joined(separator: ", "))>")
             }
             return string
         case is UnresolvedType: return "[Unresolved]"

@@ -18,22 +18,30 @@ extension Parser {
     }
 
     /// make sure to add dependency for an ast with unresolved type
-    func resolveMemberTypeAndIndex(forName name: String, of base: Expression) throws -> (type: Type, index: Int)? {
-        guard !base.exprType.equals(to: .unresolved) else { return nil }
+    func resolveMemberTypeAndIndex(forName name: String, of base: Expression, in scope: Scope) throws -> (type: Type, index: Int?) {
+        guard !base.exprType.equals(to: .unresolved) else { return (.unresolved, nil) }
         
         var baseType = base.exprType
         if let pointer = base.exprType as? PointerType { baseType = pointer.pointeeType }
         guard let structType = baseType as? StructureType else {
             throw error(em.memberAccessNonStruct(baseType), base.range)
         }
-        
-        guard let decl = globalScope.declarations[structType.name] as? StructDeclaration else {
-            return nil
+
+        if let decl = globalScope.declarations[structType.name] as? StructDeclaration,
+            let index = decl.members.firstIndex(where: { $0.name == name }) {
+
+            if let aliasType = decl.members[index].exprType as? AliasType {
+                guard let genericTypeIndex = decl.genericTypes.firstIndex(of: aliasType.name) else {
+                    report("generic type name not found in a struct declaration?")
+                }
+
+                let solidType = structType.solidTypes[genericTypeIndex]
+                return (solidType, index)
+            }
+            return (decl.members[index].exprType, index)
         }
-        guard let index = decl.members.firstIndex(where: { $0.name == name }) else {
-            return nil
-        }
-        return (decl.members[index].exprType, index)
+
+        return (.unresolved, nil)
     }
     
     func resolveVarDecl(named name: String, in scope: Scope) -> VariableDeclaration? {

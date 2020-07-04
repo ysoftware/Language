@@ -187,7 +187,7 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     
     let name: String
     let id: String
-    let exprType: Type
+    var exprType: Type
     let flags: Flags
     let expression: Expression?
     

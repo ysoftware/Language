@@ -16,11 +16,11 @@ extension Parser {
         guard let baseIdent = consumeIdent() else { throw error(em.expectedType(token), token.startCursor, token.endCursor) }
 
         var end = baseIdent.token.endCursor
-        var genericTypes: [Type] = []
+        var solidTypes: [Type] = []
 
         if consumeOp("<") {
             while !consumeOp(">") {
-                if genericTypes.count > 0, !consumeSep(",") {
+                if solidTypes.count > 0, !consumeSep(",") {
                     throw error(em.structExpectedClosingTriangleBracket, isFatal: true)
                 }
                 guard let typeIdent = consumeIdent() else {
@@ -28,19 +28,26 @@ extension Parser {
                 }
                 if let alias = scope.declarations[typeIdent.value.value] as? TypealiasDeclaration { // generic type
                     let type = AliasType(name: alias.name)
-                    genericTypes.append(type)
+                    solidTypes.append(type)
                 }
                 else {
                     guard let type = resolveType(named: typeIdent.value.value)
                         else { throw error(em.expectedType(typeIdent.token), isFatal: true) }
-                    genericTypes.append(type)
+                    solidTypes.append(type)
                 }
             }
         }
 
         var type: Type
-        if genericTypes.isEmpty { type = Type.named(baseIdent.value.value) }
-        else { type = StructureType(name: baseIdent.value.value, genericTypes: genericTypes) }
+        if solidTypes.isEmpty {
+            if let alias = scope.declarations[baseIdent.value.value] as? TypealiasDeclaration { // generic type
+                type = AliasType(name: alias.name)
+            }
+            else {
+                type = Type.named(baseIdent.value.value)
+            }
+        }
+        else { type = StructureType(name: baseIdent.value.value, solidTypes: solidTypes) }
 
         if consumeOp("*") {
             type = .pointer(type)
@@ -69,10 +76,8 @@ extension Parser {
             throw error(em.expectedMemberIdentifier, token.startCursor, token.endCursor)
         }
         let member = memberIdent.value.value
-        let info = try resolveMemberTypeAndIndex(forName: member, of: base)
-        let memberType = info?.type ?? .unresolved
-        let memberIndex = info?.index
-        let access = MemberAccess(base: base, memberName: member, memderIndex: memberIndex, exprType: memberType,
+        let info = try resolveMemberTypeAndIndex(forName: member, of: base, in: scope)
+        let access = MemberAccess(base: base, memberName: member, memderIndex: info.index, exprType: info.type,
                                   range: CursorRange(base.range.start, memberIdent.token.endCursor))
         return access
     }
@@ -226,10 +231,9 @@ extension Parser {
             else { throw error(em.structExpectedBrackets) }
         var members: [VariableDeclaration] = []
         while tokens.count > i {
-            var member: VariableDeclaration?
             if matchVarDecl() {
-                member = try doVarDecl(in: structScope)
-                members.append(member!)
+                let member = try doVarDecl(in: structScope)
+                members.append(member)
             }
             else {
                 if consumePunct("}") { break }

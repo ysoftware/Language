@@ -52,20 +52,35 @@ final class IR {
 
             // @Todo: make sure AST is sorted so structs come first
             guard let structDecl = structures[type.name] else { report("Generic struct is not declared.") }
-            emitStruct(structDecl, genericTypes: type.genericTypes)
+            emitStruct(structDecl, solidTypes: type.solidTypes)
         }
     }
 
-    func emitStruct(_ structure: StructDeclaration, genericTypes: [Type] = []) {
-        assert(structure.genericTypes.count == genericTypes.count)
-        let members = genericTypes.map(matchType).joined(separator: ", ")
-        emitGlobal("")
-        var typesString = ""
-        if !genericTypes.isEmpty {
-            typesString = "_" + genericTypes.map(matchType).joined(separator: "_")
+    func emitStruct(_ structure: StructDeclaration, solidTypes: [Type] = []) {
+        assert(structure.genericTypes.count == solidTypes.count)
+        let members = structure.members
+
+        // solidifying all types according to genericTypes passed
+        if structure.isGeneric {
+            for i in 0..<members.count {
+
+                members[i].exprType = members[i].exprType.updateSubtypes { child in
+                    if let alias = child as? AliasType {
+                        if let index = structure.genericTypes.firstIndex(of: alias.name) {
+                            let solidType = solidTypes[index]
+                            return solidType
+                        }
+                    }
+                    return child
+                }
+            }
         }
-        emitGlobal("; struct decl: \(structure.name)\(typesString)")
-        emitGlobal("%\(structure.name)\(typesString)_struct = type { \(members) }")
+
+        let membersString = members.map(\.exprType).map(matchType).joined(separator: ", ")
+        let solidTypesString = solidTypes.map(matchType).joined(separator: ", ")
+        emitGlobal("")
+        emitGlobal("; struct decl: \(structure.name) <\(solidTypesString)>")
+        emitGlobal("%\(structure.name)_\(solidTypesString)_struct = type { \(membersString) }")
     }
     
     /// Process statements and return IR text
