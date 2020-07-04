@@ -593,29 +593,29 @@ extension Parser {
         switch token.value {
             
         case let keyword as Keyword:
+            guard nextToken() else { throw error(em.unexpectedEndOfFile) }
             switch keyword {
             case .sizeof:
                 let start = token.startCursor
-                guard nextToken(), let typeIdent = consumeIdent() else {
-                    throw error(em.sizeofExpectedType, token.startCursor, token.endCursor)
-                }
-                let type = Type.named(typeIdent.value.value)
+                let (type, range) = try doType()
                 // @Todo: depend on this type to be resolved
-                expression = SizeOf(type: type, range: CursorRange(start, typeIdent.token.endCursor))
+                expression = SizeOf(type: type, range: CursorRange(start, range.end))
             case .new:
-                guard nextToken() else { throw error(em.unexpectedEndOfFile) }
                 let type = try doType()
                 let new = New(type: type.type, range: type.range)
                 expression = new
             case .cast:
                 let start = token.startCursor
-                guard nextToken(), consumePunct("("), let typeIdent = consumeIdent(), consumePunct(")") else {
+                guard consumePunct("(") else {
                     throw error(em.castExpectsTypeInBrackets, token.startCursor, token.endCursor)
                 }
-                let type = Type.named(typeIdent.value.value)
+                let type = try doType()
+                guard consumePunct(")") else {
+                    throw error(em.castExpectsTypeInBrackets, token.startCursor, token.endCursor)
+                }
                 // @Todo: depend on this type to be resolved
                 let expr = try doExpression(in: scope, expectSemicolon: false)
-                expression = UnaryOperator(name: "cast", exprType: type, argument: expr,
+                expression = UnaryOperator(name: "cast", exprType: type.type, argument: expr,
                                            range: CursorRange(start, expr.range.end))
                 
             default:
