@@ -33,7 +33,7 @@ internal extension IR {
             
             let counter = count()
             let value = "%\(counter)"
-            code += "\n\(value) = ptrtoint \(matchType(arg.exprType)) \(val) to \(matchType(.int32))"
+            code += "\n\(value) = ptrtoint \(matchType(arg.exprType)) \(val) to \(matchType(int32))"
             
             return (code, value)
         }

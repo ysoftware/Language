@@ -1,10 +1,12 @@
 TODO
 
+~ generic structures - there's a bug with modifying a type reference!
+
 READ
 - https://habr.com/ru/company/otus/blog/442554/
 
 FEATURE
-- generic procedures and structures
+- generic procedures 
 - this should work: obj := new Int; &obj = 1;
 - proper variadic procedures [different types of arguments / empty variadic arguments]
 - defer

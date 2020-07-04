@@ -8,10 +8,27 @@
 
 import Foundation
 
-class Type: CustomDebugStringConvertible {
-    
+protocol Type: CustomDebugStringConvertible {
+
+    var isResolved: Bool { get }
+
+    var isGeneric: Bool { get }
+//        if let pointer = self as? PointerType {
+//            return pointer.pointeeType.isGeneric
+//        }
+//        else if let structType = self as? StructureType {
+//            return !structType.solidTypes.isEmpty
+//        }
+//        else if let arrayType = self as? ArrayType {
+//            return arrayType.elementType.isGeneric
+//        }
+//        return false
+}
+
+extension Type {
+
     var debugDescription: String { typeName }
-    
+
     var isResolved: Bool { !(self is UnresolvedType) }
 
     var isGeneric: Bool {
@@ -28,27 +45,31 @@ class Type: CustomDebugStringConvertible {
     }
 
     // @Todo: this is a mess
-    /// returns the updated base type 
+    /// returns the updated base type
     func updateSubtypes(with block: (Type)->Type) -> Type {
-        if let pointer = self as? PointerType {
+        let type = self
+        if var pointer = type as? PointerType {
             pointer.pointeeType = block(pointer.pointeeType)
             _ = pointer.pointeeType.updateSubtypes(with: block)
+            return pointer
         }
-        else if let structType = self as? StructureType {
+        else if var structType = self as? StructureType {
             for i in 0..<structType.solidTypes.count {
                 structType.solidTypes[i] = block(structType.solidTypes[i])
                 _ = structType.solidTypes[i].updateSubtypes(with: block)
             }
+            return structType
         }
-        else if let arrayType = self as? ArrayType {
+        else if var arrayType = self as? ArrayType {
             arrayType.elementType = block(arrayType.elementType)
             _ = arrayType.elementType.updateSubtypes(with: block)
+            return arrayType
         }
         return block(self)
     }
 }
 
-class IntType: Type, Equatable {
+struct IntType: Type, Equatable {
     
     let size: Int // @Todo: I can make this any bit width from 1 bit to (2^23)-1 (about 8 million)
     let isSigned: Bool // @Todo: LLVM: unsigned?
@@ -63,7 +84,7 @@ class IntType: Type, Equatable {
     }
 }
 
-class FloatType: Type, Equatable {
+struct FloatType: Type, Equatable {
 
     let size: Int
     
@@ -76,7 +97,7 @@ class FloatType: Type, Equatable {
     }
 }
 
-class PointerType: Type, Equatable {
+struct PointerType: Type, Equatable {
     
     var pointeeType: Type
     
@@ -89,7 +110,7 @@ class PointerType: Type, Equatable {
     }
 }
 
-class ArrayType: Type, Equatable {
+struct ArrayType: Type, Equatable {
     
     var elementType: Type
     let size: Int
@@ -104,11 +125,11 @@ class ArrayType: Type, Equatable {
     }
 }
 
-class UnresolvedType: Type {
+struct UnresolvedType: Type {
     
 }
 
-class StructureType: Type, Equatable {
+struct StructureType: Type, Equatable {
     
     let name: String
     var solidTypes: [Type]
@@ -123,7 +144,7 @@ class StructureType: Type, Equatable {
     }
 }
 
-class AliasType: Type {
+struct AliasType: Type {
 
     let name: String
 
@@ -132,8 +153,8 @@ class AliasType: Type {
     }
 }
 
-class VoidType: Type { }
-class AnyType: Type { }
+struct VoidType: Type { }
+struct AnyType: Type { }
 
 extension Type {
     
@@ -173,61 +194,9 @@ extension Type {
         default: report("typeName: Unknown type.")
         }
     }
-     
-    /// Always returns`custom types` as `unresolved`
-    static func named(_ identifier: String) -> Type {
-        switch identifier {
-        case "Int": return .int
-        case "Bool": return .bool
-        case "Int8": return .int8
-        case "Int16": return .int16
-        case "Int32": return .int32
-        case "Int64": return .int64
-        case "Int128": return IntType(size: 128)
-
-        case "Float": return .float
-        case "Float16": return .half
-        case "Float32": return .float
-        case "Float64": return .double
-        case "Float128": return FloatType(size: 128)
-
-        case "String": return PointerType(pointeeType: .int8)
-        case "Void": return .void
-        case "Any": return .any
-
-        default:
-            if identifier.hasSuffix("*") {
-                let name = String(identifier[..<identifier.endIndex(offsetBy: -1)])
-                return PointerType(pointeeType: named(name))
-            }
-            return StructureType(name: identifier)
-        }
-    }
-
-    static let half = FloatType(size: 16)
-    static let float = FloatType()
-    static let double = FloatType(size: 64)
-    static let int = IntType()
-    static let bool = IntType(size: 1)
-    static let int8 = IntType(size: 8)
-    static let int16 = IntType(size: 16)
-    static let int32 = IntType(size: 32)
-    static let int64 = IntType(size: 64)
-    static let string = PointerType(pointeeType: Type.int8)
-    static let void = VoidType()
-    static let any = AnyType()
-    static let unresolved = UnresolvedType()
-    
-    static func `struct`(_ name: String) -> StructureType {
-        StructureType(name: name)
-    }
-    
-    static func pointer(_ type: Type) -> PointerType {
-        PointerType(pointeeType: type)
-    }
 }
 
-extension Array where Element: Type {
+extension Array where Element == Type {
     
     func contains(_ type: Type) -> Bool {
         for s in self {
@@ -235,12 +204,66 @@ extension Array where Element: Type {
         }
         return false
     }
-    
-    func equals(to array: [Type]) -> Bool {
+
+    func equals(toArray array: [Type]) -> Bool {
         guard count == array.count else { return false }
         for i in 0..<count {
             if !self[i].equals(to: array[i]) { return false }
         }
         return true
     }
+}
+
+// global variables
+
+/// Always returns`custom types` as `unresolved`
+func typeNamed(_ identifier: String) -> Type {
+    switch identifier {
+    case "Int": return int
+    case "Bool": return bool
+    case "Int8": return int8
+    case "Int16": return int16
+    case "Int32": return int32
+    case "Int64": return int64
+    case "Int128": return IntType(size: 128)
+
+    case "Float": return float
+    case "Float16": return half
+    case "Float32": return float
+    case "Float64": return double
+    case "Float128": return FloatType(size: 128)
+
+    case "String": return PointerType(pointeeType: int8)
+    case "Void": return void
+    case "Any": return any
+
+    default:
+        if identifier.hasSuffix("*") {
+            let name = String(identifier[..<identifier.endIndex(offsetBy: -1)])
+            return PointerType(pointeeType: typeNamed(name))
+        }
+        return StructureType(name: identifier)
+    }
+}
+
+let half: Type = FloatType(size: 16)
+let float: Type = FloatType()
+let double: Type = FloatType(size: 64)
+let int: Type = IntType()
+let bool: Type = IntType(size: 1)
+let int8: Type = IntType(size: 8)
+let int16: Type = IntType(size: 16)
+let int32: Type = IntType(size: 32)
+let int64: Type = IntType(size: 64)
+let string: Type = PointerType(pointeeType: int8)
+let void: Type = VoidType()
+let any: Type = AnyType()
+let unresolved = UnresolvedType()
+
+func structure(_ name: String) -> StructureType {
+    StructureType(name: name)
+}
+
+func pointer(_ type: Type) -> PointerType {
+    PointerType(pointeeType: type)
 }

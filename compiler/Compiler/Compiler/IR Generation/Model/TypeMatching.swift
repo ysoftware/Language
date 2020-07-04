@@ -19,21 +19,21 @@ extension LiteralExpr {
         switch (selfType.typeName, type.typeName) {
         
         // int32 to any number
-        case (Type.int.typeName, Type.int8.typeName),
-             (Type.int.typeName, Type.int16.typeName),
-             (Type.int.typeName, Type.int64.typeName),
-             (Type.int.typeName, Type.half.typeName),
-             (Type.int.typeName, Type.float.typeName),
-             (Type.int.typeName, Type.double.typeName),
-             (Type.int.typeName, Type.bool.typeName): return true
+        case (int.typeName, int8.typeName),
+             (int.typeName, int16.typeName),
+             (int.typeName, int64.typeName),
+             (int.typeName, half.typeName),
+             (int.typeName, float.typeName),
+             (int.typeName, double.typeName),
+             (int.typeName, bool.typeName): return true
             
         // int64 >> float/64
-        case (Type.int64.typeName, Type.half.typeName),
-             (Type.int64.typeName, Type.float.typeName),
-             (Type.int64.typeName, Type.double.typeName): return true
+        case (int64.typeName, half.typeName),
+             (int64.typeName, float.typeName),
+             (int64.typeName, double.typeName): return true
             
         // float >> double
-        case (Type.float.typeName, Type.double.typeName): return true
+        case (float.typeName, double.typeName): return true
             
         default:
             return false
@@ -46,7 +46,7 @@ func matchType(_ type: Type) -> String {
     case let a as IntType: return "i\(a.size)"
     case let a as ArrayType: return "[\(a.size) x \(matchType(a.elementType))]"
     case let a as PointerType:
-        if a.pointeeType.equals(to: .void) { return "i8*" }
+        if a.pointeeType.equals(to: void) { return "i8*" }
         return "\(matchType(a.pointeeType))*"
     case let a as FloatType:
         switch a.size {

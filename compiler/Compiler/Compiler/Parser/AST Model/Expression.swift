@@ -28,7 +28,7 @@ final class New: Expression, Equatable {
     internal init(type: Type, range: CursorRange) {
         self.range = range
         self.type = type
-        self.exprType = .pointer(type)
+        self.exprType = pointer(type)
     }
 }
 
@@ -78,7 +78,7 @@ final class SizeOf: Expression, Equatable {
     var exprType: Type
     var type: Type
     
-    internal init( type: Type, exprType: Type = .int32, range: CursorRange) {
+    internal init( type: Type, exprType: Type = int32, range: CursorRange) {
         self.range = range
         self.type = type
         self.exprType = exprType
@@ -241,7 +241,7 @@ final class StringLiteral: LiteralExpr, Equatable {
         self.range = range
     }
 
-    var exprType: Type = .string
+    var exprType: Type = string
     var value: String
 }
 
@@ -259,11 +259,11 @@ final class IntLiteral: LiteralExpr, Equatable {
         return "[\(exprType.typeName)\(c) \(value)]"
     }
     
-    internal init(value: Int, exprType: Type = .int,
+    internal init(value: Int, exprType: Type = int,
                   range: CursorRange = CursorRange()) {
         self.value = value
         
-        if value > Int32.max { self.exprType = .int64 }
+        if value > Int32.max { self.exprType = int64 }
         else { self.exprType = exprType }
         
         self.range = range
@@ -288,7 +288,7 @@ final class FloatLiteral: LiteralExpr, Equatable {
         return "[Float\(c) \(value)]"
     }
     
-    internal init(value: Float64, exprType: Type = .float,
+    internal init(value: Float64, exprType: Type = float,
                   range: CursorRange = CursorRange()) {
         self.value = value
         self.exprType = exprType
@@ -314,7 +314,7 @@ final class VoidLiteral: LiteralExpr {
         return "[Void\(c)]"
     }
     
-    var exprType: Type = .void
+    var exprType: Type = void
     
     internal init(range: CursorRange = CursorRange()) {
         self.range = range
@@ -331,7 +331,7 @@ final class NullLiteral: LiteralExpr {
         return "[null\(c)]"
     }
     
-    var exprType: Type = .void
+    var exprType: Type = void
     
     internal init(exprType: Type,
                   range: CursorRange = CursorRange()) {

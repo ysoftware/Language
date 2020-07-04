@@ -137,16 +137,16 @@ final class ParserTest {
         }
     }
     
-    func int(_ val: Int) -> IntLiteral { IntLiteral(value: val) }
-    func bool(_ val: Bool) -> IntLiteral { IntLiteral(value: val ? 1 : 0, exprType: .bool) }
-    func string(_ val: String) -> StringLiteral { StringLiteral(value: val) }
-    func float(_ val: Float64) -> FloatLiteral { FloatLiteral(value: val) }
+    func i(_ val: Int) -> IntLiteral { IntLiteral(value: val) }
+    func b(_ val: Bool) -> IntLiteral { IntLiteral(value: val ? 1 : 0, exprType: bool) }
+    func str(_ val: String) -> StringLiteral { StringLiteral(value: val) }
+    func f(_ val: Float64) -> FloatLiteral { FloatLiteral(value: val) }
     func val(_ name: String, _ type: Type) -> Value { Value(name: name, id: "", exprType: type) }
     func ret(_ expr: Expression) -> Return { Return(value: expr) }
     
     func main(_ code: [Statement]) -> ProcedureDeclaration {
         ProcedureDeclaration(id: "main", name: "main", arguments: [],
-                              returnType: .void, flags: [], scope: Code(code))
+                              returnType: void, flags: [], scope: Code(code))
     }
     
     func vDecl(_ name: String, _ type: Type, _ expr: Expression?, const: Bool = false) -> VariableDeclaration {

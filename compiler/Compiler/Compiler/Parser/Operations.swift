@@ -54,7 +54,7 @@ func returnType(ofUnaryOperation operation: String, arg: Type) -> Type {
         return PointerType(pointeeType: arg)
         
     case UnaryOperator.cast:
-        return .any
+        return any
         
     default: report("Unary operation \(operation) is not yet implemented.")
     }
@@ -67,15 +67,15 @@ func returnType(ofBinaryOperation operation: String, arg: Type) -> Type {
     case "+", "-":        return arg
     case "<<", ">>":      return arg
     // equality
-    case "<", ">":        return .bool
-    case "<=", ">=":      return .bool
-    case "==", "!=":      return .bool
+    case "<", ">":        return bool
+    case "<=", ">=":      return bool
+    case "==", "!=":      return bool
     // boolean
     case "&":             return arg
     case "^":             return arg
     case "|":             return arg
-    case "&&":            return .bool
-    case "||":            return .bool
+    case "&&":            return bool
+    case "||":            return bool
         
     default: report("Binary operation \(operation) is not yet implemented.")
     }
@@ -103,7 +103,7 @@ func precedence(of operation: String) -> Int? {
 }
 
 func isAccepting(_ operation: String, argType: Type) -> Bool {
-    let math: [Type] = [.int, .int8, .int16, .int32, .int64, .float, .double, .half]
+    let math: [Type] = [int, int8, int16, int32, int64, float, double, half]
     
     switch operation {
     // math
@@ -115,11 +115,11 @@ func isAccepting(_ operation: String, argType: Type) -> Bool {
     case "<=", ">=":      return math.contains(argType)
     case "==", "!=":      return true
     // boolean
-    case "&":             return argType.equals(to: .bool)
-    case "^":             return argType.equals(to: .bool)
-    case "|":             return argType.equals(to: .bool)
-    case "&&":            return argType.equals(to: .bool)
-    case "||":            return argType.equals(to: .bool)
+    case "&":             return argType.equals(to: bool)
+    case "^":             return argType.equals(to: bool)
+    case "|":             return argType.equals(to: bool)
+    case "&&":            return argType.equals(to: bool)
+    case "||":            return argType.equals(to: bool)
     
     default: report("Operation \(operation) is not yet implemented.")
     }

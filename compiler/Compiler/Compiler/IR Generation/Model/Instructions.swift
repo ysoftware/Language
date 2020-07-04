@@ -16,7 +16,7 @@ extension IR {
 
                 var code = ""
                 let workingType = matchType(type)
-                let instr = instruction(for: operation, type: .int64)
+                let instr = instruction(for: operation, type: int64)
 
                 var lCode: String?, lValue: String = ""
                 if let variable = arguments.0 as? Value {

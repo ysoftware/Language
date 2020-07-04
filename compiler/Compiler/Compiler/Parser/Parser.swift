@@ -44,13 +44,13 @@ extension Parser {
                 type = AliasType(name: alias.name)
             }
             else {
-                type = Type.named(baseIdent.value.value)
+                type = typeNamed(baseIdent.value.value)
             }
         }
         else { type = StructureType(name: baseIdent.value.value, solidTypes: solidTypes) }
 
         if consumeOp("*") {
-            type = .pointer(type)
+            type = pointer(type)
         }
 
         end = lastToken.endCursor
@@ -67,7 +67,7 @@ extension Parser {
     func doMemberAccess(of base: Expression, in scope: Scope) throws -> Expression {
         guard consumePunct(".") else { report("call matchMemberAccess required before calling this") }
         
-        if let value = base as? Value, value.exprType.equals(to: .unresolved) {
+        if let value = base as? Value, value.exprType.equals(to: UnresolvedType()) {
             if let decl = scope.declarations[value.name] as? VariableDeclaration {
                 base.exprType = decl.exprType
             }
@@ -98,7 +98,7 @@ extension Parser {
                 else { throw error(em.assignConst(identifier.value), token.startCursor, token.endCursor) }
             
             let decl = resolveVarDecl(named: identifier.value, in: scope)
-            let exprType = decl?.exprType ?? .unresolved
+            let exprType = decl?.exprType ?? UnresolvedType()
             let id = decl?.id ?? Scope.unresolvedId
             var base: Expression = Value(name: identifier.value, id: id, exprType: exprType,
                                          range: token.range)
@@ -124,7 +124,7 @@ extension Parser {
         }
         
         let expr = try doExpression(in: scope)
-        if !expectingType.equals(to: .unresolved) {
+        if !expectingType.equals(to: UnresolvedType()) {
             // @Todo: resolve expression type
             guard expr.exprType.equals(to: expectingType) else {
                 throw error(em.assignTypeMismatch(expectingType, expr.exprType), expr.range)
@@ -223,7 +223,7 @@ extension Parser {
                 guard let typeIdent = consumeIdent() else { throw error(em.structExpectedGenericType) }
                 genericTypes.append(typeIdent.value.value)
                 structScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: typeIdent.value.value,
-                                                                                       type: .unresolved)
+                                                                                       type: UnresolvedType())
             }
         }
 
@@ -267,7 +267,7 @@ extension Parser {
         guard consumePunct(")") else { throw error(em.callExpectedClosingParentheses,
                                                     lastToken.endCursor.advancingCharacter()) }
         let end = lastToken.endCursor
-        var returnType: Type = .unresolved
+        var returnType: Type = UnresolvedType()
         
         let foundDecl = scope.declarations[name.value] ?? internalProcedures.first(where: { $0.name == name.value })
         
@@ -354,10 +354,10 @@ extension Parser {
         }
         if !consumePunct(")") { throw error(em.procArgumentParentheses) }
         if consumePunct("->") {
-            if let type = consume(Identifier.self)?.value { returnType = .named(type.value) }
+            if let type = consume(Identifier.self)?.value { returnType = typeNamed(type.value) }
             else { throw error(em.procReturnTypeExpected) }
         }
-        else { returnType = .void }
+        else { returnType = void }
         if let (directiveToken, directive) = consume(Directive.self) {
             switch directive.value {
             case "foreign":
@@ -395,7 +395,7 @@ extension Parser {
             }
             
             if !(code.statements.last is Return) {
-                if returnType.equals(to: .void) { code.statements.append(Return(value: VoidLiteral())) }
+                if returnType.equals(to: void) { code.statements.append(Return(value: VoidLiteral())) }
                 else { throw error(em.procNotReturning) }
             }
         }
@@ -428,10 +428,10 @@ extension Parser {
         var elseBody: [Statement] = []
         if hasParentheses {
             condition = try doExpression(in: scope, expectSemicolon: false)
-            if condition.exprType.equals(to: .unresolved) {
+            if condition.exprType.equals(to: UnresolvedType()) {
                 // @Todo: depend if on condition
             }
-            else if !condition.exprType.equals(to: .bool) {
+            else if !condition.exprType.equals(to: bool) {
                 throw error(em.conditionTypeMismatch(condition.exprType), condition.range)
             }
             if !consumePunct(")") { throw error(em.expectedParentheses) }
@@ -476,10 +476,10 @@ extension Parser {
         var condition: Expression!
         if hasParentheses {
             condition = try doExpression(in: scope, expectSemicolon: false)
-            if condition.exprType.equals(to: .unresolved) {
+            if condition.exprType.equals(to: UnresolvedType()) {
                 // @Todo: depend while on condition
             }
-            else if !condition.exprType.equals(to: .bool) {
+            else if !condition.exprType.equals(to: bool) {
                 throw error(em.conditionTypeMismatch(condition.exprType), condition.range)
             }
             if !consumePunct(")") { throw error(em.expectedParentheses) }
@@ -619,9 +619,9 @@ extension Parser {
         case let literal as TokenLiteral:
             switch literal.value {
             case .int(let value): expression = IntLiteral(value: value)
-            case .bool(let value): expression = IntLiteral(value: value ? 1 : 0, exprType: .bool)
+            case .bool(let value): expression = IntLiteral(value: value ? 1 : 0, exprType: bool)
             case .float(let value): expression = FloatLiteral(value: value)
-            case .null: expression = NullLiteral(exprType: .unresolved)
+            case .null: expression = NullLiteral(exprType: UnresolvedType())
             case .void: expression = VoidLiteral()
             case .string(let value):
                 if scope === globalScope {
@@ -632,12 +632,12 @@ extension Parser {
                     let id = "\(scope.id)StringLiteral\(count)"
                     var decl: VariableDeclaration! = stringLiterals[id]
                     if decl == nil {
-                        decl = VariableDeclaration(name: id, id: id, exprType: .string,
+                        decl = VariableDeclaration(name: id, id: id, exprType: string,
                                                    flags: .isConstant, expression: StringLiteral(value: value))
                         stringLiterals[id] = decl
                         statements.insert(decl, at: 0)
                     }
-                    expression = Value(name: decl.name, id: id, exprType: .string)
+                    expression = Value(name: decl.name, id: id, exprType: string)
                 }
             }
             if !nextToken() { throw error(em.unexpectedEndOfFile) }
@@ -651,7 +651,7 @@ extension Parser {
             if !nextToken() { throw error(em.unexpectedEndOfFile) }
 
             let decl = resolveVarDecl(named: identifier.value, in: scope)
-            let exprType = decl?.exprType ?? .unresolved
+            let exprType = decl?.exprType ?? UnresolvedType()
             let id = decl?.id ?? Scope.unresolvedId
             
             if matchMemberAccess() {

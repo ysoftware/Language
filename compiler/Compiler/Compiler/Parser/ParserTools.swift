@@ -19,7 +19,7 @@ extension Parser {
 
     /// make sure to add dependency for an ast with unresolved type
     func resolveMemberTypeAndIndex(forName name: String, of base: Expression, in scope: Scope) throws -> (type: Type, index: Int?) {
-        guard !base.exprType.equals(to: .unresolved) else { return (.unresolved, nil) }
+        guard !base.exprType.equals(to: UnresolvedType()) else { return (UnresolvedType(), nil) }
         
         var baseType = base.exprType
         if let pointer = base.exprType as? PointerType { baseType = pointer.pointeeType }
@@ -41,7 +41,7 @@ extension Parser {
             return (decl.members[index].exprType, index)
         }
 
-        return (.unresolved, nil)
+        return (UnresolvedType(), nil)
     }
     
     func resolveVarDecl(named name: String, in scope: Scope) -> VariableDeclaration? {
@@ -50,10 +50,10 @@ extension Parser {
 
     /// nil if error
     func resolveType(named name: String) -> Type? {
-        let type = Type.named(name)
+        let type = typeNamed(name)
         if type is StructureType {
             guard let decl = globalScope.declarations[name] else {
-                return .unresolved
+                return UnresolvedType()
             }
             if let structure = decl as? StructDeclaration {
                 return StructureType(name: structure.name)
@@ -66,10 +66,10 @@ extension Parser {
     /// make sure to add dependency for an ast with unresolved type
     func resolveType(of expression: Expression) -> Type {
         let name = expression.exprType.typeName
-        let type = Type.named(name)
+        let type = typeNamed(name)
         if type is StructureType {
             guard let decl = globalScope.declarations[name] else {
-                return .unresolved
+                return UnresolvedType()
             }
             if let structure = decl as? StructDeclaration {
                 return StructureType(name: structure.name)

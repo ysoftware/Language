@@ -61,14 +61,14 @@ internal extension IR {
                 if let arg = arg as? Value {
                     // @Todo: somehow check if it's a string literal
                     // else we just load the value
-                    if arg.exprType.equals(to: .string) {
+                    if arg.exprType.equals(to: string) {
                         guard let literal = stringLiterals[arg.id] else {
                             report("Undefined symbol \(arg)")
                         }
                         
                         let argValue = "%\(count())"
                         let length = literal.value.count + 1
-                        let type = ArrayType(elementType: .int8, size: length)
+                        let type = ArrayType(elementType: int8, size: length)
                         code += doGEP(of: "@\(arg.id)", into: argValue, valueType: type, indices: [0, 0])
                         arguments.append("i8* \(argValue)")
                     }
@@ -96,7 +96,7 @@ internal extension IR {
             let argumentsString = getProcedureArgumentString(from: procedure, printName: false)
             
             var value = ""
-            if !call.exprType.equals(to: .void) {
+            if !call.exprType.equals(to: void) {
                 value = "%\(count())"
                 code += "\(value) = "
             }
@@ -115,7 +115,7 @@ internal extension IR {
             code += doGEP(of: "null", into: ptrVal, valueType: new.type, indices: [1])
             code += "\(sizeVal) = ptrtoint \(matchType(new.exprType)) \(ptrVal) to i32\n"
             code += "\(mallocVal) = call i8* (i32) @malloc (i32 \(sizeVal))\n"
-            code += "\(value) = bitcast \(matchType(.pointer(.int8))) \(mallocVal) to \(matchType(new.exprType))\n"
+            code += "\(value) = bitcast \(matchType(pointer(int8))) \(mallocVal) to \(matchType(new.exprType))\n"
             code += doStore(from: "zeroinitializer", into: value, valueType: new.type)
             
             return (code, value)
