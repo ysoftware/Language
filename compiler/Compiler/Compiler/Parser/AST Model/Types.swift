@@ -13,6 +13,16 @@ class Type: CustomDebugStringConvertible {
     var debugDescription: String { typeName }
     
     var isResolved: Bool { !(self is UnresolvedType) }
+
+    var isGeneric: Bool {
+        if let pointer = self as? PointerType {
+            return pointer.pointeeType.isGeneric
+        }
+        else if let structType = self as? StructureType {
+            return !structType.genericTypes.isEmpty
+        }
+        return false
+    }
 }
 
 class IntType: Type, Equatable {
@@ -79,7 +89,7 @@ class StructureType: Type, Equatable {
     
     let name: String
     let genericTypes: [Type]
-    
+
     internal init(name: String, genericTypes: [Type] = []) {
         self.name = name
         self.genericTypes = genericTypes
@@ -87,6 +97,15 @@ class StructureType: Type, Equatable {
     
     static func == (lhs: StructureType, rhs: StructureType) -> Bool {
         lhs.name == rhs.name
+    }
+}
+
+class AliasType: Type {
+
+    let name: String
+
+    internal init(name: String) {
+        self.name = name
     }
 }
 
@@ -121,11 +140,12 @@ extension Type {
         case is VoidType: return "Void"
         case let a as StructureType:
             var string = "\(a.name)"
-            if !a.genericTypes.isEmpty {
+            if a.isGeneric {
                 string.append("<\(a.genericTypes.map(\.typeName).joined(separator: ", "))>")
             }
             return string
         case is UnresolvedType: return "[Unresolved]"
+        case let a as AliasType: return "=\(a.name)"
         case is AnyType: return "Any"
         default: report("typeName: Unknown type.")
         }

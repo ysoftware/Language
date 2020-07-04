@@ -143,6 +143,8 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     let members: [VariableDeclaration]
     let genericTypes: [String]
     
+    var isGeneric: Bool { !genericTypes.isEmpty }
+    
     internal init(name: String, members: [VariableDeclaration], genericTypes: [String],
                   range: CursorRange = CursorRange()) {
         self.genericTypes = genericTypes

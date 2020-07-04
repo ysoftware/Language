@@ -18,6 +18,7 @@ IRGEN
 - make IRGen throw errors
 
 PARSER
+- unit test generics
 - unit tests ids
 - unit test error cursors
 - verify all paths of a procedure return a value

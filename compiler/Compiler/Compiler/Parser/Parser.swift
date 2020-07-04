@@ -12,46 +12,42 @@ extension Parser {
 
     // MARK: - TYPE -
 
-    func doType() throws -> (type: Type, range: CursorRange) {
-        guard let ident = consumeIdent() else { throw error(em.expectedType(token), token.startCursor, token.endCursor) }
+    func doType(in scope: Scope) throws -> (type: Type, range: CursorRange) {
+        guard let baseIdent = consumeIdent() else { throw error(em.expectedType(token), token.startCursor, token.endCursor) }
 
-        var end = ident.token.endCursor
+        var end = baseIdent.token.endCursor
         var genericTypes: [Type] = []
 
         if consumeOp("<") {
-            while true {
-                if genericTypes.count > 0 {
-                    if !consumeSep(",") {
-                        if consumeOp(">") {
-                            break
-                        }
-                        throw error(em.structExpectedClosingTriangleBracket, isFatal: true)
-                    }
+            while !consumeOp(">") {
+                if genericTypes.count > 0, !consumeSep(",") {
+                    throw error(em.structExpectedClosingTriangleBracket, isFatal: true)
                 }
                 guard let typeIdent = consumeIdent() else {
                     throw error(em.structExpectedGenericType, isFatal: true)
                 }
-
-                guard let type = resolveType(named: typeIdent.value.value)
-                    else { throw error(em.expectedType(typeIdent.token), isFatal: true) }
-                genericTypes.append(type)
+                if let alias = scope.declarations[typeIdent.value.value] as? TypealiasDeclaration { // generic type
+                    let type = AliasType(name: alias.name)
+                    genericTypes.append(type)
+                }
+                else {
+                    guard let type = resolveType(named: typeIdent.value.value)
+                        else { throw error(em.expectedType(typeIdent.token), isFatal: true) }
+                    genericTypes.append(type)
+                }
             }
         }
 
         var type: Type
-        if genericTypes.isEmpty {
-            type = Type.named(ident.value.value)
-        }
-        else {
-            type = StructureType(name: ident.value.value, genericTypes: genericTypes)
-        }
+        if genericTypes.isEmpty { type = Type.named(baseIdent.value.value) }
+        else { type = StructureType(name: baseIdent.value.value, genericTypes: genericTypes) }
 
         if consumeOp("*") {
             type = .pointer(type)
         }
 
         end = lastToken.endCursor
-        let range = CursorRange(ident.token.startCursor, end)
+        let range = CursorRange(baseIdent.token.startCursor, end)
         return (type, range)
     }
     
@@ -155,7 +151,7 @@ extension Parser {
 
         var declaredType: (type: Type, range: CursorRange)? = nil
         do { // no type passed if this fails
-            declaredType = try doType()
+            declaredType = try doType(in: scope)
         } catch let error as ParserError {
             if error.isFatal { throw error }
         }
@@ -214,28 +210,21 @@ extension Parser {
         let end = token.endCursor
 
         // parse generic types here
+        let structScope = nextScope(from: globalScope)
         var genericTypes: [String] = []
         if consumeOp("<") {
-
-            while true {
-                if genericTypes.count > 0 {
-                    if !consumeSep(",") {
-                        if consumeOp(">") { break }
-                        throw error(em.structExpectedClosingTriangleBracket)
-                    }
-                }
-                guard let typeIdent = consumeIdent() else {
-                    throw error(em.structExpectedGenericType)
-                }
-
+            while !consumeOp(">") {
+                if genericTypes.count > 0, !consumeSep(",") { throw error(em.structExpectedClosingTriangleBracket) }
+                guard let typeIdent = consumeIdent() else { throw error(em.structExpectedGenericType) }
                 genericTypes.append(typeIdent.value.value)
+                structScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: typeIdent.value.value,
+                                                                                       type: .unresolved)
             }
         }
 
         guard consumePunct("{")
             else { throw error(em.structExpectedBrackets) }
         var members: [VariableDeclaration] = []
-        let structScope = nextScope(from: globalScope)
         while tokens.count > i {
             var member: VariableDeclaration?
             if matchVarDecl() {
@@ -350,7 +339,7 @@ extension Parser {
                     throw error(em.procExpectedArgumentName, token.startCursor, token.endCursor)
                 }
                 guard consumePunct(":") else { throw error(em.procExpectedArgumentType) }
-                let argType = try doType()
+                let argType = try doType(in: scope)
                 // @Todo: change argument from Type to something that will also contain argument name and label
                 let argName = argNameTok.value.value
                 let argId = "\(procId)_arg_\(argName)"
@@ -597,11 +586,11 @@ extension Parser {
             switch keyword {
             case .sizeof:
                 let start = token.startCursor
-                let (type, range) = try doType()
+                let (type, range) = try doType(in: scope)
                 // @Todo: depend on this type to be resolved
                 expression = SizeOf(type: type, range: CursorRange(start, range.end))
             case .new:
-                let type = try doType()
+                let type = try doType(in: scope)
                 let new = New(type: type.type, range: type.range)
                 expression = new
             case .cast:
@@ -609,7 +598,7 @@ extension Parser {
                 guard consumePunct("(") else {
                     throw error(em.castExpectsTypeInBrackets, token.startCursor, token.endCursor)
                 }
-                let type = try doType()
+                let type = try doType(in: scope)
                 guard consumePunct(")") else {
                     throw error(em.castExpectsTypeInBrackets, token.startCursor, token.endCursor)
                 }

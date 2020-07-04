@@ -14,6 +14,9 @@ final class IR {
     internal var procedures: [String: ProcedureDeclaration] = [:]
     internal var structures: [String: StructDeclaration] = [:]
 
+    internal var genericStructVariants: [String: [Type]] = [:]
+    internal var genericProceduresVariants: [String: [Type]] = [:]
+
     internal var globalCounter = 0
     internal var globalScope = ""
     
@@ -33,6 +36,36 @@ final class IR {
     internal func emitGlobal(_ string: String) {
         if string.isEmpty { globalScope += "\n" }
         else { globalScope += "\(string)\n" }
+    }
+
+    func emitTypeIfNeeded(_ type: Type) {
+        if type.isGeneric {
+
+            // @Todo: recursively extract all generic structure types
+            // this just unwraps a pointer, which is 1 step further than nothing
+            // but not at all enough
+            var structType = type
+            (structType as? PointerType).map { structType = $0.pointeeType }
+            guard let type = structType as? StructureType else {
+                report("failed to extract generic structure type")
+            }
+
+            // @Todo: make sure AST is sorted so structs come first
+            guard let structDecl = structures[type.name] else { report("Generic struct is not declared.") }
+            emitStruct(structDecl, genericTypes: type.genericTypes)
+        }
+    }
+
+    func emitStruct(_ structure: StructDeclaration, genericTypes: [Type] = []) {
+        assert(structure.genericTypes.count == genericTypes.count)
+        let members = genericTypes.map(matchType).joined(separator: ", ")
+        emitGlobal("")
+        var typesString = ""
+        if !genericTypes.isEmpty {
+            typesString = "_" + genericTypes.map(matchType).joined(separator: "_")
+        }
+        emitGlobal("; struct decl: \(structure.name)\(typesString)")
+        emitGlobal("%\(structure.name)\(typesString)_struct = type { \(members) }")
     }
     
     /// Process statements and return IR text
@@ -137,10 +170,9 @@ final class IR {
                 
             case let structure as StructDeclaration:
                 structures[structure.name] = structure
-                let members = structure.members.map { matchType($0.exprType) }.joined(separator: ", ")
-                emitGlobal("")
-                emitGlobal("; struct decl: \(structure.name)")
-                emitGlobal("%\(structure.name)_struct = type { \(members) }")
+                if !structure.isGeneric {
+                    emitStruct(structure)
+                }
                 
             case let procedure as ProcedureDeclaration:
                 globalCounter = 0
@@ -189,6 +221,7 @@ final class IR {
                 else {
                     emitLocal("; declaration of \(variable.id)")
                     emitLocal(doAlloca("%\(variable.id)", variable.exprType))
+                    emitTypeIfNeeded(variable.exprType)
                     
                     if let expression = variable.expression {
                         let (expCode, expVal) = getExpressionResult(expression)
