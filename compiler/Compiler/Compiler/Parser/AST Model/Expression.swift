@@ -11,25 +11,22 @@ import Foundation
 final class New: Expression, Equatable {
 
     var isRValue: Bool  { false }
-
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
 
     static func == (lhs: New, rhs: New) -> Bool {
         lhs.type.equals(to: rhs.type)
     }
 
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[New\(c)]"
     }
 
     var type: Type
     var exprType: Type
 
-    internal init(type: Type, startCursor: Cursor, endCursor: Cursor) {
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+    internal init(type: Type, range: CursorRange) {
+        self.range = range
         self.type = type
         self.exprType = .pointer(type)
     }
@@ -39,9 +36,7 @@ final class New: Expression, Equatable {
 final class Value: Expression, Equatable {
     
     var isRValue: Bool  { true }
-    
-    var startCursor = Cursor()
-    var endCursor = Cursor()
+    var range: CursorRange
     
     static func == (lhs: Value, rhs: Value) -> Bool {
         lhs.name == rhs.name
@@ -49,7 +44,7 @@ final class Value: Expression, Equatable {
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[Value\(c) <\(id)>] \(name): \(exprType)"
     }
     
@@ -58,37 +53,33 @@ final class Value: Expression, Equatable {
     var exprType: Type
      
     // @Todo: not all values get cursors set up. maybe make these explicit without default value?
-    internal init(name: String, id: String, exprType: Type, startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+    internal init(name: String, id: String, exprType: Type, range: CursorRange = CursorRange()) {
         self.name = name
         self.id = id
         self.exprType = exprType
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }
 
 final class SizeOf: Expression, Equatable {
     
     var isRValue: Bool { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: SizeOf, rhs: SizeOf) -> Bool {
         lhs.type.equals(to: rhs.type)
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[SizeOf\(c) \(type.typeName)]"
     }
     
     var exprType: Type
     var type: Type
     
-    internal init( type: Type, exprType: Type = .int32, startCursor: Cursor, endCursor: Cursor) {
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+    internal init( type: Type, exprType: Type = .int32, range: CursorRange) {
+        self.range = range
         self.type = type
         self.exprType = exprType
     }
@@ -97,9 +88,7 @@ final class SizeOf: Expression, Equatable {
 final class MemberAccess: Expression, Equatable {
     
     var isRValue: Bool { true }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: MemberAccess, rhs: MemberAccess) -> Bool {
         lhs.base.equals(to: rhs.base)
@@ -109,7 +98,7 @@ final class MemberAccess: Expression, Equatable {
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         let i = memberIndex != nil ? "\(memberIndex!)" : "_"
         return "[Member \(i)\(c)] \(memberName): \(exprType.typeName) of \(base)"
     }
@@ -121,11 +110,10 @@ final class MemberAccess: Expression, Equatable {
     var exprType: Type
     
     internal init(base: Expression, memberName: String, memderIndex: Int?, exprType: Type,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.memberName = memberName
         self.exprType = exprType
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
         self.base = base
         self.memberIndex = memderIndex
     }
@@ -134,9 +122,8 @@ final class MemberAccess: Expression, Equatable {
 final class UnaryOperator: Expression, Equatable {
     
     var isRValue: Bool  { true } // @Todo: not all operators produce an rValue
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
+
     var operatorType: Type { argument.exprType }
     
     static func == (lhs: UnaryOperator, rhs: UnaryOperator) -> Bool {
@@ -147,7 +134,7 @@ final class UnaryOperator: Expression, Equatable {
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         if name == UnaryOperator.cast {
             return "[Cast\(c) to \(exprType.typeName)] \(argument)"
         }
@@ -159,21 +146,18 @@ final class UnaryOperator: Expression, Equatable {
     var exprType: Type
     
     internal init(name: String, exprType: Type, argument: Expression,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.name = name
         self.argument = argument
         self.exprType = exprType
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }
 
 final class BinaryOperator: Expression, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     var operatorType: Type { arguments.0.exprType }
     
     static func == (lhs: BinaryOperator, rhs: BinaryOperator) -> Bool {
@@ -185,7 +169,7 @@ final class BinaryOperator: Expression, Equatable {
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[Binop\(c) \(arguments.0) \(name) \(arguments.1)]"
     }
     
@@ -194,21 +178,18 @@ final class BinaryOperator: Expression, Equatable {
     var arguments: (Expression, Expression)
 
     internal init(name: String, exprType: Type, arguments: (Expression, Expression),
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.name = name
         self.exprType = exprType
         self.arguments = arguments
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }
 
 final class ProcedureCall: Expression, Statement, Equatable {
     
     var isRValue: Bool  { false } // @Todo: sure about this?
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: ProcedureCall, rhs: ProcedureCall) -> Bool {
         lhs.name == rhs.name
@@ -217,7 +198,7 @@ final class ProcedureCall: Expression, Statement, Equatable {
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         var string = "[Call\(c)] \(name)->\(exprType)"
         if !arguments.isEmpty {
             string += "\n\t\t\t("
@@ -232,36 +213,32 @@ final class ProcedureCall: Expression, Statement, Equatable {
     var arguments: [Expression]
     
     internal init(name: String, exprType: Type, arguments: [Expression],
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.name = name
         self.exprType = exprType
         self.arguments = arguments
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }
 
 final class StringLiteral: LiteralExpr, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: StringLiteral, rhs: StringLiteral) -> Bool {
         lhs.value == rhs.value
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[String\(c) \"\(value.reescaped)\"]"
     }
     
     internal init(value: String,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.value = value
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 
     var exprType: Type = .string
@@ -271,28 +248,25 @@ final class StringLiteral: LiteralExpr, Equatable {
 final class IntLiteral: LiteralExpr, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: IntLiteral, rhs: IntLiteral) -> Bool {
         lhs.value == rhs.value
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[\(exprType.typeName)\(c) \(value)]"
     }
     
     internal init(value: Int, exprType: Type = .int,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.value = value
         
         if value > Int32.max { self.exprType = .int64 }
         else { self.exprType = exprType }
         
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 
     var exprType: Type
@@ -303,30 +277,26 @@ final class IntLiteral: LiteralExpr, Equatable {
 final class FloatLiteral: LiteralExpr, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: FloatLiteral, rhs: FloatLiteral) -> Bool {
         lhs.value == rhs.value
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[Float\(c) \(value)]"
     }
     
     internal init(value: Float64, exprType: Type = .float,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.value = value
         self.exprType = exprType
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
     
     convenience init(intLiteral: IntLiteral) {
-        self.init(value: Float64(intLiteral.value),
-                  startCursor: intLiteral.startCursor, endCursor: intLiteral.endCursor)
+        self.init(value: Float64(intLiteral.value), range: intLiteral.range)
     }
     
     var exprType: Type
@@ -337,42 +307,36 @@ final class FloatLiteral: LiteralExpr, Equatable {
 final class VoidLiteral: LiteralExpr {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[Void\(c)]"
     }
     
     var exprType: Type = .void
     
-    internal init(startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+    internal init(range: CursorRange = CursorRange()) {
+        self.range = range
     }
 }
 
 final class NullLiteral: LiteralExpr {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[null\(c)]"
     }
     
     var exprType: Type = .void
     
     internal init(exprType: Type,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.exprType = exprType
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
         
         guard !exprType.isResolved || exprType is PointerType else { report("Null literal is always a pointer.") }
     }

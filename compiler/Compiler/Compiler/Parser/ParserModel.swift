@@ -97,7 +97,7 @@ extension Parser {
         
         func declarationConflict(_ d: Declaration) -> String {
             // @Todo point to definition by cursor
-            "Declaration conflicts with another declaration with the same name on line \(d.startCursor.lineNumber)."
+            "Declaration conflicts with another declaration with the same name on line \(d.range.start.lineNumber)."
         }
         
         // var assign

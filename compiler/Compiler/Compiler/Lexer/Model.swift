@@ -123,6 +123,8 @@ final class Token: Equatable, CustomDebugStringConvertible {
     let startCursor: Cursor
     let endCursor: Cursor
     let value: TokenValue
+
+    var range: CursorRange { CursorRange(startCursor, endCursor) } // @Todo: convert these as well
     
     init(_ value: TokenValue, start: Cursor = Cursor(), end: Cursor = Cursor()) {
         self.value = value

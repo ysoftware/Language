@@ -11,34 +11,29 @@ import Foundation
 final class Free: Statement, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: Free, rhs: Free) -> Bool {
         lhs.expression.equals(to: rhs.expression)
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[Free\(c)]"
     }
     
     var expression: Expression
     
-    internal init(expression: Expression, startCursor: Cursor, endCursor: Cursor) {
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+    internal init(expression: Expression, range: CursorRange = CursorRange()) {
         self.expression = expression
+        self.range = range
     }
 }
 
 final class ProcedureDeclaration: Statement, Declaration, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: ProcedureDeclaration, rhs: ProcedureDeclaration) -> Bool {
         lhs.id == rhs.id
@@ -50,7 +45,7 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         var string = "[Procedure\(c) <\(id)>] \(name) -> \(returnType) "
         string.append("; args: ")
         string.append(arguments.map { "\($0)" }.joined(separator: ", "))
@@ -83,31 +78,28 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     
     internal init(id: String, name: String, arguments: [Value],
                   returnType: Type, flags: ProcedureDeclaration.Flags, scope: Code,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.id = id
         self.name = name
         self.arguments = arguments
         self.returnType = returnType
         self.flags = flags
         self.scope = scope
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }
 
 final class TypealiasDeclaration: Declaration, Equatable {
 
     var isRValue: Bool { false }
-
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
 
     static func == (lhs: TypealiasDeclaration, rhs: TypealiasDeclaration) -> Bool {
         return false
     }
 
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[\(name) (\(id) as \(type.typeName) \(c)]"
     }
 
@@ -116,21 +108,18 @@ final class TypealiasDeclaration: Declaration, Equatable {
     var type: Type
 
     internal init(name: String, type: Type,
-                  startCursor: Cursor, endCursor: Cursor) {
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+                  range: CursorRange = CursorRange()) {
         self.name = name
         self.id = name
         self.type = type
+        self.range = range
     }
 }
 
 final class StructDeclaration: Statement, Declaration, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: StructDeclaration, rhs: StructDeclaration) -> Bool {
         lhs.name == rhs.name
@@ -139,7 +128,7 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         var string = "[Struct\(c) (\(id))] \(name) "
         if !genericTypes.isEmpty {
             string.append("generic: <\(genericTypes.joined(separator: ", "))> ")
@@ -154,22 +143,19 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     let genericTypes: [String]
     
     internal init(name: String, members: [VariableDeclaration], genericTypes: [String],
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.genericTypes = genericTypes
         self.name = name
         self.id = name // @Todo: do ids for generics
         self.members = members
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }
 
 final class VariableDeclaration: Statement, Declaration, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: VariableDeclaration, rhs: VariableDeclaration) -> Bool {
         lhs.name == rhs.name
@@ -179,7 +165,7 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         var string = "[VarDecl\(c) <\(id)>] \(name): \(exprType) "
         if flags.contains(.isConstant) { string.append("(constant) ") }
         if let exp = expression { string.append("= \(exp) ") }
@@ -203,23 +189,20 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     let expression: Expression?
     
     internal init(name: String, id: String, exprType: Type, flags: VariableDeclaration.Flags, expression: Expression?,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.name = name
         self.id = id
         self.exprType = exprType
         self.flags = flags
         self.expression = expression
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }
 
 final class Assignment: Statement, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: Assignment, rhs: Assignment) -> Bool {
         lhs.receiver.equals(to: rhs.receiver)
@@ -227,7 +210,7 @@ final class Assignment: Statement, Equatable {
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[Assign\(c) \(receiver) = \(expression)]"
     }
     
@@ -235,12 +218,10 @@ final class Assignment: Statement, Equatable {
     let expression: Expression
     
     internal init(receiver: Ast, expression: Expression,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
+        guard receiver.isRValue else { report("Initializing an assignment statement with a non-rvalue receiver.") }
         self.receiver = receiver
         self.expression = expression
-        self.startCursor = startCursor
-        self.endCursor = endCursor
-        
-        guard receiver.isRValue else { report("Initializing an assignment statement with a non-rvalue receiver.") }
+        self.range = range
     }
 }

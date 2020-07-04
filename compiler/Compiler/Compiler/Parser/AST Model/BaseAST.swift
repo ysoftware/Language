@@ -11,10 +11,8 @@ import Foundation
 final class Code: Ast, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor = Cursor()
-    var endCursor = Cursor()
-    
+    var range: CursorRange
+
     static func == (lhs: Code, rhs: Code) -> Bool {
         lhs.statements.elementsEqual(rhs.statements) { $0.equals(to: $1) }
     }
@@ -34,12 +32,12 @@ final class Code: Ast, Equatable {
     
     internal init(_ code: [Statement]) {
         self.statements = code
+        self.range = CursorRange()
     }
 }
 
 protocol Ast: class, CustomDebugStringConvertible {
-    var startCursor: Cursor { get set }
-    var endCursor: Cursor { get set }
+    var range: CursorRange { get set }
     var isRValue: Bool { get }
 }
 

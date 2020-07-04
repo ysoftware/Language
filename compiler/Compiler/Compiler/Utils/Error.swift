@@ -17,6 +17,11 @@ struct CursorRange: Equatable, CustomDebugStringConvertible {
         "\(start)-\(end)"
     }
 
+    init() {
+        self.start = Cursor()
+        self.end = Cursor()
+    }
+
     init(_ start: Cursor, _ end: Cursor) {
         self.start = start
         self.end = end
@@ -72,6 +77,10 @@ struct Cursor: Equatable, CustomDebugStringConvertible {
         if isDefault(lhs) || isDefault(rhs) { return true }
         return lhs.lineNumber == rhs.lineNumber && lhs.character == rhs.character
     }
+}
+
+func report(_ error: String, _ range: CursorRange? = nil) -> Never {
+    report(error, range?.start, range?.end)
 }
 
 // @Todo: refactor this to single point of error reporting

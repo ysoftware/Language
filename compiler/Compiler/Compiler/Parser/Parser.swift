@@ -77,7 +77,7 @@ extension Parser {
         let memberType = info?.type ?? .unresolved
         let memberIndex = info?.index
         let access = MemberAccess(base: base, memberName: member, memderIndex: memberIndex, exprType: memberType,
-                                  startCursor: base.startCursor, endCursor: memberIdent.token.endCursor)
+                                  range: CursorRange(base.range.start, memberIdent.token.endCursor))
         return access
     }
     
@@ -100,14 +100,14 @@ extension Parser {
             let exprType = decl?.exprType ?? .unresolved
             let id = decl?.id ?? Scope.unresolvedId
             var base: Expression = Value(name: identifier.value, id: id, exprType: exprType,
-                startCursor: token.startCursor, endCursor: token.endCursor)
+                                         range: token.range)
             if !nextToken() { throw error(em.unexpectedEndOfFile) }
             while matchMemberAccess() {
                 base = try doMemberAccess(of: base, in: scope)
             }
             // @Todo: check root member access base existence
             
-            guard consumeOp("=") else { throw error(em.unexpectedMemberAccess, base.startCursor, base.endCursor) }
+            guard consumeOp("=") else { throw error(em.unexpectedMemberAccess, base.range) }
             return base
         }
         
@@ -115,7 +115,7 @@ extension Parser {
     }
     
     func doAssign(to rValue: Ast, in scope: Scope) throws -> Assignment {
-        let start = rValue.startCursor
+        let start = rValue.range.start
         
         var expectingType: Type!
         if let expr = rValue as? Expression {
@@ -126,12 +126,12 @@ extension Parser {
         if !expectingType.equals(to: .unresolved) {
             // @Todo: resolve expression type
             guard expr.exprType.equals(to: expectingType) else {
-                throw error(em.assignTypeMismatch(expectingType, expr.exprType), expr.startCursor, expr.endCursor)
+                throw error(em.assignTypeMismatch(expectingType, expr.exprType), expr.range)
             }
         }
         
         let assign = Assignment(
-            receiver: rValue, expression: expr, startCursor: start, endCursor: expr.endCursor)
+            receiver: rValue, expression: expr, range: CursorRange(start, expr.range.end))
         return assign
     }
     
@@ -194,7 +194,7 @@ extension Parser {
         let id = "\(scope.id)\(name)"
         let varDecl = VariableDeclaration(
             name: name, id: id, exprType: type, flags: flags, expression: expr,
-            startCursor: start, endCursor: end)
+            range: CursorRange(start, end))
         
         // @Todo: check that dependency is added correctly for unresolved
         // we're supposed to add this decl as a dependant on the expression
@@ -248,7 +248,7 @@ extension Parser {
             }
         }
         let structDecl = StructDeclaration(name: name.value, members: members, genericTypes: genericTypes,
-                                           startCursor: start, endCursor: end)
+                                           range: CursorRange(start, end))
         try verifyNameConflict(structDecl)
         appendDeclaration(structDecl, to: globalScope)
         return structDecl
@@ -305,17 +305,14 @@ extension Parser {
                     }
                     else if !declArgument.exprType.equals(to: arguments[i].exprType) {
                         throw error(em.callArgumentTypeMismatch(
-                            declArgument.exprType.typeName, arguments[i].exprType.typeName),
-                                     arguments[i].startCursor, arguments[i].endCursor)
+                            declArgument.exprType.typeName, arguments[i].exprType.typeName), arguments[i].range)
                     }
                 }
             }
             else { throw error(em.callNotProcedure, identToken.startCursor, identToken.endCursor) }
         }
 
-        let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments)
-        call.startCursor = start
-        call.endCursor = end
+        let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments, range: CursorRange(start, end))
         if !returnType.isResolved {
             appendUnresolved(returnType.typeName, call)
         }
@@ -357,8 +354,8 @@ extension Parser {
                 // @Todo: change argument from Type to something that will also contain argument name and label
                 let argName = argNameTok.value.value
                 let argId = "\(procId)_arg_\(argName)"
-                arguments.append(Value(name: argName, id: argId, exprType: argType.type,
-                                       startCursor: argType.range.start, endCursor: argType.range.end))
+                let value = Value(name: argName, id: argId, exprType: argType.type, range: argType.range)
+                arguments.append(value)
             }
             if !consumeSep(",") { break }
         }
@@ -401,8 +398,7 @@ extension Parser {
                     returnStat.value = fixedExpr
                     continue
                 }
-                throw error(em.returnTypeNotMatching(returnType, returnStat.value.exprType),
-                             returnStat.value.startCursor, returnStat.value.endCursor)
+                throw error(em.returnTypeNotMatching(returnType, returnStat.value.exprType), returnStat.range)
             }
             
             if !(code.statements.last is Return) {
@@ -415,7 +411,8 @@ extension Parser {
         }
         let procedure = ProcedureDeclaration(
             id: procId, name: procName, arguments: arguments,
-            returnType: returnType, flags: flags, scope: code)
+            returnType: returnType, flags: flags, scope: code, range: CursorRange(start, end))
+
         let previousForceEntry = entry?.flags.contains(.main) ?? false
         if previousForceEntry && isForceEntry { throw error(em.procMainRedecl, start, end) }
         if procName == "main" && entry == nil || isForceEntry {
@@ -424,8 +421,6 @@ extension Parser {
         }
         try verifyNameConflict(procedure)
         appendDeclaration(procedure, to: globalScope)
-        procedure.startCursor = start
-        procedure.endCursor = end
         return procedure
     }
     
@@ -444,7 +439,7 @@ extension Parser {
                 // @Todo: depend if on condition
             }
             else if !condition.exprType.equals(to: .bool) {
-                throw error(em.conditionTypeMismatch(condition.exprType), condition.startCursor, condition.endCursor)
+                throw error(em.conditionTypeMismatch(condition.exprType), condition.range)
             }
             if !consumePunct(")") { throw error(em.expectedParentheses) }
         }
@@ -458,7 +453,7 @@ extension Parser {
             guard consumePunct("}") else { throw error(em.ifExpectedBrackets) }
         }
         let ifStatement = Condition(condition: condition, block: Code(ifBody), elseBlock: Code(elseBody),
-                                    startCursor: tok.startCursor, endCursor: tok.endCursor)
+                                    range: tok.range)
         return ifStatement
     }
     
@@ -492,7 +487,7 @@ extension Parser {
                 // @Todo: depend while on condition
             }
             else if !condition.exprType.equals(to: .bool) {
-                throw error(em.conditionTypeMismatch(condition.exprType), condition.startCursor, condition.endCursor)
+                throw error(em.conditionTypeMismatch(condition.exprType), condition.range)
             }
             if !consumePunct(")") { throw error(em.expectedParentheses) }
         }
@@ -501,7 +496,7 @@ extension Parser {
         let loopBody = try doStatements(in: nextScope(from: scope, as: ContextLoop(label: label)))
         guard consumePunct("}") else { throw error(em.loopExpectedBrackets) }
         let whileStatement = WhileLoop(userLabel: label, condition: condition, block: Code(loopBody),
-                                       startCursor: start, endCursor: end)
+                                       range: CursorRange(start, end))
         return whileStatement
     }
     
@@ -518,7 +513,7 @@ extension Parser {
             if nil == scope.contexts.last(where: { $0 is ContextLoop })
                 { throw error(em.breakContext, tok.startCursor, tok.endCursor) }
         }
-        let br = Break(userLabel: labelIdent?.value.value, startCursor: tok.startCursor, endCursor: tok.endCursor)
+        let br = Break(userLabel: labelIdent?.value.value, range: tok.range)
         return br
     }
     
@@ -535,7 +530,7 @@ extension Parser {
             if nil == scope.contexts.last(where: { $0 is ContextLoop })
                 { throw error(em.continueContext, tok.startCursor, tok.endCursor) }
         }
-        let cont = Continue(userLabel: labelIdent?.value.value, startCursor: tok.startCursor, endCursor: token.endCursor)
+        let cont = Continue(userLabel: labelIdent?.value.value, range: tok.range)
         return cont
     }
     
@@ -559,17 +554,17 @@ extension Parser {
                     left = l
                 }
             }
-            
+
+            let range = CursorRange(left.range.start, right.range.end)
             guard left.exprType.equals(to: right.exprType) else {
-                throw error(em.binopArgTypeMatch(left.exprType, r: right.exprType), left.startCursor, right.endCursor)
+                throw error(em.binopArgTypeMatch(left.exprType, r: right.exprType), range)
             }
             guard isAccepting(op.value, argType: left.exprType) else {
-                throw error(em.binopArgTypeSupport(op.value, t: left.exprType), left.startCursor, right.endCursor)
+                throw error(em.binopArgTypeSupport(op.value, t: left.exprType), range)
             }
             
             let type = returnType(ofBinaryOperation: op.value, arg: left.exprType)
-            left = BinaryOperator(name: op.value, exprType: type, arguments: (left, right),
-                                  startCursor: left.startCursor, endCursor: right.endCursor)
+            left = BinaryOperator(name: op.value, exprType: type, arguments: (left, right), range: range)
         }
         
         if expectSemicolon, !consumeSep(";") { throw error(em.expectedSemicolon) }
@@ -590,9 +585,7 @@ extension Parser {
             arg = try doExpr(in: scope)
             
             let type = returnType(ofUnaryOperation: op.value, arg: arg.exprType)
-            let op = UnaryOperator(name: op.value, exprType: type, argument: arg)
-            op.startCursor = opTok.startCursor
-            op.endCursor = opTok.endCursor
+            let op = UnaryOperator(name: op.value, exprType: type, argument: arg, range: opTok.range)
             return op
         }
         
@@ -608,11 +601,11 @@ extension Parser {
                 }
                 let type = Type.named(typeIdent.value.value)
                 // @Todo: depend on this type to be resolved
-                expression = SizeOf(type: type, startCursor: start, endCursor: typeIdent.token.endCursor)
+                expression = SizeOf(type: type, range: CursorRange(start, typeIdent.token.endCursor))
             case .new:
                 guard nextToken() else { throw error(em.unexpectedEndOfFile) }
                 let type = try doType()
-                let new = New(type: type.type, startCursor: type.range.start, endCursor: type.range.end)
+                let new = New(type: type.type, range: type.range)
                 expression = new
             case .cast:
                 let start = token.startCursor
@@ -623,7 +616,7 @@ extension Parser {
                 // @Todo: depend on this type to be resolved
                 let expr = try doExpression(in: scope, expectSemicolon: false)
                 expression = UnaryOperator(name: "cast", exprType: type, argument: expr,
-                                           startCursor: start, endCursor: expr.endCursor)
+                                           range: CursorRange(start, expr.range.end))
                 
             default:
                 print("Expression unknown: \(token)")
@@ -669,8 +662,7 @@ extension Parser {
             let id = decl?.id ?? Scope.unresolvedId
             
             if matchMemberAccess() {
-                var base: Expression = Value(name: identifier.value, id: id, exprType: exprType,
-                                             startCursor: tok.startCursor, endCursor: tok.endCursor)
+                var base: Expression = Value(name: identifier.value, id: id, exprType: exprType, range: tok.range)
                 
                 // @Todo: else add to global dependencies
                 
@@ -698,8 +690,7 @@ extension Parser {
             print("Expression unknown: \(token)")
             throw error(em.notImplemented, token.startCursor, token.endCursor)
         }
-        expression.startCursor = start
-        expression.endCursor = lastToken.endCursor
+        expression.range = CursorRange(start, lastToken.endCursor)
         return expression
     }
     
@@ -738,7 +729,7 @@ extension Parser {
                     let expr = try doExpression(in: scope, expectSemicolon: true)
                     let type = resolveType(of: expr)
                     guard type is PointerType else { throw error(em.freeExpectsPointer) }
-                    let free = Free(expression: expr, startCursor: start, endCursor: expr.endCursor)
+                    let free = Free(expression: expr, range: CursorRange(start, expr.range.end))
                     statements.append(free)
                     continue loop
                 default:
@@ -756,10 +747,10 @@ extension Parser {
                         // @Todo: should be expectSemicolon: true?
                         // are we even eating a semicolon?
                     }
-                    let end = returnExpression?.endCursor ?? lastToken.endCursor
+                    let end = returnExpression?.range.end ?? lastToken.range.end
                     let returnStatement = Return(
                         value: returnExpression ?? VoidLiteral(),
-                        startCursor: lastToken.startCursor, endCursor: end)
+                        range: CursorRange(lastToken.startCursor, end))
                     statements.append(returnStatement)
                 }
                 else {

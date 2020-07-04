@@ -24,7 +24,7 @@ extension Parser {
         var baseType = base.exprType
         if let pointer = base.exprType as? PointerType { baseType = pointer.pointeeType }
         guard let structType = baseType as? StructureType else {
-            throw error(em.memberAccessNonStruct(baseType), base.startCursor, base.endCursor)
+            throw error(em.memberAccessNonStruct(baseType), base.range)
         }
         
         guard let decl = globalScope.declarations[structType.name] as? StructDeclaration else {
@@ -105,40 +105,33 @@ extension Parser {
             guard let left = convertExpression(binop.arguments.0, to: exprType),
                 let right = convertExpression(binop.arguments.1, to: exprType)
                 else { return nil }
-            return BinaryOperator(name: binop.name, exprType: exprType, arguments: (left, right),
-                startCursor: binop.startCursor, endCursor: binop.endCursor)
+            return BinaryOperator(name: binop.name, exprType: exprType, arguments: (left, right), range: binop.range)
         }
         if let unop = expression as? UnaryOperator {
             let type = returnType(ofUnaryOperation: unop.name, arg: exprType)
             guard let arg = convertExpression(unop.argument, to: type) else { return nil }
-            return UnaryOperator(name: unop.name, exprType: type, argument: arg,
-                                 startCursor: unop.startCursor, endCursor: unop.endCursor)
+            return UnaryOperator(name: unop.name, exprType: type, argument: arg, range: unop.range)
         }
         if let sizeof = expression as? SizeOf {
             guard let int = exprType as? IntType, int.size >= 16 else { return nil }
-            return SizeOf(type: sizeof.type, exprType: exprType,
-                          startCursor: sizeof.startCursor, endCursor: sizeof.endCursor)
+            return SizeOf(type: sizeof.type, exprType: exprType, range: sizeof.range)
         }
         if expression is NullLiteral {
             guard exprType is PointerType else { return nil }
-            return NullLiteral(exprType: exprType,
-                               startCursor: expression.startCursor, endCursor: expression.endCursor)
+            return NullLiteral(exprType: exprType, range: expression.range)
         }
         if let int = expression as? IntLiteral {
             guard int.isConvertible(to: exprType) else { return nil }
             if exprType is IntType {
-                return IntLiteral(value: int.value, exprType: exprType,
-                                  startCursor: expression.startCursor, endCursor: expression.endCursor)
+                return IntLiteral(value: int.value, exprType: exprType, range: expression.range)
             }
             else {
-                return FloatLiteral(value: Float64(int.value), exprType: exprType,
-                                    startCursor: expression.startCursor, endCursor: expression.endCursor)
+                return FloatLiteral(value: Float64(int.value), exprType: exprType, range: expression.range)
             }
         }
         if let float = expression as? FloatLiteral {
             guard float.isConvertible(to: exprType) else { return nil }
-            return FloatLiteral(value: Float64(float.value), exprType: exprType,
-                                startCursor: expression.startCursor, endCursor: expression.endCursor)
+            return FloatLiteral(value: Float64(float.value), exprType: exprType, range: expression.range)
         }
         return nil
     }
@@ -151,7 +144,7 @@ extension Parser {
     
     func verifyNameConflict(_ declaration: Declaration, in scope: Scope? = nil) throws {
         if let d = globalScope.declarations[declaration.name] ?? scope?.declarations[declaration.name] {
-            throw error(em.declarationConflict(d), d.startCursor, d.endCursor)
+            throw error(em.declarationConflict(d), d.range)
         }
         return
     }
@@ -160,15 +153,20 @@ extension Parser {
     func appendDeclaration(_ declaration: Declaration, to scope: Scope) {
         scope.declarations[declaration.name] = declaration
     }
-    
+
+    func error(_ e: String, procedure: String = #function, line: Int = #line,
+               _ range: CursorRange?, isFatal: Bool = false) -> ParserError {
+        error(e, procedure: procedure, line: line, range?.start, range?.end, isFatal: isFatal)
+    }
+
     /// returns the error set at the current point
-    func error(_ error: String, procedure: String = #function, line: Int = #line,
+    func error(_ e: String, procedure: String = #function, line: Int = #line,
                _ start: Cursor? = nil, _ end: Cursor? = nil, isFatal: Bool = false) -> ParserError {
         let startC = start ?? lastToken.endCursor.advancingCharacter()
         let endC = end ?? startC
         let context = "Error in: \(procedure) #\(line)"
         let error = ParserError(fileName: fileName, startCursor: startC, endCursor: endC,
-                                message: error, context: context, isFatal: isFatal)
+                                message: e, context: context, isFatal: isFatal)
         return error
     }
     

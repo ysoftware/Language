@@ -13,7 +13,6 @@ class Type: CustomDebugStringConvertible {
     var debugDescription: String { typeName }
     
     var isResolved: Bool { !(self is UnresolvedType) }
-//    var predictedType: Type? { (self as? PredictedType)?.predictedType }
 }
 
 class IntType: Type, Equatable {

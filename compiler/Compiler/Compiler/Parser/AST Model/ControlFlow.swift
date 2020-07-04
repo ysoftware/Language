@@ -11,16 +11,14 @@ import Foundation
 final class Condition: Statement, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: Condition, rhs: Condition) -> Bool {
         lhs.condition.equals(to: rhs.condition) && lhs.block == rhs.block && lhs.elseBlock == rhs.elseBlock
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         var string = "[If\(c)] \(condition)\n    Then: \(block)"
         if !elseBlock.isEmpty { string.append("\n    Else: \(elseBlock)") }
         return string
@@ -31,29 +29,26 @@ final class Condition: Statement, Equatable {
     let elseBlock: Code
     
     internal init(condition: Expression, block: Code, elseBlock: Code,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.condition = condition
         
         self.block = block
         self.elseBlock = elseBlock
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }
 
 final class WhileLoop: Statement, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: WhileLoop, rhs: WhileLoop) -> Bool {
         lhs.userLabel == rhs.userLabel && lhs.condition.equals(to: rhs.condition) && lhs.block == rhs.block
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         var string = "[While\(c)] "
         if let label = userLabel { string.append("(\(label)) ") }
         string.append("\(condition) \(block)")
@@ -67,28 +62,25 @@ final class WhileLoop: Statement, Equatable {
     internal init(userLabel:
     
     String?, condition: Expression, block: Code,
-             startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+             range: CursorRange = CursorRange()) {
         self.userLabel = userLabel
         self.condition = condition
         self.block = block
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }
 
 final class Break: Statement, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: Break, rhs: Break) -> Bool {
         lhs.userLabel == rhs.userLabel
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         var string = "[Break\(c)] "
         if let label = userLabel { string.append("(\(label)) ") }
         return string
@@ -98,26 +90,23 @@ final class Break: Statement, Equatable {
     let userLabel: String?
     
     internal init(userLabel: String?,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.userLabel = userLabel
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }
 
 final class Continue: Statement, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: Continue, rhs: Continue) -> Bool {
         lhs.userLabel == rhs.userLabel
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         var string = "[Continue\(c)]"
         if let label = userLabel { string.append("(\(label)) ") }
         return string
@@ -127,37 +116,33 @@ final class Continue: Statement, Equatable {
     let userLabel: String?
     
     internal init(userLabel: String?,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.userLabel = userLabel
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }
 
 final class Return: Statement, Equatable {
     
     var isRValue: Bool  { false }
-    
-    var startCursor: Cursor
-    var endCursor: Cursor
+    var range: CursorRange
     
     static func == (lhs: Return, rhs: Return) -> Bool {
         lhs.value.equals(to: rhs.value)
     }
     
     var debugDescription: String {
-        let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
+        let c = PrintCursors ? " \(range)" : ""
         return "[Return\(c) \(value)]"
     }
     
     var value: Expression {
-        didSet { endCursor = value.endCursor }
+        didSet { range.end = value.range.end }
     }
     
     internal init(value: Expression,
-                  startCursor: Cursor = Cursor(), endCursor: Cursor = Cursor()) {
+                  range: CursorRange = CursorRange()) {
         self.value = value
-        self.startCursor = startCursor
-        self.endCursor = endCursor
+        self.range = range
     }
 }

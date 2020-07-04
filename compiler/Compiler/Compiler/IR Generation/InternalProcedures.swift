@@ -19,13 +19,12 @@ internal extension IR {
         
         if call.name == "pointerToInt" {
             guard call.arguments.count == 1 else {
-                report("\(call.name) expects exactly 1 argument", call.startCursor, call.endCursor)
+                report("\(call.name) expects exactly 1 argument", call.range)
             }
             
             let arg = call.arguments[0]
             guard arg.exprType is PointerType else {
-                report("\(call.name): Pointer expected, got \(arg.exprType.typeName) instead.",
-                    arg.startCursor, arg.endCursor)
+                report("\(call.name): Pointer expected, got \(arg.exprType.typeName) instead.", arg.range)
             }
             
            var code = ""
