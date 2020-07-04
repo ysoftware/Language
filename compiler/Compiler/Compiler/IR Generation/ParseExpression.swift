@@ -158,7 +158,15 @@ internal extension IR {
                 value = "%\(count())"
                 load.map { code += "\($0)\n" }
                 code += "; unary operator: cast \n"
-                code += "\(value) = bitcast \(matchType(op.argument.exprType)) \(val) to \(matchType(op.exprType))"
+
+                let instruction: String
+                if let argType = op.argument.exprType as? IntType, let resultType = op.exprType as? IntType {
+                    instruction = resultType.size > argType.size ? "zext" : "trunc" // extend/truncate
+                }
+                else {
+                    instruction = "bitcast"
+                }
+                code += "\(value) = \(instruction) \(matchType(op.argument.exprType)) \(val) to \(matchType(op.exprType))"
             }
             else {
                 report("Unsupported expression:\n\(expression)")

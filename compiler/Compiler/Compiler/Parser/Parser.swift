@@ -123,11 +123,15 @@ extension Parser {
             expectingType = expr.exprType
         }
         
-        let expr = try doExpression(in: scope)
+        var expr = try doExpression(in: scope)
         if !expectingType.equals(to: UnresolvedType()) {
             // @Todo: resolve expression type
-            guard expr.exprType.equals(to: expectingType) else {
-                throw error(em.assignTypeMismatch(expectingType, expr.exprType), expr.range)
+
+            if !expr.exprType.equals(to: expectingType) {
+                guard let converted = convertExpression(expr, to: expectingType) else {
+                    throw error(em.assignTypeMismatch(expectingType, expr.exprType), expr.range)
+                }
+                expr = converted
             }
         }
         

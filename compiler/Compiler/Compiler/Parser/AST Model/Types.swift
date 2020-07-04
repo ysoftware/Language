@@ -50,19 +50,19 @@ extension Type {
         let type = self
         if var pointer = type as? PointerType {
             pointer.pointeeType = block(pointer.pointeeType)
-            _ = pointer.pointeeType.updateSubtypes(with: block)
+            pointer.pointeeType = pointer.pointeeType.updateSubtypes(with: block)
             return pointer
         }
         else if var structType = self as? StructureType {
             for i in 0..<structType.solidTypes.count {
                 structType.solidTypes[i] = block(structType.solidTypes[i])
-                _ = structType.solidTypes[i].updateSubtypes(with: block)
+                structType.solidTypes[i] = structType.solidTypes[i].updateSubtypes(with: block)
             }
             return structType
         }
         else if var arrayType = self as? ArrayType {
             arrayType.elementType = block(arrayType.elementType)
-            _ = arrayType.elementType.updateSubtypes(with: block)
+            arrayType.elementType = arrayType.elementType.updateSubtypes(with: block)
             return arrayType
         }
         return block(self)
@@ -140,7 +140,7 @@ struct StructureType: Type, Equatable {
     }
     
     static func == (lhs: StructureType, rhs: StructureType) -> Bool {
-        lhs.name == rhs.name
+        lhs.name == rhs.name && lhs.solidTypes.equals(toArray: rhs.solidTypes)
     }
 }
 

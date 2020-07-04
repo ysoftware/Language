@@ -59,9 +59,11 @@ final class IR {
     func emitStruct(_ structure: StructDeclaration, solidTypes: [Type] = []) {
         assert(structure.genericTypes.count == solidTypes.count)
         let solidTypesString = solidTypes.map(matchType).joined(separator: ", ")
-        guard solidStructs[structure.name]?.equals(toArray: solidTypes) == true else { return }
+        guard solidStructs[structure.name] == nil
+            || solidStructs[structure.name]?.equals(toArray: solidTypes) == false
+            else { return }
 
-        let members = structure.members
+        let members = structure.members.map{ $0.copy() }
         if structure.isGeneric {
             for i in 0..<members.count {
                 members[i].exprType = members[i].exprType.updateSubtypes { child in

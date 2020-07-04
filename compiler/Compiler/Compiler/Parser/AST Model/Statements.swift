@@ -190,6 +190,10 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     var exprType: Type
     let flags: Flags
     let expression: Expression?
+
+    func copy() -> VariableDeclaration {
+        VariableDeclaration(name: name, id: id, exprType: exprType, flags: flags, expression: expression)
+    }
     
     internal init(name: String, id: String, exprType: Type, flags: VariableDeclaration.Flags, expression: Expression?,
                   range: CursorRange = CursorRange()) {
