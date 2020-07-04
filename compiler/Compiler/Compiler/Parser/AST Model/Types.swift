@@ -122,7 +122,7 @@ extension Type {
         case let a as StructureType:
             var string = "\(a.name)"
             if !a.genericTypes.isEmpty {
-                string.append(" generic: <\(a.genericTypes.map(\.typeName).joined(separator: ", "))>")
+                string.append("<\(a.genericTypes.map(\.typeName).joined(separator: ", "))>")
             }
             return string
         case is UnresolvedType: return "[Unresolved]"

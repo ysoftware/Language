@@ -129,10 +129,11 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
-        var string = "[Struct\(c) (\(id))] \(name) "
+        var string = "[Struct\(c) \(name)"
         if !genericTypes.isEmpty {
-            string.append("generic: <\(genericTypes.joined(separator: ", "))> ")
+            string.append("<\(genericTypes.joined(separator: ", "))>")
         }
+        string.append("] ")
         members.forEach { string.append("\n        [Member] \($0.name): \($0.exprType.typeName)") }
         return string
     }
