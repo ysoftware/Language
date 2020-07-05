@@ -1,7 +1,5 @@
 TODO
 
-~ generic structures - there's a bug with modifying a type reference!
-
 READ
 - https://habr.com/ru/company/otus/blog/442554/
 
@@ -40,3 +38,4 @@ BUGS
 OPTIMIZATION
 - don't load the same value argument if passed twice in call expr, like a = add(a, a)
 - dereference all arguments passed by value in call expr (for now, doing that manually) 
+- struct A<T> { a: A<A>; } // should fail as A is not supplied with a generic argument

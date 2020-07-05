@@ -15,7 +15,8 @@ final class ParserTest {
     static func run() {
         let i = ParserTest()
         i.failed = 0
-        
+
+        i.testGenericStructDecl()
         i.testPointers()
         i.testMemberAccess()
         i.testVariableAssign()
@@ -149,7 +150,7 @@ final class ParserTest {
                               returnType: void, flags: [], scope: Code(code))
     }
     
-    func vDecl(_ name: String, _ type: Type, _ expr: Expression?, const: Bool = false) -> VariableDeclaration {
+    func vDecl(_ name: String, _ type: Type, _ expr: Expression? = nil, const: Bool = false) -> VariableDeclaration {
         VariableDeclaration(name: name, id: "", exprType: type, flags: const ? [.isConstant] : [], expression: expr)
     }
     
