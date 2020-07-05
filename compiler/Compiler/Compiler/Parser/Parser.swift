@@ -12,6 +12,8 @@ extension Parser {
 
     // MARK: - TYPE -
 
+    func matchType() -> Bool { token.value is Identifier }
+
     func doType(in scope: Scope) throws -> (type: Type, range: CursorRange) {
         guard let baseIdent = consumeIdent() else { throw error(em.expectedType(token), token.startCursor, token.endCursor) }
 
@@ -21,10 +23,10 @@ extension Parser {
         if consumeOp("<") {
             while !consumeOp(">") {
                 if solidTypes.count > 0, !consumeSep(",") {
-                    throw error(em.structExpectedClosingTriangleBracket, isFatal: true)
+                    throw error(em.structExpectedClosingTriangleBracket)
                 }
                 guard let typeIdent = consumeIdent() else {
-                    throw error(em.structExpectedGenericType, isFatal: true)
+                    throw error(em.structExpectedGenericType)
                 }
                 if let alias = scope.declarations[typeIdent.value.value] as? TypealiasDeclaration { // generic type
                     let type = AliasType(name: alias.name)
@@ -32,7 +34,7 @@ extension Parser {
                 }
                 else {
                     guard let type = resolveType(named: typeIdent.value.value)
-                        else { throw error(em.expectedType(typeIdent.token), isFatal: true) }
+                        else { throw error(em.expectedType(typeIdent.token)) }
                     solidTypes.append(type)
                 }
             }
@@ -159,10 +161,8 @@ extension Parser {
         var flags: VariableDeclaration.Flags = []
 
         var declaredType: (type: Type, range: CursorRange)? = nil
-        do { // no type passed if this fails
+        if matchType() {
             declaredType = try doType(in: scope)
-        } catch let error as ParserError {
-            if error.isFatal { throw error }
         }
 
         var expectingExpression = true

@@ -10,7 +10,6 @@ import Foundation
 
 struct ParserError: Error, Equatable {
 
-    let isFatal: Bool
     let fileName: String?
     let startCursor: Cursor
     let endCursor: Cursor
@@ -18,13 +17,12 @@ struct ParserError: Error, Equatable {
     var context: String?
     
     init(fileName: String? = nil, startCursor: Cursor, endCursor: Cursor,
-         message: String, context: String? = nil, isFatal: Bool = false) {
+         message: String, context: String? = nil) {
         self.message = message
         self.startCursor = startCursor
         self.endCursor = endCursor
         self.fileName = fileName
         self.context = context
-        self.isFatal = isFatal
     }
     
     static func ==(lhs: ParserError, rhs: ParserError) -> Bool {

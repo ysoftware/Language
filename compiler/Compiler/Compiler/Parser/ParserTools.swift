@@ -163,18 +163,18 @@ extension Parser {
     }
 
     func error(_ e: String, procedure: String = #function, line: Int = #line,
-               _ range: CursorRange?, isFatal: Bool = false) -> ParserError {
-        error(e, procedure: procedure, line: line, range?.start, range?.end, isFatal: isFatal)
+               _ range: CursorRange?) -> ParserError {
+        error(e, procedure: procedure, line: line, range?.start, range?.end)
     }
 
     /// returns the error set at the current point
     func error(_ e: String, procedure: String = #function, line: Int = #line,
-               _ start: Cursor? = nil, _ end: Cursor? = nil, isFatal: Bool = false) -> ParserError {
+               _ start: Cursor? = nil, _ end: Cursor? = nil) -> ParserError {
         let startC = start ?? lastToken.endCursor.advancingCharacter()
         let endC = end ?? startC
         let context = "Error in: \(procedure) #\(line)"
         let error = ParserError(fileName: fileName, startCursor: startC, endCursor: endC,
-                                message: e, context: context, isFatal: isFatal)
+                                message: e, context: context)
         return error
     }
     
