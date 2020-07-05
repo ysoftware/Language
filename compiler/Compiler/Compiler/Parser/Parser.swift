@@ -25,18 +25,8 @@ extension Parser {
                 if solidTypes.count > 0, !consumeSep(",") {
                     throw error(em.structExpectedClosingTriangleBracket)
                 }
-                guard let typeIdent = consumeIdent() else {
-                    throw error(em.structExpectedGenericType)
-                }
-                if let alias = scope.declarations[typeIdent.value.value] as? TypealiasDeclaration { // generic type
-                    let type = AliasType(name: alias.name)
-                    solidTypes.append(type)
-                }
-                else {
-                    guard let type = resolveType(named: typeIdent.value.value)
-                        else { throw error(em.expectedType(typeIdent.token)) }
-                    solidTypes.append(type)
-                }
+                let (solidType, _) = try doType(in: scope)
+                solidTypes.append(solidType)
             }
         }
 
@@ -46,7 +36,9 @@ extension Parser {
                 type = AliasType(name: alias.name)
             }
             else {
-                type = typeNamed(baseIdent.value.value)
+                guard let resolvedType = resolveType(named: baseIdent.value.value)
+                    else { throw error(em.expectedType(baseIdent.token)) }
+                type = resolvedType
             }
         }
         else { type = StructureType(name: baseIdent.value.value, solidTypes: solidTypes) }

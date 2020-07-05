@@ -58,7 +58,6 @@ final class IR {
 
     func emitStruct(_ structure: StructDeclaration, solidTypes: [Type] = []) {
         assert(structure.genericTypes.count == solidTypes.count)
-        let solidTypesString = solidTypes.map(matchType).joined(separator: ", ")
         guard solidStructs[structure.name] == nil
             || solidStructs[structure.name]?.equals(toArray: solidTypes) == false
             else { return }
@@ -66,6 +65,7 @@ final class IR {
         let members = structure.members.map{ $0.copy() }
         if structure.isGeneric {
             for i in 0..<members.count {
+
                 members[i].exprType = members[i].exprType.updateSubtypes { child in
                     if let alias = child as? AliasType {
                         if let index = structure.genericTypes.firstIndex(of: alias.name) {
@@ -78,7 +78,13 @@ final class IR {
             }
         }
 
-        let membersString = members.map(\.exprType).map(matchType).joined(separator: ", ")
+        let solidTypesString = solidTypes.map(matchType)
+            .joined(separator: ", ")
+            .replacingOccurrences(of: "%", with: "")
+            .replacingOccurrences(of: "*", with: "pointer")
+        let membersString = members.map(\.exprType)
+            .map(matchType)
+            .joined(separator: ", ")
         emitGlobal("")
         emitGlobal("; struct decl: \(structure.name) <\(solidTypesString)>")
         emitGlobal("%\(structure.name)_\(solidTypesString)_struct = type { \(membersString) }")

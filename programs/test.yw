@@ -25,11 +25,19 @@ func main(count: Int, arguments: Int8**) -> Int {
 
     intList := new Node<Int>;
     intList.value = -1;
-    printf("hello %d\n", intList.value);
+    printf("int32 %d\n", intList.value);
+
+    nodeList := new Node<Node<Int>*>;
+    nodeList.value = intList;
+    printf("list: %d\n", nodeList.value.value);
+
+    intList.value = -2;
+    printf("int32 %d\n", intList.value);
+    printf("list: %d\n", nodeList.value.value);
 
     int64List := new Node<Int64>;
     int64List.value = 15;
-    printf("hello %d\n", cast(Int) int64List.value);
+    printf("int64 %d\n", cast(Int) int64List.value);
 
     return 0;
 }

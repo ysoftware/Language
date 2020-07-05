@@ -15,7 +15,7 @@ func parserResult<T>(_ block: () throws -> T) -> Result<T, ParserError> {
 extension ParserTest {
 
     func testGenericStructDecl() {
-        let code = "struct A<T> { a: A<Int>; b: A<Int>*; c: T; d: T*; e: A<T>; f: A<T*>; g: A<Int*>; }"
+        let code = "struct A<T> { a: A<Int>; b: A<Int>*; c: T; d: T*; e: A<T>; f: A<T*>; g: A<Int*>; h: A<A<Int>>; }"
 
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
@@ -29,6 +29,7 @@ extension ParserTest {
                 vDecl("e", structure("A", [alias("T")])),
                 vDecl("f", structure("A", [pointer(alias("T"))])),
                 vDecl("g", structure("A", [pointer(int)])),
+                vDecl("h", structure("A", [structure("A", [int])])),
             ], genericTypes: ["T"])
         ]))
     }
