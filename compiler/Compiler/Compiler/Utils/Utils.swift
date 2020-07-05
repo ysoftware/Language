@@ -40,6 +40,8 @@ extension Ast {
         case (let l as IntLiteral, let r as IntLiteral): return l == r
         case (let l as FloatLiteral, let r as FloatLiteral): return l == r
         case (let l as MemberAccess, let r as MemberAccess): return l == r
+        case (let l as New, let r as New): return l == r
+        case (let l as Free, let r as Free): return l == r
         case (is VoidLiteral, is VoidLiteral): return true
         default: return false
         }

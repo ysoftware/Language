@@ -17,6 +17,7 @@ final class ParserTest {
         i.failed = 0
 
         i.testGenericStructDecl()
+        i.testGenericStructUsage()
         i.testPointers()
         i.testMemberAccess()
         i.testVariableAssign()

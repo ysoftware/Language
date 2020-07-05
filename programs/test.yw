@@ -2,7 +2,6 @@
 // func `free`(pointer: Void*) #foreign;
 // func printf(format: String, arguments: Int, ...) #foreign;
 
-
 // struct Node<Value> {
 //     next: Node<Value>*;
 //     value: Value;

@@ -14,6 +14,45 @@ func parserResult<T>(_ block: () throws -> T) -> Result<T, ParserError> {
 
 extension ParserTest {
 
+    func testGenericStructUsage() {
+        let code = """
+        struct Node<Value> { next: Node<Value>*; value: Value; }
+        func main() {
+            list_int := new Node<Int>;
+            int := list_int.value;
+
+            list_list_int := new Node<Node<Int>>;
+            int = list_list_int.value.value;
+        }
+        """
+
+        let tokens = try! Lexer(code).analyze().tokens
+        let result = parserResult(Parser(tokens).parse)
+
+        printResultCase(code, result, Code([
+            StructDeclaration(name: "Node", members: [
+                vDecl("next", pointer(structure("Node", [alias("Value")]))),
+                vDecl("value", alias("Value")),
+            ], genericTypes: ["Value"]),
+
+            main([
+                vDecl("list_int", pointer(structure("Node", [int])), New(type: structure("Node", [int]))),
+                vDecl("int", int, MemberAccess(base: val("list_int", pointer(structure("Node", [int]))),
+                                               memberName: "value", memderIndex: 1, exprType: int)),
+
+                vDecl("list_list_int", pointer(structure("Node", [structure("Node", [int])])),
+                      New(type: structure("Node", [structure("Node", [int])]))),
+                vAssign("int",
+                        MemberAccess(base:
+                            MemberAccess(base: val("list_list_int", pointer(structure("Node", [structure("Node", [int])]))),
+                            memberName: "value", memderIndex: 1, exprType: structure("Node", [int])),
+                        memberName: "value", memderIndex: 1, exprType: int)),
+
+                ret(VoidLiteral())
+            ])
+        ]))
+    }
+
     func testGenericStructDecl() {
         let code = "struct A<T> { a: A<Int>; b: A<Int>*; c: T; d: T*; e: A<T>; f: A<T*>; g: A<Int*>; h: A<A<Int>>; }"
 
@@ -36,9 +75,9 @@ extension ParserTest {
     
     func testMemberAccess() {
         let code = """
-    struct Vector { x: Int; y: Int; }
-    func main() { vec : Vector; x := vec.x; vec.x = x; }
-    """
+        struct Vector { x: Int; y: Int; }
+        func main() { vec : Vector; x := vec.x; vec.x = x; }
+        """
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
         
@@ -61,9 +100,9 @@ extension ParserTest {
     
     func testVariableDeclaration() {
         let code = """
-    func main() { a : String; b := 1; c :: 1; d : Int = 1;
-    e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; i : Int8*; }
-    """
+        func main() { a : String; b := 1; c :: 1; d : Int = 1;
+        e : Bool : true; f := 1.0; g :: false; h :: 5_000_000_000_000; i : Int8*; }
+        """
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
         
@@ -92,10 +131,10 @@ extension ParserTest {
     
     func testFunctionDeclaration() {
         let code = """
-func print1(format: String, arguments: Int32, ...) #foreign;
-func print2(format: String, arguments: Int32) {  }
-func print3() { x :: 1; }
-"""
+        func print1(format: String, arguments: Int32, ...) #foreign;
+        func print2(format: String, arguments: Int32) {  }
+        func print3() { x :: 1; }
+        """
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
         
@@ -135,10 +174,10 @@ func print3() { x :: 1; }
         // types of a and b are inferred from the known procedure declarations (1st pass)
         
         let code = """
-func getInt() -> Int { return 1; }
-func getFloat() -> Float { return 0.2; }
-struct Value { a := getInt(); b := getFloat(); }
-"""
+        func getInt() -> Int { return 1; }
+        func getFloat() -> Float { return 0.2; }
+        struct Value { a := getInt(); b := getFloat(); }
+        """
         
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
@@ -351,12 +390,12 @@ struct Value { a := getInt(); b := getFloat(); }
     
     func testPointers() {
         let code = """
-func main() {
-    a : Int**;
-    b : Int*   = *a; // getting value of 'a'
-    c : Int*** = &a; // getting a pointer to 'a'
-}
-"""
+        func main() {
+            a : Int**;
+            b : Int*   = *a; // getting value of 'a'
+            c : Int*** = &a; // getting a pointer to 'a'
+        }
+        """
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
         

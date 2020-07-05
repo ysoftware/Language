@@ -12,14 +12,14 @@ FEATURE
 - subscript access
 
 IRGEN
-- autoinclude malloc/free
+- autoinclude malloc/free (make imports?)
 - move sizeof to a global value
 - move string literal to a global value (from Parser responsibility to IRGen) to match sizeof
 - make IRGen throw errors
 
 PARSER
-- unit test generics
-- unit tests ids
+- unit test generic structs usage
+- unit tests scope ids (comparison)
 - unit test error cursors
 - verify all paths of a procedure return a value
 - write tests for equality methods?
@@ -38,4 +38,4 @@ BUGS
 OPTIMIZATION
 - don't load the same value argument if passed twice in call expr, like a = add(a, a)
 - dereference all arguments passed by value in call expr (for now, doing that manually) 
-- struct A<T> { a: A<A>; } // should fail as A is not supplied with a generic argument
+- struct A<T> { a: A<A>; } // should fail as A is not supplied with a generic argument @SecondPass

@@ -25,7 +25,7 @@ final class New: Expression, Equatable {
     var type: Type
     var exprType: Type
 
-    internal init(type: Type, range: CursorRange) {
+    internal init(type: Type, range: CursorRange = CursorRange()) {
         self.range = range
         self.type = type
         self.exprType = pointer(type)
