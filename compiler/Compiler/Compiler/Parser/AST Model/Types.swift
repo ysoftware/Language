@@ -13,16 +13,6 @@ protocol Type: CustomDebugStringConvertible {
     var isResolved: Bool { get }
 
     var isGeneric: Bool { get }
-//        if let pointer = self as? PointerType {
-//            return pointer.pointeeType.isGeneric
-//        }
-//        else if let structType = self as? StructureType {
-//            return !structType.solidTypes.isEmpty
-//        }
-//        else if let arrayType = self as? ArrayType {
-//            return arrayType.elementType.isGeneric
-//        }
-//        return false
 }
 
 extension Type {
@@ -144,12 +134,16 @@ struct StructureType: Type, Equatable {
     }
 }
 
-struct AliasType: Type {
+struct AliasType: Type, Equatable {
 
     let name: String
 
     internal init(name: String) {
         self.name = name
+    }
+
+    static func == (lhs: AliasType, rhs: AliasType) -> Bool {
+        lhs.name == rhs.name
     }
 }
 
@@ -164,9 +158,10 @@ extension Type {
         case (let a as FloatType, let b as FloatType): return a == b
         case (let a as ArrayType, let b as ArrayType): return a == b
         case (let a as StructureType, let b as StructureType): return a == b
+        case (let a as AliasType, let b as AliasType): return a == b
         case (is UnresolvedType, is UnresolvedType): return true
         case (is VoidType, is VoidType): return true
-            
+
         case (let a as PointerType, let b as PointerType):
             return a.pointeeType.equals(to: b.pointeeType)
             

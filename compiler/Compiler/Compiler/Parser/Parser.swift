@@ -31,9 +31,16 @@ extension Parser {
         }
 
         var type: Type
+        let noPointerIdent = baseIdent.value.value.replacingOccurrences(of: "*", with: "")
         if solidTypes.isEmpty {
-            if let alias = scope.declarations[baseIdent.value.value] as? TypealiasDeclaration { // generic type
+            if let alias = scope.declarations[noPointerIdent] as? TypealiasDeclaration { // generic type
                 type = AliasType(name: alias.name)
+
+                var p = "*"
+                while (baseIdent.value.value.hasSuffix(p)) {
+                    type = pointer(type)
+                    p += "*"
+                }
             }
             else {
                 guard let resolvedType = resolveType(named: baseIdent.value.value)
@@ -41,10 +48,12 @@ extension Parser {
                 type = resolvedType
             }
         }
-        else { type = StructureType(name: baseIdent.value.value, solidTypes: solidTypes) }
+        else {
+            type = StructureType(name: noPointerIdent, solidTypes: solidTypes)
 
-        if consumeOp("*") {
-            type = pointer(type)
+            while consumeOp("*") {
+                type = pointer(type)
+            }
         }
 
         end = lastToken.endCursor
@@ -218,8 +227,7 @@ extension Parser {
                 if genericTypes.count > 0, !consumeSep(",") { throw error(em.structExpectedClosingTriangleBracket) }
                 guard let typeIdent = consumeIdent() else { throw error(em.structExpectedGenericType) }
                 genericTypes.append(typeIdent.value.value)
-                structScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: typeIdent.value.value,
-                                                                                       type: UnresolvedType())
+                structScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: typeIdent.value.value)
             }
         }
 

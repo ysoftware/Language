@@ -1,43 +1,42 @@
-func malloc(size: Int) -> Void* #foreign;
-func `free`(pointer: Void*) #foreign;
-func printf(format: String, arguments: Int, ...) #foreign;
+// func malloc(size: Int) -> Void* #foreign;
+// func `free`(pointer: Void*) #foreign;
+// func printf(format: String, arguments: Int, ...) #foreign;
 
-struct A<T> { a: A; b: A*; c: A<A>; }
 
-struct Node<Value> {
-    next: Node<Value>*;
-    value: Value;
-    tag: Int;
-}
-
-// func list_append<Value>(head: Node<Value>*, value: Value) {
-//     node := new Node<Value>;
-//     node.value = value;
-
-//     current := head;
-//     while (current.next != null) {
-//         current = current.next;
-//     }
-//     current.next = node;
+// struct Node<Value> {
+//     next: Node<Value>*;
+//     value: Value;
+//     tag: Int;
 // }
 
-func main(count: Int, arguments: Int8**) -> Int {
+// // func list_append<Value>(head: Node<Value>*, value: Value) {
+// //     node := new Node<Value>;
+// //     node.value = value;
 
-    intList := new Node<Int>;
-    intList.value = -1;
-    printf("int32 %d\n", intList.value);
+// //     current := head;
+// //     while (current.next != null) {
+// //         current = current.next;
+// //     }
+// //     current.next = node;
+// // }
 
-    nodeList := new Node<Node<Int>*>;
-    nodeList.value = intList;
-    printf("list: %d\n", nodeList.value.value);
+// func main(count: Int, arguments: Int8**) -> Int {
 
-    intList.value = -2;
-    printf("int32 %d\n", intList.value);
-    printf("list: %d\n", nodeList.value.value);
+//     intList := new Node<Int>;
+//     intList.value = -1;
+//     printf("int32 %d\n", intList.value);
 
-    int64List := new Node<Int64>;
-    int64List.value = 15;
-    printf("int64 %d\n", cast(Int) int64List.value);
+//     nodeList := new Node<Node<Int>*>;
+//     nodeList.value = intList;
+//     printf("list: %d\n", nodeList.value.value);
 
-    return 0;
-}
+//     intList.value = -2;
+//     printf("int32 %d\n", intList.value);
+//     printf("list: %d\n", nodeList.value.value);
+
+//     int64List := new Node<Int64>;
+//     int64List.value = 15;
+//     printf("int64 %d\n", cast(Int) int64List.value);
+
+//     return 0;
+// }

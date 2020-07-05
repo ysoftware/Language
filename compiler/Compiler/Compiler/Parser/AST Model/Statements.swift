@@ -100,18 +100,17 @@ final class TypealiasDeclaration: Declaration, Equatable {
 
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
-        return "[\(name) (\(id) as \(type.typeName) \(c)]"
+        return "[Alias '\(name)'\(c)]"
     }
 
     var name: String
     var id: String
-    var type: Type
+    // @Todo: add type here if you decide to have an actual user-level typealias declaration
 
-    internal init(name: String, type: Type,
+    internal init(name: String,
                   range: CursorRange = CursorRange()) {
         self.name = name
         self.id = name
-        self.type = type
         self.range = range
     }
 }
