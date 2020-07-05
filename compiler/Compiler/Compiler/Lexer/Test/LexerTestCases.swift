@@ -16,6 +16,21 @@ func lexerResult<T>(_ block: () throws -> T) -> Result<T, LexerError> {
 
 extension LexerTest {
 
+    func testAsteriskIdentifier() {
+        // we can only have asterisk in a pointer type identifier
+        // it can only be trailing
+        let code = "*say**here*friend *yep"
+        printResultCase(code, lexerResult(Lexer(code).analyze), asTokens([
+            Operator(value: "*"),
+            Identifier(value: "say**"),
+            Identifier(value: "here*"),
+            Identifier(value: "friend"),
+            Operator(value: "*"),
+            Identifier(value: "yep"),
+            eof
+        ]))
+    }
+
     func testInvalidIdentifierUnderscore() {
         let code = "_ := 1;"
         printErrorCase(code, lexerResult(Lexer(code).analyze), LexerError(.invalidIdentifierUnderscore))

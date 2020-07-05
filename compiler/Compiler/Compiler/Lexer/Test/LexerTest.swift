@@ -14,7 +14,8 @@ final class LexerTest {
     static func run() {
         let i = LexerTest()
         i.failed = 0
-        
+
+        i.testAsteriskIdentifier()
         i.testMultilineStringLiteral()
         i.testMultilineStringLiteralFail()
         i.testNumbersFail4()

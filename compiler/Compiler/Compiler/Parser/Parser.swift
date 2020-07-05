@@ -157,7 +157,9 @@ extension Parser {
         let start = token.startCursor
         guard let identifier = consumeIdent(), consumePunct(":")
             else { report("call matchVarDecl required before calling this") }
-        
+
+        // @Todo: check that identifier doesn't have forbidden symbols like '*'
+
         var expr: Expression?
         var flags: VariableDeclaration.Flags = []
 
