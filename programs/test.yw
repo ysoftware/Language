@@ -1,1 +1,27 @@
-*say**here*friend *yep
+func malloc(size: Int) -> Void* #foreign;
+func `free`(pointer: Void*) #foreign;
+func printf(format: String, arguments: Int, ...) #foreign;
+
+struct Node<Value> {
+    next: Node<Value>*;
+    value: Value;
+    tag: Int;
+}
+
+// func list_append<Value>(head: Node<Value>*, value: Value) {
+//     node := new Node<Value>;
+//     node.value = value;
+
+//     current := head;
+//     while (current.next != null) {
+//         current = current.next;
+//     }
+//     current.next = node;
+// }
+
+func main(count: Int, arguments: Int8**) -> Int {
+
+
+
+    return 0;
+}

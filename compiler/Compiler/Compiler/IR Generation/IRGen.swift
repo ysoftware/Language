@@ -14,8 +14,8 @@ final class IR {
     internal var procedures: [String: ProcedureDeclaration] = [:]
     internal var structures: [String: StructDeclaration] = [:]
 
-    internal var solidStructs: [String: [Type]] = [:]
-    internal var genericProceduresVariants: [String: [Type]] = [:]
+    internal var solidifiedGenericStructs: [String: [Type]] = [:]
+//    internal var solidifiedGenericProcedures: [String: [Type]] = [:]
 
     internal var globalCounter = 0
     internal var globalScope = ""
@@ -58,11 +58,19 @@ final class IR {
 
     func emitStruct(_ structure: StructDeclaration, solidTypes: [Type] = []) {
         assert(structure.genericTypes.count == solidTypes.count)
-        guard solidStructs[structure.name] == nil
-            || solidStructs[structure.name]?.equals(toArray: solidTypes) == false
-            else { return }
 
-        let members = structure.members.map{ $0.copy() }
+        let solidTypesString = solidTypes.map(matchType)
+            .joined(separator: ", ")
+            .replacingOccurrences(of: "%", with: "")
+            .replacingOccurrences(of: "*", with: "pointer")
+        let structId = "%\(structure.name)_\(solidTypesString)_struct"
+
+        if structure.isGeneric {
+            guard solidifiedGenericStructs[structId] == nil else { return }
+            solidifiedGenericStructs[structId] = solidTypes
+        }
+
+        let members = structure.members.map { $0.copy() }
         if structure.isGeneric {
             for i in 0..<members.count {
 
@@ -77,18 +85,12 @@ final class IR {
                 }
             }
         }
-
-        let solidTypesString = solidTypes.map(matchType)
-            .joined(separator: ", ")
-            .replacingOccurrences(of: "%", with: "")
-            .replacingOccurrences(of: "*", with: "pointer")
         let membersString = members.map(\.exprType)
             .map(matchType)
             .joined(separator: ", ")
         emitGlobal("")
         emitGlobal("; struct decl: \(structure.name) <\(solidTypesString)>")
-        emitGlobal("%\(structure.name)_\(solidTypesString)_struct = type { \(membersString) }")
-        solidStructs[structure.name] = solidTypes
+        emitGlobal("\(structId) = type { \(membersString) }")
     }
     
     /// Process statements and return IR text

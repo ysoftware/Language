@@ -635,15 +635,15 @@ extension Parser {
                 }
                 else { // @Todo: convert string literal to global constant
                     let count = stringLiterals.count
-                    let id = "\(scope.id)StringLiteral\(count)"
-                    var decl: VariableDeclaration! = stringLiterals[id]
+                    var decl: VariableDeclaration! = stringLiterals[value]
                     if decl == nil {
+                        let id = "\(scope.id)StringLiteral\(count)"
                         decl = VariableDeclaration(name: id, id: id, exprType: string,
                                                    flags: .isConstant, expression: StringLiteral(value: value))
-                        stringLiterals[id] = decl
+                        stringLiterals[value] = decl
                         statements.insert(decl, at: 0)
                     }
-                    expression = Value(name: decl.name, id: id, exprType: string)
+                    expression = Value(name: decl.name, id: decl.id, exprType: string)
                 }
             }
             if !nextToken() { throw error(em.unexpectedEndOfFile) }
