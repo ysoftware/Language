@@ -18,17 +18,19 @@ extension Parser {
     }
 
     /// make sure to add dependency for an ast with unresolved type
-    func resolveMemberTypeAndIndex(forName name: String, of base: Expression, in scope: Scope) throws -> (type: Type, index: Int?) {
+    func resolveMemberTypeAndIndex(forName name: String, of base: Expression,
+                                   in scope: Scope, memberRange: CursorRange) throws -> (type: Type, index: Int?) {
         guard !base.exprType.equals(to: UnresolvedType()) else { return (UnresolvedType(), nil) }
-        
-        var baseType = base.exprType
-        if let pointer = base.exprType as? PointerType { baseType = pointer.pointeeType }
+
+        let baseType = base.exprType.getValueType()
         guard let structType = baseType as? StructureType else {
             throw error(em.memberAccessNonStruct(baseType), base.range)
         }
 
-        if let decl = globalScope.declarations[structType.name] as? StructDeclaration,
-            let index = decl.members.firstIndex(where: { $0.name == name }) {
+        if let decl = globalScope.declarations[structType.name] as? StructDeclaration {
+            guard let index = decl.members.firstIndex(where: { $0.name == name }) else {
+                throw error(em.memberAccessUndeclaredMember(name, decl.name), memberRange)
+            }
 
             if let aliasType = decl.members[index].exprType as? AliasType {
                 guard let genericTypeIndex = decl.genericTypes.firstIndex(of: aliasType.name) else {

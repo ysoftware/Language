@@ -83,7 +83,11 @@ extension Parser {
         func memberAccessNonStruct(_ t: Type) -> String {
             "Trying to perform member access on a non-struct value of '\(t)'"
         }
-        
+
+        func memberAccessUndeclaredMember(_ m: String, _ s: String) -> String {
+            "Struct '\(s)' does not declare a member named '\(m)'."
+        }
+
         // operation
         func binopArgTypeMatch(_ l: Type, r: Type) -> String {
             "Argument types don't match. Left is '\(l)', right is '\(r)'."
@@ -149,7 +153,6 @@ extension Parser {
         let procExpectedArgumentBeforeVarargs = "Variadic argument requires definition before '...'."
         let procUndeclaredDirective = "Undeclared procedure directive."
         let procMainRedecl = "Redeclaration of the entry procedure."
-        let procReturnTypeExpected = "Expected a return type after '->'."
         func procExpectedName(_ g: Token) -> String { "Expected procedure name identifier after 'func'. Got \(g) instead." }
         let procNotReturning = "Expected a return statement in a non-void procedure."
         

@@ -11,11 +11,23 @@ import Foundation
 protocol Type: CustomDebugStringConvertible {
 
     var isResolved: Bool { get }
-
     var isGeneric: Bool { get }
+
+    /// Type removing all top-level pointers
+    /// `Int** -> Int`
+    /// `Node<Int*>* -> Node<Int*>`
+    func getValueType() -> Type
 }
 
 extension Type {
+
+    func getValueType() -> Type {
+        var type: Type = self
+        while let ptr = type as? PointerType {
+            type = ptr.pointeeType
+        }
+        return type
+    }
 
     var debugDescription: String { typeName }
 
@@ -131,6 +143,10 @@ struct StructureType: Type, Equatable {
     
     static func == (lhs: StructureType, rhs: StructureType) -> Bool {
         lhs.name == rhs.name && lhs.solidTypes.equals(toArray: rhs.solidTypes)
+    }
+
+    func isSameType(as type: StructureType) -> Bool {
+        self.name == type.name
     }
 }
 

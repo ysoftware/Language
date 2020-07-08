@@ -5,13 +5,46 @@ func printf(format: String, arguments: Int, ...) #foreign;
 struct Node<Value> {
     next: Node<Value>*;
     value: Value;
-    tag: Int;
+}
+
+struct Pair<Value, Value2> {
+    left: Value;
+    right: Value2;
+}
+
+
+func list_append(head: Node<Int>*, value: Int) -> Node<Int>* {
+
+    // resolving type of a generic struct's member
+
+    a := new Node<Pair<Int, Float>>;
+    xx : Node<Pair<Int, Float>> = a.next; 
+        // Node<=Value> << Node
+        // Node<Pair<=Value, =Value2>> << Pair
+        // Node<Pair<Int, Float>> .. DONE
+
+    b := new Node<Int>;
+    zz := b.value;  
+        // =Value << Node
+        // Int .. DONE
+
+    return new Node<Int>;
+
+    // real code
+    // node := new Node<Int>;
+    // node.value = value;
+    // current := head;
+    // while (current.next != null) {
+    //     // current = current.next;
+    // }
+    // current.next = node;
+    // return node
 }
 
 // func list_append<Value>(head: Node<Value>*, value: Value) {
 //     node := new Node<Value>;
 //     node.value = value;
-
+//
 //     current := head;
 //     while (current.next != null) {
 //         current = current.next;

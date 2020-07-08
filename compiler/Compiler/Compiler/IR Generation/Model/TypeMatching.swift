@@ -65,6 +65,6 @@ func matchType(_ type: Type) -> String {
             .replacingOccurrences(of: "%", with: "")
             .replacingOccurrences(of: "*", with: "pointer")
         return "%\(structure.name)_\(genericTypes)_struct"
-    default: report("Unsupported type \(type)")
+    default: report("IRGen: Unsupported type \(type)")
     }
 }

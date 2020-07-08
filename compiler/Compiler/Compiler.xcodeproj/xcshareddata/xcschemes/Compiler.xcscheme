@@ -65,11 +65,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-file"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/yerokhin/Documents/GitHub/Language/programs/list.yw"
-            isEnabled = "NO">
+            argument = "/Users/yerokhin/Documents/GitHub/Language/programs/test.yw"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-run"

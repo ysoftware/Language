@@ -79,7 +79,7 @@ extension Parser {
             throw error(em.expectedMemberIdentifier, token.startCursor, token.endCursor)
         }
         let member = memberIdent.value.value
-        let info = try resolveMemberTypeAndIndex(forName: member, of: base, in: scope)
+        let info = try resolveMemberTypeAndIndex(forName: member, of: base, in: scope, memberRange: memberIdent.token.range)
         let access = MemberAccess(base: base, memberName: member, memderIndex: info.index, exprType: info.type,
                                   range: CursorRange(base.range.start, memberIdent.token.endCursor))
         return access
@@ -360,8 +360,7 @@ extension Parser {
         }
         if !consumePunct(")") { throw error(em.procArgumentParentheses) }
         if consumePunct("->") {
-            if let type = consume(Identifier.self)?.value { returnType = typeNamed(type.value) }
-            else { throw error(em.procReturnTypeExpected) }
+            returnType = try doType(in: scope).type
         }
         else { returnType = void }
         if let (directiveToken, directive) = consume(Directive.self) {
