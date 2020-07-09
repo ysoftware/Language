@@ -27,10 +27,17 @@ extension Parser {
             throw error(em.memberAccessNonStruct(baseType), base.range)
         }
 
-        if let decl = globalScope.declarations[structType.name] as? StructDeclaration {
+        // @Todo: consider correctly adding a dependency on a yet-undeclared struct
+
+        // @Todo: check if searching in the right way
+        let foundDecl = globalScope.declarations[structType.name] ?? scope.declarations[structType.name]
+
+        if let decl = foundDecl as? StructDeclaration {
             guard let index = decl.members.firstIndex(where: { $0.name == name }) else {
                 throw error(em.memberAccessUndeclaredMember(name, decl.name), memberRange)
             }
+
+            // @Todo: check for typealiases in local scope
 
             if let aliasType = decl.members[index].exprType as? AliasType {
                 guard let genericTypeIndex = decl.genericTypes.firstIndex(of: aliasType.name) else {
@@ -45,7 +52,7 @@ extension Parser {
 
         return (UnresolvedType(), nil)
     }
-    
+
     func resolveVarDecl(named name: String, in scope: Scope) -> VariableDeclaration? {
         return (scope.declarations[name] ?? globalScope.declarations[name]) as? VariableDeclaration
     }

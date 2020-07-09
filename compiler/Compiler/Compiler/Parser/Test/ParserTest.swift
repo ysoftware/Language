@@ -44,12 +44,13 @@ final class ParserTest {
     
     func printErrorCase(caseName: String = #function, _ code: String,
                         _ resultAST: Result<Code, ParserError>, _ expect: ParserError) {
-        
+        let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
+
         switch resultAST {
         case .success(let result):
             failed += 1
             
-            print("\(caseName)".color(.lightRed))
+            print("\(name)".color(.lightRed))
             print("\(code)\n".color(.cyan))
             print("Expected error:", expect.message, "\n===".color(.darkGray))
             print(result)
@@ -62,7 +63,7 @@ final class ParserTest {
                 print("OK \(name)".color(.darkGray))
                 return
             }
-            print("\(caseName)\n".color(.lightRed))
+            print("\(name)\n".color(.lightRed))
             error.context.map { print("Error context: ", $0) }
             print("\(code)\n".color(.cyan))
             print("Expected error:", expect.message, "\n===".color(.darkGray))
@@ -74,39 +75,26 @@ final class ParserTest {
     func printResultCase(caseName: String = #function,
                          _ code: String,
                          _ resultAST: Result<Code, ParserError>, _ expect: Code) {
-        
+        let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
+
         switch resultAST {
-        case .failure(let error):
+        case .failure(let pe):
             failed += 1
-            print("\n \(caseName)\nUnexpected error @ \(error.startCursor)-\(error.endCursor)\n")
-            print(error.message, "\n")
-            
-            _ = {
-                let lines = code.split(separator: "\n")
-                let line = lines[error.endCursor.lineNumber-1]
-                print("\(line)")
-                if error.startCursor.lineNumber == error.endCursor.lineNumber {
-                    let startCursor = String(repeating: " ", count: error.startCursor.character) + "^"
-                    let endCursor = String(repeating: "^", count: error.endCursor.character-error.startCursor.character)
-                    print("\(startCursor)\(endCursor)")
-                }
-                else {
-                    // multiline expression error
-                    print(String(repeating: "^", count: error.endCursor.character))
-                }
-                print("\n\n")
-            }()
+            print("")
+            print(name.color(.lightRed))
+            print("\(code)\n".color(.cyan))
+
+            printParserError(pe, code)
             
         case .success(let result):
             if !result.equals(to: expect) {
                 failed += 1
-                print("\n\(caseName)".color(.lightRed))
+                print("\n\(name)".color(.lightRed))
                 print("\(code)\n".color(.cyan))
                 printMismatches(result.statements, expect.statements)
             }
             else {
                 guard PrintPasses else { return }
-                let name = String(caseName[..<caseName.endIndex(offsetBy: -2)])
                 print("OK \(name)".color(.lightGray))
             }
         }

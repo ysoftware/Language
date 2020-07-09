@@ -8,20 +8,26 @@ struct Node<Value> {
 }
 
 struct Pair<Value, Value2> {
-    left: Value;
-    right: Value2;
+    left: Value*;
+    right: Value2*;
 }
-
 
 func list_append(head: Node<Int>*, value: Int) -> Node<Int>* {
 
     // resolving type of a generic struct's member
 
+    // if type contains aliasType
+    //   take the aliasType's parent struct
+    //   find the index of this alias (in struct decl)
+    //   replace the alias type with solid type (from base)
+
     a := new Node<Pair<Int, Float>>;
-    xx : Node<Pair<Int, Float>> = a.next; 
+    xx : Node<Pair<Int, Float>>* = a.next; 
+        // Node<=Value>* << diving into the pointer
         // Node<=Value> << Node
         // Node<Pair<=Value, =Value2>> << Pair
-        // Node<Pair<Int, Float>> .. DONE
+        // Node<Pair<Int, Float>> << setting the pointer back
+        // Node<Pair<Int, Float>>* .. DONE
 
     b := new Node<Int>;
     zz := b.value;  

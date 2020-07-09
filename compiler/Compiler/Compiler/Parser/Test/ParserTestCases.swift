@@ -17,12 +17,15 @@ extension ParserTest {
     func testGenericStructUsage() {
         let code = """
         struct Node<Value> { next: Node<Value>*; value: Value; }
+        struct Pair<Value, Value2> { left: Value*; right: Value2*; }
         func main() {
             list_int := new Node<Int>;
             int := list_int.value;
-
             list_list_int := new Node<Node<Int>>;
             int = list_list_int.value.value;
+
+            list_int_float := new Node<Pair<Int, Float>>;
+            next_pair : Node<Pair<Int, Float>>* = a.next;
         }
         """
 
@@ -35,11 +38,15 @@ extension ParserTest {
                 vDecl("value", alias("Value")),
             ], genericTypes: ["Value"]),
 
+            StructDeclaration(name: "Pair", members: [
+                vDecl("left", pointer(alias("Value"))),
+                vDecl("right", pointer(alias("Value2"))),
+            ], genericTypes: ["Value", "Value2"]),
+
             main([
                 vDecl("list_int", pointer(structure("Node", [int])), New(type: structure("Node", [int]))),
                 vDecl("int", int, MemberAccess(base: val("list_int", pointer(structure("Node", [int]))),
                                                memberName: "value", memderIndex: 1, exprType: int)),
-
                 vDecl("list_list_int", pointer(structure("Node", [structure("Node", [int])])),
                       New(type: structure("Node", [structure("Node", [int])]))),
                 vAssign("int",
@@ -47,6 +54,14 @@ extension ParserTest {
                             MemberAccess(base: val("list_list_int", pointer(structure("Node", [structure("Node", [int])]))),
                             memberName: "value", memderIndex: 1, exprType: structure("Node", [int])),
                         memberName: "value", memderIndex: 1, exprType: int)),
+
+                vDecl("list_int_float", pointer(structure("Node", [structure("Pair", [int, float]) ])),
+                      New(type: structure("Node", [structure("Pair", [int, float]) ]) )),
+
+                vDecl("next_pair", pointer(structure("Node", [structure("Pair", [int, float]) ])),
+                      MemberAccess(base: val("list_int_float", pointer(structure("Node", [structure("Pair", [int, float]) ]))),
+                                   memberName: "next", memderIndex: 0,
+                                   exprType: structure("Node", [structure("Pair", [int, float]) ]) )),
 
                 ret(VoidLiteral())
             ])

@@ -46,28 +46,27 @@ extension Type {
         return false
     }
 
-    // @Todo: this is a mess
     /// returns the updated base type
-    func updateSubtypes(with block: (Type)->Type) -> Type {
+    func updateSubtypes(with block: (Type) throws ->Type) rethrows -> Type {
         let type = self
         if var pointer = type as? PointerType {
-            pointer.pointeeType = block(pointer.pointeeType)
-            pointer.pointeeType = pointer.pointeeType.updateSubtypes(with: block)
+            pointer.pointeeType = try block(pointer.pointeeType)
+            pointer.pointeeType = try pointer.pointeeType.updateSubtypes(with: block)
             return pointer
         }
         else if var structType = self as? StructureType {
             for i in 0..<structType.solidTypes.count {
-                structType.solidTypes[i] = block(structType.solidTypes[i])
-                structType.solidTypes[i] = structType.solidTypes[i].updateSubtypes(with: block)
+                structType.solidTypes[i] = try block(structType.solidTypes[i])
+                structType.solidTypes[i] = try structType.solidTypes[i].updateSubtypes(with: block)
             }
             return structType
         }
         else if var arrayType = self as? ArrayType {
-            arrayType.elementType = block(arrayType.elementType)
-            arrayType.elementType = arrayType.elementType.updateSubtypes(with: block)
+            arrayType.elementType = try block(arrayType.elementType)
+            arrayType.elementType = try arrayType.elementType.updateSubtypes(with: block)
             return arrayType
         }
-        return block(self)
+        return try block(self)
     }
 }
 
