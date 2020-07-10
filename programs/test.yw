@@ -8,12 +8,12 @@ struct Node<Value> {
 }
 
 struct Pair<Value, Value2> {
-    left: Value*;
-    right: Value2*;
+    left: Value;
+    right: Value2;
 }
 
-func list_append(head: Node<Int>*, value: Int) -> Node<Int>* {
-    node := new Node<Int>;
+func list_append(head: Node<Pair<Int, Float>>*, value: Pair<Int, Float>) -> Node<Pair<Int, Float>>* {
+    node := new Node<Pair<Int, Float>>;
     node.value = value;
     current := head;
     while (current.next != null) {
@@ -36,10 +36,14 @@ func list_append(head: Node<Int>*, value: Int) -> Node<Int>* {
 
 func main(count: Int, arguments: Int8**) -> Int {
 
-    head := new Node<Int>;
-    list_append(head, 3);
+    pair := new Pair<Int, Float>;
+    pair.left = 1;
+    pair.right = 2;
 
-    printf("%d\n", head.next.value);
+    head := new Node<Pair<Int, Float>>;
+    list_append(head, *pair);
+
+    printf("%d\n", head.next.value.left);
 
     return 0;
 }

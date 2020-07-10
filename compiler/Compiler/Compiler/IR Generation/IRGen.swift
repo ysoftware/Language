@@ -60,7 +60,7 @@ final class IR {
         assert(structure.genericTypes.count == solidTypes.count)
 
         let solidTypesString = solidTypes.map(matchType)
-            .joined(separator: ", ")
+            .joined(separator: "_")
             .replacingOccurrences(of: "%", with: "")
             .replacingOccurrences(of: "*", with: "pointer")
         let structId = "%\(structure.name)_\(solidTypesString)_struct"

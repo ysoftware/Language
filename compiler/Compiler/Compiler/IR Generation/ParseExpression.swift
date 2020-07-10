@@ -32,7 +32,10 @@ internal extension IR {
             
         case let literal as IntLiteral:
             return (nil, "\(literal.value)")
-            
+
+        case let literal as FloatLiteral:
+            return (nil, "\(literal.value)")
+
         case let variable as Value:
             let argValue = "%\(count())"
             code += doLoad(from: "%\(variable.id)", into: argValue, valueType: variable.exprType)
@@ -169,7 +172,7 @@ internal extension IR {
                 code += "\(value) = \(instruction) \(matchType(op.argument.exprType)) \(val) to \(matchType(op.exprType))"
             }
             else {
-                report("Unsupported expression:\n\(expression)")
+                report("Unsupported expression 2:\n\(expression)")
             }
             
             return (code, value)
@@ -207,7 +210,7 @@ internal extension IR {
             return (nil, "null")
             
         default:
-            report("Unsupported expression:\n\(expression)")
+            report("Unsupported expression 1:\n\(expression)")
         }
     }
     

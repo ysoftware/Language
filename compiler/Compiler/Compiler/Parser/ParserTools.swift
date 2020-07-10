@@ -146,16 +146,16 @@ extension Parser {
         return nil
     }
     
-    func convertExpression(_ expression: Expression, to exprType: Type) -> Expression? {
+    func convertExpression(_ expression: Expression, to exprType: Type) throws -> Expression? {
         if let binop = expression as? BinaryOperator {
-            guard let left = convertExpression(binop.arguments.0, to: exprType),
-                let right = convertExpression(binop.arguments.1, to: exprType)
+            guard let left = try convertExpression(binop.arguments.0, to: exprType),
+                let right = try convertExpression(binop.arguments.1, to: exprType)
                 else { return nil }
             return BinaryOperator(name: binop.name, exprType: exprType, arguments: (left, right), range: binop.range)
         }
         if let unop = expression as? UnaryOperator {
-            let type = returnType(ofUnaryOperation: unop.name, arg: exprType)
-            guard let arg = convertExpression(unop.argument, to: type) else { return nil }
+            let type = try returnType(ofUnaryOperation: unop.name, arg: expression)
+            guard let arg = try convertExpression(unop.argument, to: type) else { return nil }
             return UnaryOperator(name: unop.name, exprType: type, argument: arg, range: unop.range)
         }
         if let sizeof = expression as? SizeOf {
@@ -215,7 +215,48 @@ extension Parser {
                                 message: e, context: context)
         return error
     }
-    
+
+    func returnType(ofBinaryOperation operation: String, arg: Type) -> Type {
+        switch operation {
+        // math
+        case "*", "/", "%":   return arg
+        case "+", "-":        return arg
+        case "<<", ">>":      return arg
+        // equality
+        case "<", ">":        return bool
+        case "<=", ">=":      return bool
+        case "==", "!=":      return bool
+        // boolean
+        case "&":             return arg
+        case "^":             return arg
+        case "|":             return arg
+        case "&&":            return bool
+        case "||":            return bool
+
+        default: report("Binary operation \(operation) is not yet implemented.")
+        }
+    }
+
+    func returnType(ofUnaryOperation operation: String, arg: Expression) throws -> Type {
+        switch operation {
+        case UnaryOperator.negation:
+            return arg.exprType
+
+        case UnaryOperator.dereference:
+            guard let ptr = arg.exprType as? PointerType else { throw error(em.valueNotPointer(arg.exprType), arg.range) }
+            return ptr.pointeeType
+
+        case UnaryOperator.memoryAddress:
+            return PointerType(pointeeType: arg.exprType)
+
+        case UnaryOperator.cast:
+            return any
+
+        default:
+            throw error(em.notImplemented, arg.range)
+        }
+    }
+
     /// advances the counter
     @inline(__always)
     func advance(_ count: Int = 1) {

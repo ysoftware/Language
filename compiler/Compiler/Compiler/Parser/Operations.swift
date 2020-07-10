@@ -41,46 +41,6 @@ enum Precedence {
     static let logicOr        = 3  // 12
 }
 
-func returnType(ofUnaryOperation operation: String, arg: Type) -> Type {
-    switch operation {
-    case UnaryOperator.negation:
-        return arg
-        
-    case UnaryOperator.dereference:
-        guard let ptr = arg as? PointerType else { report("Value we're trying to dereference is not a pointer.") }
-        return ptr.pointeeType
-        
-    case UnaryOperator.memoryAddress:
-        return PointerType(pointeeType: arg)
-        
-    case UnaryOperator.cast:
-        return any
-        
-    default: report("Unary operation \(operation) is not yet implemented.")
-    }
-}
-
-func returnType(ofBinaryOperation operation: String, arg: Type) -> Type {
-    switch operation {
-    // math
-    case "*", "/", "%":   return arg
-    case "+", "-":        return arg
-    case "<<", ">>":      return arg
-    // equality
-    case "<", ">":        return bool
-    case "<=", ">=":      return bool
-    case "==", "!=":      return bool
-    // boolean
-    case "&":             return arg
-    case "^":             return arg
-    case "|":             return arg
-    case "&&":            return bool
-    case "||":            return bool
-        
-    default: report("Binary operation \(operation) is not yet implemented.")
-    }
-}
-
 func precedence(of operation: String) -> Int? {
     switch operation {
     // math

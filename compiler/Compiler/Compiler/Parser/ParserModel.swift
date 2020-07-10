@@ -82,6 +82,7 @@ extension Parser {
         let castExpectsTypeInBrackets = "Expected type in round brackets after 'cast'."
         let newExpectsTypeIdent = "Expected type identifier after 'new'."
         let freeExpectsPointer = "Expected expression of pointer type after 'free'."
+        func valueNotPointer(_ v: Type) -> String { "Dereference operation expects a pointer. '\(v.typeName)' is given." }
 
         // member access
         func memberAccessNonStruct(_ t: Type) -> String {

@@ -131,7 +131,7 @@ extension Parser {
             // @Todo: resolve expression type
 
             if !expr.exprType.equals(to: expectingType) {
-                guard let converted = convertExpression(expr, to: expectingType) else {
+                guard let converted = try convertExpression(expr, to: expectingType) else {
                     throw error(em.assignTypeMismatch(expectingType, expr.exprType), expr.range)
                 }
                 expr = converted
@@ -177,7 +177,7 @@ extension Parser {
         if expectingExpression {
             expr = try doExpression(in: scope)
             if let exprType = expr?.exprType, let declaredType = declaredType {
-                if let converted = convertExpression(expr!, to: declaredType.type) {
+                if let converted = try convertExpression(expr!, to: declaredType.type) {
                     expr = converted
                 }
                 else if !declaredType.type.equals(to: exprType) {
@@ -392,7 +392,7 @@ extension Parser {
             code = Code(statements)
 
             while let returnStat = firstNotMatchingReturnStatement(in: code, to: returnType) {
-                if let fixedExpr = convertExpression(returnStat.value, to: returnType) {
+                if let fixedExpr = try convertExpression(returnStat.value, to: returnType) {
                     returnStat.value = fixedExpr
                     continue
                 }
@@ -545,10 +545,10 @@ extension Parser {
             right = try doExpression(in: scope, expectSemicolon: false, opPriority + 1)
     
             if !left.exprType.equals(to: right.exprType) {
-                if let r = convertExpression(right, to: left.exprType) {
+                if let r = try convertExpression(right, to: left.exprType) {
                     right = r
                 }
-                else if let l = convertExpression(left, to: right.exprType) {
+                else if let l = try convertExpression(left, to: right.exprType) {
                     left = l
                 }
             }
@@ -582,7 +582,7 @@ extension Parser {
         else if let (opTok, op) = consumeOperator() { // unary operation
             arg = try doExpr(in: scope)
             
-            let type = returnType(ofUnaryOperation: op.value, arg: arg.exprType)
+            let type = try returnType(ofUnaryOperation: op.value, arg: arg)
             let op = UnaryOperator(name: op.value, exprType: type, argument: arg, range: opTok.range)
             return op
         }
