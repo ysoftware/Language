@@ -147,6 +147,7 @@ extension Parser {
     }
     
     func convertExpression(_ expression: Expression, to exprType: Type) throws -> Expression? {
+        guard !expression.exprType.equals(to: exprType) else { return expression }
         if let binop = expression as? BinaryOperator {
             guard let left = try convertExpression(binop.arguments.0, to: exprType),
                 let right = try convertExpression(binop.arguments.1, to: exprType)
@@ -154,7 +155,7 @@ extension Parser {
             return BinaryOperator(name: binop.name, exprType: exprType, arguments: (left, right), range: binop.range)
         }
         if let unop = expression as? UnaryOperator {
-            let type = try returnType(ofUnaryOperation: unop.name, arg: expression)
+            let type = try returnType(ofUnaryOperation: unop.name, arg: exprType)
             guard let arg = try convertExpression(unop.argument, to: type) else { return nil }
             return UnaryOperator(name: unop.name, exprType: type, argument: arg, range: unop.range)
         }
@@ -237,23 +238,23 @@ extension Parser {
         }
     }
 
-    func returnType(ofUnaryOperation operation: String, arg: Expression) throws -> Type {
+    func returnType(ofUnaryOperation operation: String, arg: Type) throws -> Type {
         switch operation {
         case UnaryOperator.negation:
-            return arg.exprType
+            return arg
 
         case UnaryOperator.dereference:
-            guard let ptr = arg.exprType as? PointerType else { throw error(em.valueNotPointer(arg.exprType), arg.range) }
+            guard let ptr = arg as? PointerType else { throw error(em.valueNotPointer(arg)) }
             return ptr.pointeeType
 
         case UnaryOperator.memoryAddress:
-            return PointerType(pointeeType: arg.exprType)
+            return PointerType(pointeeType: arg)
 
         case UnaryOperator.cast:
             return any
 
         default:
-            throw error(em.notImplemented, arg.range)
+            throw error(em.notImplemented)
         }
     }
 

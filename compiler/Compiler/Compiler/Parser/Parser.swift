@@ -582,7 +582,7 @@ extension Parser {
         else if let (opTok, op) = consumeOperator() { // unary operation
             arg = try doExpr(in: scope)
             
-            let type = try returnType(ofUnaryOperation: op.value, arg: arg)
+            let type = try returnType(ofUnaryOperation: op.value, arg: arg.exprType)
             let op = UnaryOperator(name: op.value, exprType: type, argument: arg, range: opTok.range)
             return op
         }

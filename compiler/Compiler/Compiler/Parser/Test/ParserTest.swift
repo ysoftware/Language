@@ -16,6 +16,7 @@ final class ParserTest {
         let i = ParserTest()
         i.failed = 0
 
+        i.testBinopLiteralConversion()
         i.testGenericStructDecl()
         i.testGenericStructUsage()
         i.testPointers()
@@ -24,7 +25,6 @@ final class ParserTest {
         i.testFunctionDeclaration()
         i.testErrorReturnTypeNotMatching()
         i.testReturnTypeLiteralConversion()
-        i.testBinopLiteralConversion()
         i.testPrecedence()
         i.testBinaryOperators()
         i.testBrackets()
