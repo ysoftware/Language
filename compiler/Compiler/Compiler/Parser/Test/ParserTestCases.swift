@@ -18,6 +18,7 @@ extension ParserTest {
         let code = """
         struct Node<Value> { next: Node<Value>*; value: Value; }
         struct Pair<Value, Value2> { left: Value*; right: Value2*; }
+
         func main() {
             list_int := new Node<Int>;
             int := list_int.value;

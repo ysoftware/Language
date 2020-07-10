@@ -17,6 +17,40 @@ extension Parser {
         return newScope
     }
 
+    // .next is
+    // Node<=Value>     { "Node" [Node<Int>] }
+
+    // Node<Node<Int>>
+
+    func typeResolvingAliases(from type: Type, in scope: Scope, with structType: StructureType) throws -> Type {
+        if var ptr = type as? PointerType {
+            ptr.pointeeType = try typeResolvingAliases(from: ptr.pointeeType, in: scope, with: structType)
+            return ptr
+        }
+        if var structure = type as? StructureType {
+            for i in 0..<structure.solidTypes.count {
+                structure.solidTypes[i] = try typeResolvingAliases(from: structure.solidTypes[i], in: scope, with: structType)
+            }
+            return structure
+        }
+        if let alias = type as? AliasType {
+            let foundDecl = scope.declarations[structType.name]
+
+            if let decl = foundDecl as? StructDeclaration {
+                // @Todo: check for typealiases in local scope
+
+                guard let genericTypeIndex = decl.genericTypes.firstIndex(of: alias.name) else {
+                    report("generic type name not found in a struct declaration?")
+                }
+                let solidType = structType.solidTypes[genericTypeIndex]
+                return solidType
+            }
+            // @Todo: consider correctly adding a dependency on a yet-undeclared struct
+            return UnresolvedType()
+        }
+        return type
+    }
+
     /// make sure to add dependency for an ast with unresolved type
     func resolveMemberTypeAndIndex(forName name: String, of base: Expression,
                                    in scope: Scope, memberRange: CursorRange) throws -> (type: Type, index: Int?) {
@@ -39,15 +73,10 @@ extension Parser {
 
             // @Todo: check for typealiases in local scope
 
-            if let aliasType = decl.members[index].exprType as? AliasType {
-                guard let genericTypeIndex = decl.genericTypes.firstIndex(of: aliasType.name) else {
-                    report("generic type name not found in a struct declaration?")
-                }
-
-                let solidType = structType.solidTypes[genericTypeIndex]
-                return (solidType, index)
-            }
-            return (decl.members[index].exprType, index)
+            let solidifiedType = try typeResolvingAliases(from: decl.members[index].exprType,
+                                                          in: scope,
+                                                          with: structType)
+            return (solidifiedType, index)
         }
 
         return (UnresolvedType(), nil)

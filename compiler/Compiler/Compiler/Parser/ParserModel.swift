@@ -37,7 +37,11 @@ final class ContextLoop: Context {
     let label: String?
 }
 
-final class Scope {
+final class Scope: CustomDebugStringConvertible {
+
+    var debugDescription: String {
+        declarations.map { "\"\($0.key)\"\n\($0.value)" }.joined(separator: "\n") + "\n"
+    }
     
     static let globalId = "global_"
     static let unresolvedId = "UNRESOLVED"

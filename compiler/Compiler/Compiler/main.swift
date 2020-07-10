@@ -112,9 +112,6 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
         else if let pe = error as? ParserError {
             // @Todo: refactor out and clean up
             printParserError(pe, code)
-            
-            print("")
-            print(pe.message, "\n")
             quit(1)
         }
         else {
@@ -175,6 +172,9 @@ func printParserError(_ pe: ParserError, _ code: String) {
             print("Error @ \(pe.startCursor) - \(pe.endCursor)")
             print(">>>>> Unable to point to the error cursor.")
         }
+
+        print("")
+        print(pe.message, "\n")
     }
 }
 
