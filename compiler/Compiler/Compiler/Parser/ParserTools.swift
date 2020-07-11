@@ -8,6 +8,49 @@
 
 import Foundation
 
+func typeResolvingAliases(from type: Type, in scope: Scope, declName: String, solidTypes: [Type]) -> Type {
+    guard let decl = scope.declarations[declName] else {
+        // @Todo: consider correctly adding a dependency on a yet-undeclared struct
+        return UnresolvedType()
+    }
+    return typeResolvingAliases(from: type, decl: decl, solidTypes: solidTypes)
+}
+
+func typeResolvingAliases(from type: Type, decl: Declaration, solidTypes: [Type]) -> Type {
+    if var ptr = type as? PointerType {
+        ptr.pointeeType = typeResolvingAliases(from: ptr.pointeeType,
+                                               decl: decl, solidTypes: solidTypes)
+        return ptr
+    }
+    if var structure = type as? StructureType {
+        for i in 0..<structure.solidTypes.count {
+            structure.solidTypes[i] = typeResolvingAliases(from: structure.solidTypes[i],
+                                                           decl: decl, solidTypes: solidTypes)
+        }
+        return structure
+    }
+    if let alias = type as? AliasType {
+        let index: Int
+        if let decl = decl as? StructDeclaration {
+            guard let genericTypeIndex = decl.genericTypes.firstIndex(of: alias.name) else {
+                report("generic type name not found in a struct declaration?")
+            }
+            index = genericTypeIndex
+        }
+        else if let decl = decl as? ProcedureDeclaration {
+            guard let genericTypeIndex = decl.genericTypes.firstIndex(of: alias.name) else {
+                report("generic type name not found in a struct declaration?")
+            }
+            index = genericTypeIndex
+        }
+        else { report("Weird declaration.") }
+
+        let solidType = solidTypes[index]
+        return solidType
+    }
+    return type
+}
+
 extension Parser {
     
     func nextScope(from: Scope, as context: Context? = nil) -> Scope {
@@ -15,45 +58,6 @@ extension Parser {
         scopeCounter += 1
         context.map { newScope.contexts.append($0) }
         return newScope
-    }
-
-    func typeResolvingAliases(from type: Type, in scope: Scope, declName: String, solidTypes: [Type]) throws -> Type {
-        if var ptr = type as? PointerType {
-            ptr.pointeeType = try typeResolvingAliases(from: ptr.pointeeType, in: scope,
-                                                       declName: declName, solidTypes: solidTypes)
-            return ptr
-        }
-        if var structure = type as? StructureType {
-            for i in 0..<structure.solidTypes.count {
-                structure.solidTypes[i] = try typeResolvingAliases(from: structure.solidTypes[i], in: scope,
-                                                                   declName: declName, solidTypes: solidTypes)
-            }
-            return structure
-        }
-        if let alias = type as? AliasType {
-            let index: Int
-            let foundDecl = scope.declarations[declName]
-            if let decl = foundDecl as? StructDeclaration {
-                guard let genericTypeIndex = decl.genericTypes.firstIndex(of: alias.name) else {
-                    report("generic type name not found in a struct declaration?")
-                }
-                index = genericTypeIndex
-            }
-            else if let decl = foundDecl as? ProcedureDeclaration {
-                guard let genericTypeIndex = decl.genericTypes.firstIndex(of: alias.name) else {
-                    report("generic type name not found in a struct declaration?")
-                }
-                index = genericTypeIndex
-            }
-            else {
-                // @Todo: consider correctly adding a dependency on a yet-undeclared struct
-                return UnresolvedType()
-            }
-
-            let solidType = solidTypes[index]
-            return solidType
-        }
-        return type
     }
 
     /// make sure to add dependency for an ast with unresolved type

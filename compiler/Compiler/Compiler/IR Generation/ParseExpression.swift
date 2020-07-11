@@ -96,7 +96,7 @@ internal extension IR {
             code += "; procedure \(procedure.name)\n"
             let returnType = matchType(procedure.returnType)
             let argValues = arguments.joined(separator: ", ")
-            let argumentsString = getProcedureArgumentString(from: procedure, printName: false)
+            let argumentsString = getProcedureArgumentString(from: procedure, solidTypes: call.solidTypes, printName: false)
             
             var value = ""
             if !call.exprType.equals(to: void) {
@@ -214,9 +214,11 @@ internal extension IR {
         }
     }
     
-    func getProcedureArgumentString(from procedure: ProcedureDeclaration, printName: Bool) -> String {
+    func getProcedureArgumentString(from procedure: ProcedureDeclaration, solidTypes: [Type], printName: Bool) -> String {
         var arguments = procedure.arguments.map { (arg: Value)->String in
-            var str = "\(matchType(arg.exprType))"
+            let solidType = typeResolvingAliases(from: arg.exprType, decl: procedure, solidTypes: solidTypes)
+            emitTypeIfNeeded(solidType)
+            var str = "\(matchType(solidType))"
             if printName { str.append(" %\(arg.id)") }
             return str
         }

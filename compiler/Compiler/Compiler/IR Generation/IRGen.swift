@@ -86,11 +86,19 @@ final class IR {
         emitGlobal("\(structId) = type { \(membersString) }")
     }
 
-    func emitProcedure(_ procedure: ProcedureDeclaration, solidTypes: [Type] = [],
+    // @Todo: make sure AST is sorted so structs come first
+    func emitProcCallIfNeeded(_ decl: ProcedureDeclaration, solidTypes: [Type],
+                              emitLocal: (String)->Void, contexts: [StatementContext]) {
+        if decl.isGeneric {
+            emitProcedure(decl, solidTypes: solidTypes, emitLocal: emitLocal, contexts: contexts)
+        }
+    }
+
+    func emitProcedure(_ procedure: ProcedureDeclaration, solidTypes: [Type],
                        emitLocal: (String)->Void, contexts: [StatementContext]) {
         globalCounter = 0
         procedures[procedure.id] = procedure
-        let arguments = getProcedureArgumentString(from: procedure, printName: false)
+        let arguments = getProcedureArgumentString(from: procedure, solidTypes: solidTypes, printName: false)
         let returnType = matchType(procedure.returnType)
 
         if procedure.flags.contains(.isForeign) {
@@ -102,8 +110,9 @@ final class IR {
             if procedure.arguments.count > 0 {
                 for arg in procedure.arguments {
                     var argString = "; procedure arguments\n"
-                    argString += doAlloca("%\(arg.id)", arg.exprType)
-                    argString += doStore(from: "%\(count())", into: "%\(arg.id)", valueType: arg.exprType)
+                    let exprType = typeResolvingAliases(from: arg.exprType, decl: procedure, solidTypes: solidTypes)
+                    argString += doAlloca("%\(arg.id)", exprType)
+                    argString += doStore(from: "%\(count())", into: "%\(arg.id)", valueType: exprType)
                     emitLocal(indentString(argString, level: 1))
                 }
             }
@@ -224,12 +233,15 @@ final class IR {
             case let procedure as ProcedureDeclaration:
                 procedures[procedure.name] = procedure
                 if !procedure.isGeneric {
-                    emitProcedure(procedure, emitLocal: emitLocal, contexts: contexts)
+                    emitProcedure(procedure, solidTypes: [], emitLocal: emitLocal, contexts: contexts)
                 }
                 
             case let call as ProcedureCall:
                 let (expCode, _) = getExpressionResult(call)
                 emitLocal(expCode)
+
+                guard let decl = procedures[call.name] else { report("Get procedure declaration") }
+                emitProcCallIfNeeded(decl, solidTypes: call.solidTypes, emitLocal: emitLocal, contexts: contexts)
                 
             case let variable as VariableDeclaration:
                 
