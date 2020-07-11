@@ -162,7 +162,8 @@ extension Parser {
         func procDirectiveConflict(_ l: String, _ r: String) -> String { "Directive \(r) conflicts with previously declared directive \(l)." }
         func procExpectedName(_ g: Token) -> String { "Expected procedure name identifier after 'func'. Got \(g) instead." }
         let procNotReturning = "Expected a return statement in a non-void procedure."
-        
+        func unusedGenericType(_ t: String) -> String { "Generic type '\(t)' is not used in the procedure declaration." }
+
         // struct declaration
         let structExpectedName = "Expected struct name after 'struct'."
         let structExpectedBrackets = "Expected brackets for structure declaration."

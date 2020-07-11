@@ -328,16 +328,16 @@ extension Parser {
         }
 
         let procedureScope = nextScope(from: globalScope)
-        var genericTypes: [String] = [] // PROCEDURE GENERIC TYPES
+        var genericTypeIdents: [Token] = [] // PROCEDURE GENERIC TYPES
         if consumeOp("<") {
             while !consumeOp(">") {
-                if genericTypes.count > 0, !consumeSep(",") { throw error(em.structExpectedClosingTriangleBracket) }
+                if genericTypeIdents.count > 0, !consumeSep(",") { throw error(em.structExpectedClosingTriangleBracket) }
                 guard let typeIdent = consumeIdent() else { throw error(em.structExpectedGenericType) }
-                genericTypes.append(typeIdent.value.value)
+                genericTypeIdents.append(typeIdent.token)
                 procedureScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: typeIdent.value.value)
             }
         }
-        var unusedGenericTypes = genericTypes
+        var unusedGenericTypes = genericTypeIdents
 
         guard consumePunct("(") else { throw error(em.expectedParentheses) }
         scopeCounter = 0 // reset scope counter
@@ -352,7 +352,7 @@ extension Parser {
 
         func useType(_ type: Type) {
             for (i, _) in unusedGenericTypes.enumerated().reversed() {
-                if type.typeName.contains(unusedGenericTypes[i]) {
+                if type.typeName.contains((unusedGenericTypes[i].value as! Identifier).value) {
                     unusedGenericTypes.remove(at: i)
                 }
             }
@@ -388,6 +388,10 @@ extension Parser {
             useType(returnType)
         }
         else { returnType = void }
+
+        guard unusedGenericTypes.isEmpty else {
+            throw error(em.unusedGenericType((unusedGenericTypes[0].value as! Identifier).value), unusedGenericTypes[0].range)
+        }
 
         // @Todo: multiple directives
         while let (directiveToken, directive) = consume(Directive.self) {
@@ -440,6 +444,7 @@ extension Parser {
             throw error(em.procExpectedBody)
         }
 
+        let genericTypes = genericTypeIdents.map { ($0.value as! Identifier).value }
         let procedure = ProcedureDeclaration(
             id: procId, name: procName, arguments: arguments, returnType: returnType, flags: flags,
             scope: code, genericTypes: genericTypes, range: CursorRange(start, end))
