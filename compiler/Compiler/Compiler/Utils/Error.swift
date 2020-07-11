@@ -86,6 +86,6 @@ func report(_ error: String, _ range: CursorRange? = nil) -> Never {
 // @Todo: refactor this to single point of error reporting
 func report(_ error: String, _ start: Cursor? = nil, _ end: Cursor? = nil) -> Never {
     
-    print("Error: \(error)")
+    print("Internal Error: \(error)")
     quit(1)
 }

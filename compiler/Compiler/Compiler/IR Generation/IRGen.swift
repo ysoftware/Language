@@ -15,7 +15,7 @@ final class IR {
     internal var structures: [String: StructDeclaration] = [:]
 
     internal var solidifiedGenericStructs: [String: [Type]] = [:]
-//    internal var solidifiedGenericProcedures: [String: [Type]] = [:]
+    internal var solidifiedGenericProcedures: [String: [Type]] = [:]
 
     internal var globalCounter = 0
     internal var globalScope = ""
@@ -38,21 +38,14 @@ final class IR {
         else { globalScope += "\(string)\n" }
     }
 
+    // @Todo: make sure AST is sorted so structs come first
     func emitTypeIfNeeded(_ type: Type) {
         if type.isGeneric {
-
-            // @Todo: recursively extract all generic structure types
-            // this just unwraps a pointer, which is 1 step further than nothing
-            // but not at all enough
-            var structType = type
-            (structType as? PointerType).map { structType = $0.pointeeType }
-            guard let type = structType as? StructureType else {
+            guard let structType = type.getValueType() as? StructureType else {
                 report("failed to extract generic structure type")
             }
-
-            // @Todo: make sure AST is sorted so structs come first
-            guard let structDecl = structures[type.name] else { report("Generic struct is not declared.") }
-            emitStruct(structDecl, solidTypes: type.solidTypes)
+            guard let structDecl = structures[structType.name] else { report("Generic struct is not declared.") }
+            emitStruct(structDecl, solidTypes: structType.solidTypes)
         }
     }
 
@@ -91,6 +84,36 @@ final class IR {
         emitGlobal("")
         emitGlobal("; struct decl: \(structure.name) <\(solidTypesString)>")
         emitGlobal("\(structId) = type { \(membersString) }")
+    }
+
+    func emitProcedure(_ procedure: ProcedureDeclaration, solidTypes: [Type] = [],
+                       emitLocal: (String)->Void, contexts: [StatementContext]) {
+        globalCounter = 0
+        procedures[procedure.id] = procedure
+        let arguments = getProcedureArgumentString(from: procedure, printName: false)
+        let returnType = matchType(procedure.returnType)
+
+        if procedure.flags.contains(.isForeign) {
+            emitGlobal("declare \(returnType) @\(procedure.name) (\(arguments))")
+        }
+        else {
+            emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
+
+            if procedure.arguments.count > 0 {
+                for arg in procedure.arguments {
+
+                    var argString = "; procedure arguments\n"
+                    argString += doAlloca("%\(arg.id)", arg.exprType)
+                    argString += doStore(from: "%\(count())", into: "%\(arg.id)", valueType: arg.exprType)
+                    emitLocal(indentString(argString, level: 1))
+                }
+            }
+
+            _ = count() // implicit entry block takes the next name
+            let body = processStatements(procedure.scope.statements, contexts: contexts)
+            emitLocal(body.trimmingCharacters(in: .newlines))
+            emitLocal("}\n")
+        }
     }
     
     /// Process statements and return IR text
@@ -200,31 +223,9 @@ final class IR {
                 }
                 
             case let procedure as ProcedureDeclaration:
-                globalCounter = 0
-                procedures[procedure.id] = procedure
-                let arguments = getProcedureArgumentString(from: procedure, printName: false)
-                let returnType = matchType(procedure.returnType)
-                
-                if procedure.flags.contains(.isForeign) {
-                    emitGlobal("declare \(returnType) @\(procedure.name) (\(arguments))")
-                }
-                else {
-                    emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
-                    
-                    if procedure.arguments.count > 0 {
-                        for arg in procedure.arguments {
-                            
-                            var argString = "; procedure arguments\n"
-                            argString += doAlloca("%\(arg.id)", arg.exprType)
-                            argString += doStore(from: "%\(count())", into: "%\(arg.id)", valueType: arg.exprType)
-                            emitLocal(indentString(argString, level: 1))
-                        }
-                    }
-                     
-                    _ = count() // implicit entry block takes the next name
-                    let body = processStatements(procedure.scope.statements, contexts: contexts)
-                    emitLocal(body.trimmingCharacters(in: .newlines))
-                    emitLocal("}\n")
+                procedures[procedure.name] = procedure
+                if !procedure.isGeneric {
+                    emitProcedure(procedure, emitLocal: emitLocal, contexts: contexts)
                 }
                 
             case let call as ProcedureCall:

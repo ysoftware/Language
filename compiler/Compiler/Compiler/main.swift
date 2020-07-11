@@ -12,7 +12,7 @@ let startTime = CFAbsoluteTimeGetCurrent()
 var previousTime = startTime
 var loc = 0
 
-let PrintCursors = CommandLine.arguments.contains("-cursors")
+let PrintCursors = CommandLine.arguments.contains("-c")
 let PrintTime = CommandLine.arguments.contains("-time")
 let Silent = CommandLine.arguments.contains("-silent")
 let PrintPasses = CommandLine.arguments.contains("--print-passes")

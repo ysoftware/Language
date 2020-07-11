@@ -50,7 +50,7 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
         string.append("; args: ")
         string.append(arguments.map { "\($0)" }.joined(separator: ", "))
         if flags.contains(.isVarargs) { string.append("... ") }
-        if flags.contains(.isForeign) { string.append("#foreign") }
+        if flags.contains(.isForeign) { string.append(" #foreign") }
         else if scope.isEmpty { string.append(" (empty body) ") }
         else { string.append("\n\(scope)\n") }
         return string
@@ -69,16 +69,19 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
         static let main    = Flags(rawValue: 1 << 1)
     }
     
-    var id: String
-    var name: String
-    var arguments: [Value]
-    var returnType: Type
-    var flags: Flags
-    var scope: Code
+    let id: String
+    let name: String
+    let arguments: [Value]
+    let returnType: Type
+    let flags: Flags
+    let scope: Code
+    let genericTypes: [String]
+
+    var isGeneric: Bool { !genericTypes.isEmpty }
     
     internal init(id: String, name: String, arguments: [Value],
                   returnType: Type, flags: ProcedureDeclaration.Flags, scope: Code,
-                  range: CursorRange = CursorRange()) {
+                  genericTypes: [String] = [], range: CursorRange = CursorRange()) {
         self.id = id
         self.name = name
         self.arguments = arguments
@@ -86,6 +89,7 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
         self.flags = flags
         self.scope = scope
         self.range = range
+        self.genericTypes = genericTypes
     }
 }
 

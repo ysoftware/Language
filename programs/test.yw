@@ -5,45 +5,24 @@ func printf(format: String, arguments: Int, ...) #foreign;
 struct Node<Value> {
     next: Node<Value>*;
     value: Value;
+    tag: Int;
 }
 
-struct Pair<Value, Value2> {
-    left: Value;
-    right: Value2;
-}
-
-func list_append(head: Node<Pair<Int, Float>>*, value: Pair<Int, Float>) -> Node<Pair<Int, Float>>* {
-    node := new Node<Pair<Int, Float>>;
+func list_append<Value>(head: Node<Value>*, value: Value) {
+    node := new Node<Value>;
     node.value = value;
+
     current := head;
     while (current.next != null) {
         current = current.next;
     }
     current.next = node;
-    return node
 }
-
-// func list_append<Value>(head: Node<Value>*, value: Value) {
-//     node := new Node<Value>;
-//     node.value = value;
-//
-//     current := head;
-//     while (current.next != null) {
-//         current = current.next;
-//     }
-//     current.next = node;
-// }
 
 func main(count: Int, arguments: Int8**) -> Int {
 
-    pair := new Pair<Int, Float>;
-    pair.left = 1;
-    pair.right = 2;
-
-    head := new Node<Pair<Int, Float>>;
-    list_append(head, *pair);
-
-    printf("%d\n", head.next.value.left);
+    head := new Node<Int>;
+    list_append(head, 0);
 
     return 0;
 }

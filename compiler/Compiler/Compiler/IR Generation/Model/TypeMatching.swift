@@ -43,11 +43,12 @@ extension LiteralExpr {
 
 func matchType(_ type: Type) -> String {
     switch type {
-    case let a as IntType: return "i\(a.size)"
-    case let a as ArrayType: return "[\(a.size) x \(matchType(a.elementType))]"
+    case let a as IntType:
+        return "i\(a.size)"
+    case let a as ArrayType:
+        return "[\(a.size) x \(matchType(a.elementType))]"
     case let a as PointerType:
-        if a.pointeeType.equals(to: void) { return "i8*" }
-        return "\(matchType(a.pointeeType))*"
+        return a.pointeeType.equals(to: void) ? "i8*" :"\(matchType(a.pointeeType))*"
     case let a as FloatType:
         switch a.size {
         case 16: return "half"
@@ -56,15 +57,19 @@ func matchType(_ type: Type) -> String {
         case 128: return "fp128"
         default: report("Unsupported floating point with \(a.size) bits")
         }
-    case is VoidType: return "void"
-    case is UnresolvedType:
-        report("Unresolved type in IR Gen.")
+    case is VoidType:
+        return "void"
     case let structure as StructureType:
         let genericTypes = structure.solidTypes.map(matchType)
             .joined(separator: "_")
             .replacingOccurrences(of: "%", with: "")
             .replacingOccurrences(of: "*", with: "pointer")
         return "%\(structure.name)_\(genericTypes)_struct"
-    default: report("IRGen: Unsupported type \(type)")
+    case is UnresolvedType:
+        report("Unresolved type in IR Gen.")
+    case let a as AliasType:
+        report("Unsolidified type in IR Gen: \(a).")
+    default:
+        report("IRGen: Unsupported type \(type)")
     }
 }

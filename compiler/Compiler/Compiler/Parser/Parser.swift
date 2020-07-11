@@ -326,6 +326,18 @@ extension Parser {
         guard let procNameIdent = consumeIdent()?.value else {
             throw error(em.procExpectedName(token), token.startCursor, token.endCursor)
         }
+
+        let procedureScope = nextScope(from: globalScope)
+        var genericTypes: [String] = [] // PROCEDURE GENERIC TYPES
+        if consumeOp("<") {
+            while !consumeOp(">") {
+                if genericTypes.count > 0, !consumeSep(",") { throw error(em.structExpectedClosingTriangleBracket) }
+                guard let typeIdent = consumeIdent() else { throw error(em.structExpectedGenericType) }
+                genericTypes.append(typeIdent.value.value)
+                procedureScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: typeIdent.value.value)
+            }
+        }
+
         guard consumePunct("(") else { throw error(em.expectedParentheses) }
         scopeCounter = 0 // reset scope counter
         let end = lastToken.endCursor
@@ -336,6 +348,7 @@ extension Parser {
         var flags = ProcedureDeclaration.Flags()
         var code: Code = .empty
         var isForceEntry = false
+
         while tokens.count > i { // PROCEDURE ARGUMENTS DECLARATION
             if (token.value as? Punctuator)?.value == ")" { break }
             if consumePunct("...") {
@@ -349,7 +362,7 @@ extension Parser {
                     throw error(em.procExpectedArgumentName, token.startCursor, token.endCursor)
                 }
                 guard consumePunct(":") else { throw error(em.procExpectedArgumentType) }
-                let argType = try doType(in: scope)
+                let argType = try doType(in: procedureScope)
                 // @Todo: change argument from Type to something that will also contain argument name and label
                 let argName = argNameTok.value.value
                 let argId = "\(procId)_arg_\(argName)"
@@ -360,7 +373,7 @@ extension Parser {
         }
         if !consumePunct(")") { throw error(em.procArgumentParentheses) }
         if consumePunct("->") {
-            returnType = try doType(in: scope).type
+            returnType = try doType(in: procedureScope).type
         }
         else { returnType = void }
         if let (directiveToken, directive) = consume(Directive.self) {
@@ -377,9 +390,7 @@ extension Parser {
         }
         else if consumePunct("{") {
             if flags.contains(.isForeign) { throw error(em.procForeignUnexpectedBody) }
-            
-            let procedureScope = nextScope(from: globalScope)
-            
+
             // CREATE PROCEDURE-LOCAL VARIABLES FROM ARGUMENTS
             arguments.forEach { arg in
                 let argId = "\(procId)_arg_\(arg.name)"
@@ -408,8 +419,8 @@ extension Parser {
             throw error(em.procExpectedBody)
         }
         let procedure = ProcedureDeclaration(
-            id: procId, name: procName, arguments: arguments,
-            returnType: returnType, flags: flags, scope: code, range: CursorRange(start, end))
+            id: procId, name: procName, arguments: arguments, returnType: returnType, flags: flags,
+            scope: code, genericTypes: genericTypes, range: CursorRange(start, end))
 
         let previousForceEntry = entry?.flags.contains(.main) ?? false
         if previousForceEntry && isForceEntry { throw error(em.procMainRedecl, start, end) }
