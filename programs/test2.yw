@@ -1,0 +1,20 @@
+func malloc(size: Int) -> Void* #foreign;
+func `free`(pointer: Void*) #foreign;
+func printf(format: String, arguments: Int, ...) #foreign;
+
+struct Node<Value> {
+    next: Node<Value>*;
+    value: Value;
+}
+
+func has_next<T>(nextable: T) -> Bool { 
+    return nextable.next != nil; 
+}
+
+func main(count: Int, arguments: Int8**) -> Int {
+
+    head := new Node<Pair<Int, Float>>;
+    has_next(head);
+
+    return 0;
+}

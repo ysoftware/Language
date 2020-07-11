@@ -66,11 +66,11 @@ final class IR {
         let members = structure.members.map { $0.copy() }
         if structure.isGeneric {
             for i in 0..<members.count {
-
                 members[i].exprType = members[i].exprType.updateSubtypes { child in
                     if let alias = child as? AliasType {
                         if let index = structure.genericTypes.firstIndex(of: alias.name) {
                             let solidType = solidTypes[index]
+                            emitTypeIfNeeded(solidType)
                             return solidType
                         }
                     }

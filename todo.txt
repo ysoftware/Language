@@ -5,7 +5,8 @@ READ
 
 FEATURE
 - generic procedures (include argument types in proc id)
-- this should work: obj := new Int; &obj = 1;
+- generic type member access resolution at the point of solidifying // func has_next<T>(nextable: T) -> Bool { return nextable.next != nil; }
+- this should work: obj := new Int; &obj = 1; 
 - proper variadic procedures [different types of arguments / empty variadic arguments]
 - defer
 - arrays

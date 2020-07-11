@@ -2,15 +2,25 @@ func malloc(size: Int) -> Void* #foreign;
 func `free`(pointer: Void*) #foreign;
 func printf(format: String, arguments: Int, ...) #foreign;
 
+struct Pair<Left, Right> {
+    left: Left;
+    right: Right;
+}
+
 struct Node<Value> {
     next: Node<Value>*;
     value: Value;
     tag: Int;
 }
 
-func list_append<Value>(head: Node<Value>*, value: Value) {
-    node := new Node<Value>;
-    node.value = value;
+func list_append_pair<Left, Right>(head: Node<Pair<Left, Right>>*, left: Left, right: Right) {
+
+    pair: Pair<Left, Right>;
+    node := new Node<Pair<Left, Right>>;
+    node.value = pair;
+
+    node.value.left = left;
+    node.value.right = right;
 
     current := head;
     while (current.next != null) {
@@ -21,8 +31,8 @@ func list_append<Value>(head: Node<Value>*, value: Value) {
 
 func main(count: Int, arguments: Int8**) -> Int {
 
-    head := new Node<Int>;
-    list_append(head, 0);
+    head := new Node<Pair<Int, Float>>;
+    // list_append_pair(head, 0, 2.0);
 
     return 0;
 }
