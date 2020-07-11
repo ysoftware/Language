@@ -17,11 +17,6 @@ extension Parser {
         return newScope
     }
 
-    // .next is
-    // Node<=Value>     { "Node" [Node<Int>] }
-
-    // Node<Node<Int>>
-
     func typeResolvingAliases(from type: Type, in scope: Scope, with structType: StructureType) throws -> Type {
         if var ptr = type as? PointerType {
             ptr.pointeeType = try typeResolvingAliases(from: ptr.pointeeType, in: scope, with: structType)

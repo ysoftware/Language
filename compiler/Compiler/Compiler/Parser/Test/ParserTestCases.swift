@@ -26,7 +26,7 @@ extension ParserTest {
             int = list_list_int.value.value;
 
             list_int_float := new Node<Pair<Int, Float>>;
-            next_pair : Node<Pair<Int, Float>>* = a.next;
+            next_pair : Node<Pair<Int, Float>>* = list_int_float.next;
         }
         """
 
@@ -62,7 +62,7 @@ extension ParserTest {
                 vDecl("next_pair", pointer(structure("Node", [structure("Pair", [int, float]) ])),
                       MemberAccess(base: val("list_int_float", pointer(structure("Node", [structure("Pair", [int, float]) ]))),
                                    memberName: "next", memderIndex: 0,
-                                   exprType: structure("Node", [structure("Pair", [int, float]) ]) )),
+                                   exprType: pointer(structure("Node", [structure("Pair", [int, float])])) )),
 
                 ret(VoidLiteral())
             ])
