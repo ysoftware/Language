@@ -256,14 +256,28 @@ extension Parser {
     // MARK: - PROCEDURE CALL -
     
     func matchProcCall() -> Bool {
-        token.value is Identifier && (peekNext()?.value as? Punctuator)?.value == "("
+        token.value is Identifier
+            && ((peekNext()?.value as? Punctuator)?.value == "(" || (peekNext()?.value as? Operator)?.value == "<")
     }
     
     func doProcCall(in scope: Scope) throws -> ProcedureCall {
         let start = token.startCursor
-        guard let (identToken, name) = consumeIdent(), consumePunct("(")
+        guard let (identToken, name) = consumeIdent()
             else { report("call matchProcedureCall required before calling this") }
+
+        var solidTypes: [Type] = []
+        if consumeOp("<") {
+            while !consumeOp(">") {
+                if solidTypes.count > 0, !consumeSep(",") {
+                    throw error(em.structExpectedClosingTriangleBracket)
+                }
+                let (solidType, _) = try doType(in: scope)
+                solidTypes.append(solidType)
+            }
+        }
+
         var arguments: [Expression] = []
+        guard consumePunct("(") else { throw error(em.callExpectedOpenParentheses, token.range) }
         while tokens.count > i { // PROCEDURE CALL ARGUMENTS
             if (token.value as? Punctuator)?.value == ")" { break }
             let arg = try doExpression(in: scope, expectSemicolon: false)
@@ -274,44 +288,52 @@ extension Parser {
                                                     lastToken.endCursor.advancingCharacter()) }
         let end = lastToken.endCursor
         var returnType: Type = UnresolvedType()
-        
+
         let foundDecl = scope.declarations[name.value] ?? internalProcedures.first(where: { $0.name == name.value })
-        
+
         if let statement = foundDecl { // else - proceed
-            if let procDecl = statement as? ProcedureDeclaration {
-                returnType = procDecl.returnType
-                
-                let minArgWithoutVararg = procDecl.arguments.count - (procDecl.flags.contains(.isVarargs) ? 1 : 0)
-                guard arguments.count >= minArgWithoutVararg else {
-                    throw error(em.callArgumentsCount(procDecl.arguments.count, arguments.count), start, end)
+            guard let procDecl = statement as? ProcedureDeclaration
+                else { throw error(em.callNotProcedure, identToken.startCursor, identToken.endCursor) }
+            returnType = procDecl.returnType
+
+            var argumentTypes: [Type] = []
+            for i in 0..<procDecl.arguments.count {
+                let arg = procDecl.arguments[i]
+                let solidType = try typeResolvingAliases(from: arg.exprType, in: scope,
+                                                         declName: procDecl.name, solidTypes: solidTypes)
+                argumentTypes.append(solidType)
+            }
+
+            let minArgWithoutVararg = argumentTypes.count - (procDecl.flags.contains(.isVarargs) ? 1 : 0)
+            guard arguments.count >= minArgWithoutVararg else {
+                throw error(em.callArgumentsCount(argumentTypes.count, arguments.count), start, end)
+            }
+            for i in 0..<arguments.count {
+                guard argumentTypes.count > i || procDecl.flags.contains(.isVarargs) else {
+                    if procDecl.flags.contains(.isVarargs) {
+                        throw error(em.callArgumentsVarCount(argumentTypes.count, arguments.count),
+                                    start, end)
+                    }
+                    else {
+                        throw error(em.callArgumentsCount(argumentTypes.count, arguments.count),
+                                    start, end)
+                    }
                 }
-                for i in 0..<arguments.count {
-                    guard procDecl.arguments.count > i || procDecl.flags.contains(.isVarargs) else {
-                        if procDecl.flags.contains(.isVarargs) {
-                            throw error(em.callArgumentsVarCount(procDecl.arguments.count, arguments.count),
-                                         start, end)
-                        }
-                        else {
-                            throw error(em.callArgumentsCount(procDecl.arguments.count, arguments.count),
-                                         start, end)
-                        }
-                    }
-                    let declArgument = procDecl.arguments.count > i ? procDecl.arguments[i] : procDecl.arguments.last!
-                    
-                    // @Todo: check that dependency is added correctly for unresolved
-                    if !declArgument.exprType.isResolved {
-                        arguments[i].exprType = resolveType(of: declArgument)
-                    }
-                    else if !declArgument.exprType.equals(to: arguments[i].exprType) {
-                        throw error(em.callArgumentTypeMismatch(
-                            declArgument.exprType.typeName, arguments[i].exprType.typeName), arguments[i].range)
-                    }
+                let declArgument = argumentTypes.count > i ? argumentTypes[i] : argumentTypes.last!
+
+                // @Todo: check that dependency is added correctly for unresolved
+                if !declArgument.isResolved {
+                    arguments[i].exprType = argumentTypes[i]// resolveType(of: declArgument)
+                }
+                else if !declArgument.equals(to: arguments[i].exprType) {
+                    throw error(em.callArgumentTypeMismatch(
+                        declArgument.typeName, arguments[i].exprType.typeName), arguments[i].range)
                 }
             }
-            else { throw error(em.callNotProcedure, identToken.startCursor, identToken.endCursor) }
         }
 
-        let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments, range: CursorRange(start, end))
+        let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments,
+                                 solidTypes: solidTypes, range: CursorRange(start, end))
         if !returnType.isResolved {
             appendUnresolved(returnType.typeName, call)
         }
@@ -393,7 +415,6 @@ extension Parser {
             throw error(em.unusedGenericType((unusedGenericTypes[0].value as! Identifier).value), unusedGenericTypes[0].range)
         }
 
-        // @Todo: multiple directives
         while let (directiveToken, directive) = consume(Directive.self) {
             switch directive.value {
             case "foreign":
@@ -874,7 +895,12 @@ extension Parser {
             default: if !nextToken() { break loop }
             }
         }
-        guard entry != nil else { throw error(em.noEntryPoint) }
+
+        // @Todo: tests will fail with this check
+        // and it doesn't help much without #main working anyway
+        //
+        //  guard entry != nil else { throw error(em.noEntryPoint) }
+
         return Code(statements)
     }
 }

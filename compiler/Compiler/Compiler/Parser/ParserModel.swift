@@ -139,6 +139,7 @@ extension Parser {
         let continueContext = "Continue can't be used outside of loop or switch."
 
         // procedure call
+        let callExpectedOpenParentheses = "Open parentheses is expected after arguments."
         let callExpectedClosingParentheses = "Closing parentheses is expected after arguments."
         let callNotProcedure = "Trying to call something that's not a procedure."
         func callArgumentsCount(_ r: Int, _ g: Int) -> String { "Procedure requires \(r) argument\(plural(r)), \(g) given." }

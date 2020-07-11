@@ -17,7 +17,6 @@ IRGEN
 - autoinclude malloc/free (make imports?)
 - move sizeof to a global value
 - move string literal to a global value (from Parser responsibility to IRGen) to match sizeof
-- make IRGen throw errors
 
 PARSER
 - unti test generic procedures

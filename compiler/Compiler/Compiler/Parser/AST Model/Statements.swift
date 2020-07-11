@@ -47,6 +47,9 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
         var string = "[Procedure\(c) <\(id)>] \(name) -> \(returnType) "
+        if !genericTypes.isEmpty {
+            string.append("<\(genericTypes.joined(separator: ", "))>")
+        }
         string.append("; args: ")
         string.append(arguments.map { "\($0)" }.joined(separator: ", "))
         if flags.contains(.isVarargs) { string.append("... ") }
