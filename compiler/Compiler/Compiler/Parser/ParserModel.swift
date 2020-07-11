@@ -64,6 +64,7 @@ extension Parser {
         // common
         let unexpectedEndOfFile = "Unexpected end of file."
         func notImplemented(_ t: Token) -> String { "Token not implemented: '\(t)'." }
+        let noEntryPoint = "Entry point is not defined. Declare a procedure called 'main' or use directive #main on any other procedure."
         let expectedSemicolon = "Expected ';' after an expression."
         let expectedExpression = "Expected expression."
         let expectedParentheses = "Parentheses are expected around the condition expression."
@@ -157,6 +158,8 @@ extension Parser {
         let procExpectedArgumentBeforeVarargs = "Variadic argument requires definition before '...'."
         let procUndeclaredDirective = "Undeclared procedure directive."
         let procMainRedecl = "Redeclaration of the entry procedure."
+        let procDirectiveDuplicate = "Duplicate procedure directive."
+        func procDirectiveConflict(_ l: String, _ r: String) -> String { "Directive \(r) conflicts with previously declared directive \(l)." }
         func procExpectedName(_ g: Token) -> String { "Expected procedure name identifier after 'func'. Got \(g) instead." }
         let procNotReturning = "Expected a return statement in a non-void procedure."
         

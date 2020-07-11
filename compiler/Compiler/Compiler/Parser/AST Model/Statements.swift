@@ -50,6 +50,7 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
         string.append("; args: ")
         string.append(arguments.map { "\($0)" }.joined(separator: ", "))
         if flags.contains(.isVarargs) { string.append("... ") }
+        if flags.contains(.main) { string.append(" #main") }
         if flags.contains(.isForeign) { string.append(" #foreign") }
         else if scope.isEmpty { string.append(" (empty body) ") }
         else { string.append("\n\(scope)\n") }
@@ -60,13 +61,11 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
         let rawValue: Int
         
         /// Last Argument is variadic
-        static let isVarargs    = Flags(rawValue: 1 << 0)
-        
+        static let isVarargs = Flags(rawValue: 1 << 1)
         /// Is imported from another library
-        static let isForeign    = Flags(rawValue: 1 << 1)
-        
+        static let isForeign = Flags(rawValue: 1 << 2)
         /// overwrites the main function
-        static let main    = Flags(rawValue: 1 << 1)
+        static let main      = Flags(rawValue: 1 << 3)
     }
     
     let id: String

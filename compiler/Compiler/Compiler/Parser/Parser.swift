@@ -337,6 +337,7 @@ extension Parser {
                 procedureScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: typeIdent.value.value)
             }
         }
+        var unusedGenericTypes = genericTypes
 
         guard consumePunct("(") else { throw error(em.expectedParentheses) }
         scopeCounter = 0 // reset scope counter
@@ -348,6 +349,14 @@ extension Parser {
         var flags = ProcedureDeclaration.Flags()
         var code: Code = .empty
         var isForceEntry = false
+
+        func useType(_ type: Type) {
+            for (i, _) in unusedGenericTypes.enumerated().reversed() {
+                if type.typeName.contains(unusedGenericTypes[i]) {
+                    unusedGenericTypes.remove(at: i)
+                }
+            }
+        }
 
         while tokens.count > i { // PROCEDURE ARGUMENTS DECLARATION
             if (token.value as? Punctuator)?.value == ")" { break }
@@ -368,27 +377,39 @@ extension Parser {
                 let argId = "\(procId)_arg_\(argName)"
                 let value = Value(name: argName, id: argId, exprType: argType.type, range: argType.range)
                 arguments.append(value)
+
+                useType(argType.type)
             }
             if !consumeSep(",") { break }
         }
         if !consumePunct(")") { throw error(em.procArgumentParentheses) }
         if consumePunct("->") {
             returnType = try doType(in: procedureScope).type
+            useType(returnType)
         }
         else { returnType = void }
-        if let (directiveToken, directive) = consume(Directive.self) {
+
+        // @Todo: multiple directives
+        while let (directiveToken, directive) = consume(Directive.self) {
             switch directive.value {
             case "foreign":
+                guard !flags.contains(.isForeign) else { throw error(em.procDirectiveDuplicate, directiveToken.range) }
+                guard !flags.contains(.main) else { throw error(em.procDirectiveConflict("#main", "#foreign"), directiveToken.range) }
                 flags.insert(.isForeign)
                 procId = procName
             case "main":
+                guard !flags.contains(.isForeign) else { throw error(em.procDirectiveConflict("#foreign", "#main"), directiveToken.range) }
+                guard !flags.contains(.main) else { throw error(em.procDirectiveDuplicate, directiveToken.range) }
                 flags.insert(.main)
                 isForceEntry = true
+                let previousForceEntry = entry?.flags.contains(.main) ?? false
+                if previousForceEntry && isForceEntry { throw error(em.procMainRedecl, directiveToken.range) }
             default:
                 throw error(em.procUndeclaredDirective, directiveToken.startCursor, directiveToken.endCursor)
             }
         }
-        else if consumePunct("{") {
+
+        if consumePunct("{") {
             if flags.contains(.isForeign) { throw error(em.procForeignUnexpectedBody) }
 
             // CREATE PROCEDURE-LOCAL VARIABLES FROM ARGUMENTS
@@ -415,19 +436,19 @@ extension Parser {
                 else { throw error(em.procNotReturning) }
             }
         }
-        else {
+        else if !flags.contains(.isForeign) {
             throw error(em.procExpectedBody)
         }
+
         let procedure = ProcedureDeclaration(
             id: procId, name: procName, arguments: arguments, returnType: returnType, flags: flags,
             scope: code, genericTypes: genericTypes, range: CursorRange(start, end))
 
-        let previousForceEntry = entry?.flags.contains(.main) ?? false
-        if previousForceEntry && isForceEntry { throw error(em.procMainRedecl, start, end) }
         if procName == "main" && entry == nil || isForceEntry {
             entry = procedure
             procId = procName
         }
+
         try verifyNameConflict(procedure)
         appendDeclaration(procedure, to: globalScope)
         return procedure
@@ -848,6 +869,7 @@ extension Parser {
             default: if !nextToken() { break loop }
             }
         }
+        guard entry != nil else { throw error(em.noEntryPoint) }
         return Code(statements)
     }
 }

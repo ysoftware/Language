@@ -101,7 +101,6 @@ final class IR {
 
             if procedure.arguments.count > 0 {
                 for arg in procedure.arguments {
-
                     var argString = "; procedure arguments\n"
                     argString += doAlloca("%\(arg.id)", arg.exprType)
                     argString += doStore(from: "%\(count())", into: "%\(arg.id)", valueType: arg.exprType)
