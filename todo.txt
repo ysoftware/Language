@@ -18,7 +18,6 @@ IRGEN
 - make IRGen throw errors
 
 PARSER
-- unit test generic structs usage
 - unit tests scope ids (comparison)
 - unit test error cursors
 - verify all paths of a procedure return a value

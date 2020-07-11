@@ -249,7 +249,7 @@ extension Parser {
             return any
 
         default:
-            throw error(em.notImplemented)
+            throw error(em.notImplemented(token), token.range)
         }
     }
 

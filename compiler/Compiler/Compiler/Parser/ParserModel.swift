@@ -60,11 +60,10 @@ final class Scope: CustomDebugStringConvertible {
 extension Parser {
     
     final class ErrorMessage {
-        weak var p: Parser!
         
         // common
         let unexpectedEndOfFile = "Unexpected end of file."
-        var notImplemented: String { "Token not implemented: '\(p.token)'." }
+        func notImplemented(_ t: Token) -> String { "Token not implemented: '\(t)'." }
         let expectedSemicolon = "Expected ';' after an expression."
         let expectedExpression = "Expected expression."
         let expectedParentheses = "Parentheses are expected around the condition expression."

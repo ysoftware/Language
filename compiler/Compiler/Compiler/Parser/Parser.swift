@@ -618,7 +618,7 @@ extension Parser {
                 
             default:
                 print("Expression unknown: \(token)")
-                throw error(em.notImplemented, token.startCursor, token.endCursor)
+                throw error(em.notImplemented(token), token.range)
             }
             
         case let literal as TokenLiteral:
@@ -686,7 +686,7 @@ extension Parser {
         case is Separator: throw error(em.expectedExpression)
         default:
             print("Expression unknown: \(token)")
-            throw error(em.notImplemented, token.startCursor, token.endCursor)
+            throw error(em.notImplemented(token), token.range)
         }
         expression.range = CursorRange(start, lastToken.endCursor)
         return expression
@@ -817,7 +817,7 @@ extension Parser {
                 if keyword == .fallthrough { throw error("@Todo: FALLTHROUGH ERROR MESSAGE", token.startCursor, token.endCursor) }
 
                 print("Keyword \(keyword.rawValue) is not YET implemented.")
-                throw error(em.notImplemented, token.startCursor, token.endCursor)
+                throw error(em.notImplemented(token), token.range)
                     
             case is Identifier:
                 if matchWhile() { throw error(em.loopNotExpectedAtGlobalScope) }
@@ -829,7 +829,7 @@ extension Parser {
                 }
                 
                 print("(main loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
-                throw error(em.notImplemented, token.startCursor, token.endCursor)
+                throw error(em.notImplemented(token), token.range)
             
             case let separator as Separator:
                 if separator.value == ";" { if !nextToken() { break loop } /* ignore */ }
@@ -849,7 +849,6 @@ final class Parser {
         self.fileName = fileName
         self.tokens = tokens
         self.token = tokens[i]
-        self.em.p = self
     }
     
     let fileName: String?
