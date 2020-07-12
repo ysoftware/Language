@@ -8,17 +8,7 @@
 
 import Foundation
 
-final class IR {
-    
-    internal var stringLiterals: [String: StringLiteral] = [:]
-    internal var procedures: [String: ProcedureDeclaration] = [:]
-    internal var structures: [String: StructDeclaration] = [:]
-
-    internal var solidifiedGenericStructs: [String: [Type]] = [:]
-    internal var solidifiedGenericProcedures: [String: [Type]] = [:]
-
-    internal var globalCounter = 0
-    internal var globalScope = ""
+extension IR {
     
     /// Use this to generate LLVM IR code
     func generateIR(globalScope ast: Code) -> String {
@@ -38,92 +28,6 @@ final class IR {
         else { globalScope += "\(string)\n" }
     }
 
-    // @Todo: make sure AST is sorted so structs come first
-    func emitTypeIfNeeded(_ type: Type) {
-        if type.isGeneric {
-            guard let structType = type.getValueType() as? StructureType else {
-                report("failed to extract generic structure type")
-            }
-            guard let structDecl = structures[structType.name] else { report("Generic struct is not declared.") }
-            emitStruct(structDecl, solidTypes: structType.solidTypes)
-        }
-    }
-
-    func emitStruct(_ structure: StructDeclaration, solidTypes: [Type] = []) {
-        assert(structure.genericTypes.count == solidTypes.count)
-
-        let solidTypesString = solidTypes.map(matchType)
-            .joined(separator: "_")
-            .replacingOccurrences(of: "%", with: "")
-            .replacingOccurrences(of: "*", with: "pointer")
-        let structId = "%\(structure.name)_\(solidTypesString)_struct"
-
-        if structure.isGeneric {
-            guard solidifiedGenericStructs[structId] == nil else { return }
-            solidifiedGenericStructs[structId] = solidTypes
-        }
-
-        let members = structure.members.map { $0.copy() }
-        if structure.isGeneric {
-            for i in 0..<members.count {
-                members[i].exprType = members[i].exprType.updateSubtypes { child in
-                    if let alias = child as? AliasType {
-                        if let index = structure.genericTypes.firstIndex(of: alias.name) {
-                            let solidType = solidTypes[index]
-                            emitTypeIfNeeded(solidType)
-                            return solidType
-                        }
-                    }
-                    return child
-                }
-            }
-        }
-        let membersString = members.map(\.exprType)
-            .map(matchType)
-            .joined(separator: ", ")
-        emitGlobal("")
-        emitGlobal("; struct decl: \(structure.name) <\(solidTypesString)>")
-        emitGlobal("\(structId) = type { \(membersString) }")
-    }
-
-    // @Todo: make sure AST is sorted so structs come first
-    func emitProcCallIfNeeded(_ decl: ProcedureDeclaration, solidTypes: [Type],
-                              emitLocal: (String)->Void, contexts: [StatementContext]) {
-        if decl.isGeneric {
-            emitProcedure(decl, solidTypes: solidTypes, emitLocal: emitLocal, contexts: contexts)
-        }
-    }
-
-    func emitProcedure(_ procedure: ProcedureDeclaration, solidTypes: [Type],
-                       emitLocal: (String)->Void, contexts: [StatementContext]) {
-        globalCounter = 0
-        procedures[procedure.id] = procedure
-        let arguments = getProcedureArgumentString(from: procedure, solidTypes: solidTypes, printName: false)
-        let returnType = matchType(procedure.returnType)
-
-        if procedure.flags.contains(.isForeign) {
-            emitGlobal("declare \(returnType) @\(procedure.name) (\(arguments))")
-        }
-        else {
-            emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
-
-            if procedure.arguments.count > 0 { 
-                for arg in procedure.arguments {
-                    var argString = "; procedure arguments\n"
-                    let exprType = typeResolvingAliases(from: arg.exprType, decl: procedure, solidTypes: solidTypes)
-                    argString += doAlloca("%\(arg.id)", exprType)
-                    argString += doStore(from: "%\(count())", into: "%\(arg.id)", valueType: exprType)
-                    emitLocal(indentString(argString, level: 1))
-                }
-            }
-
-            _ = count() // implicit entry block takes the next name
-            let body = processStatements(procedure.scope.statements, contexts: contexts)
-            emitLocal(body.trimmingCharacters(in: .newlines))
-            emitLocal("}\n")
-        }
-    }
-    
     /// Process statements and return IR text
     private func processStatements(_ statements: [Statement],
                                    indentLevel: Int = 1,
@@ -225,24 +129,45 @@ final class IR {
                 emitLocal("call void (i8*) @free (i8* \(bitcastVal))\n")
                 
             case let structure as StructDeclaration:
-                structures[structure.name] = structure
-                if !structure.isGeneric {
-                    emitStruct(structure)
-                }
+                let structId = "%\(structure.name)_struct"
+                let membersString = structure.members.map(\.exprType)
+                    .map(matchType)
+                    .joined(separator: ", ")
+                emitGlobal("")
+                emitGlobal("; struct decl: \(structId)")
+                emitGlobal("\(structId) = type { \(membersString) }")
                 
             case let procedure as ProcedureDeclaration:
-                procedures[procedure.name] = procedure
-                if !procedure.isGeneric {
-                    emitProcedure(procedure, solidTypes: [], emitLocal: emitLocal, contexts: contexts)
+                globalCounter = 0
+                procedures[procedure.id] = procedure
+                let arguments = getProcedureArgumentString(from: procedure, printName: false)
+                let returnType = matchType(procedure.returnType)
+
+                if procedure.flags.contains(.isForeign) {
+                    emitGlobal("declare \(returnType) @\(procedure.name) (\(arguments))")
+                }
+                else {
+                    emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
+
+                    if procedure.arguments.count > 0 {
+                        for arg in procedure.arguments {
+                            var argString = "; procedure arguments\n"
+                            argString += doAlloca("%\(arg.id)", arg.exprType)
+                            argString += doStore(from: "%\(count())", into: "%\(arg.id)", valueType: arg.exprType)
+                            emitLocal(indentString(argString, level: 1))
+                        }
+                    }
+
+                    _ = count() // implicit entry block takes the next name
+                    let body = processStatements(procedure.scope.statements, contexts: contexts)
+                    emitLocal(body.trimmingCharacters(in: .newlines))
+                    emitLocal("}\n")
                 }
                 
             case let call as ProcedureCall:
                 let (expCode, _) = getExpressionResult(call)
                 emitLocal(expCode)
 
-                guard let decl = procedures[call.name] else { report("Get procedure declaration") }
-                emitProcCallIfNeeded(decl, solidTypes: call.solidTypes, emitLocal: emitLocal, contexts: contexts)
-                
             case let variable as VariableDeclaration:
                 
                 if let literal = variable.expression as? StringLiteral {
@@ -258,7 +183,6 @@ final class IR {
                 else {
                     emitLocal("; declaration of \(variable.id)")
                     emitLocal(doAlloca("%\(variable.id)", variable.exprType))
-                    emitTypeIfNeeded(variable.exprType)
                     
                     if let expression = variable.expression {
                         let (expCode, expVal) = getExpressionResult(expression)
@@ -329,4 +253,14 @@ final class IR {
             return loopContext
         }
     }
+}
+
+final class IR {
+
+    var stringLiterals: [String: StringLiteral] = [:]
+    var procedures: [String: ProcedureDeclaration] = [:]
+    var structures: [String: StructDeclaration] = [:]
+
+    var globalCounter = 0
+    var globalScope = ""
 }

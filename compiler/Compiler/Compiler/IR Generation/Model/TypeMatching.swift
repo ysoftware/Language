@@ -60,11 +60,7 @@ func matchType(_ type: Type) -> String {
     case is VoidType:
         return "void"
     case let structure as StructureType:
-        let genericTypes = structure.solidTypes.map(matchType)
-            .joined(separator: "_")
-            .replacingOccurrences(of: "%", with: "")
-            .replacingOccurrences(of: "*", with: "pointer")
-        return "%\(structure.name)_\(genericTypes)_struct"
+        return "%\(structure.name)_struct"
     case is UnresolvedType:
         report("Unresolved type in IR Gen.")
     case let a as AliasType:

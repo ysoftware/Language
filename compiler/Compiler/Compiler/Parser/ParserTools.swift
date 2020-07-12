@@ -82,10 +82,10 @@ extension Parser {
 
             // @Todo: check for typealiases in local scope
 
-            let solidifiedType = try typeResolvingAliases(from: decl.members[index].exprType,
-                                                          in: scope,
-                                                          declName: structType.name,
-                                                          solidTypes: structType.solidTypes)
+            let solidifiedType = typeResolvingAliases(from: decl.members[index].exprType,
+                                                      in: scope,
+                                                      declName: structType.name,
+                                                      solidTypes: structType.solidTypes)
             return (solidifiedType, index)
         }
 

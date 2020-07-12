@@ -299,8 +299,8 @@ extension Parser {
             var argumentTypes: [Type] = []
             for i in 0..<procDecl.arguments.count {
                 let arg = procDecl.arguments[i]
-                let solidType = try typeResolvingAliases(from: arg.exprType, in: scope,
-                                                         declName: procDecl.name, solidTypes: solidTypes)
+                let solidType = typeResolvingAliases(from: arg.exprType, in: scope,
+                                                     declName: procDecl.name, solidTypes: solidTypes)
                 argumentTypes.append(solidType)
             }
 
