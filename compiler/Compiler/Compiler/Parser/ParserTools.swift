@@ -198,11 +198,6 @@ extension Parser {
         return
     }
     
-    @inline(__always)
-    func appendDeclaration(_ declaration: Declaration, to scope: Scope) {
-        scope.declarations[declaration.name] = declaration
-    }
-
     func error(_ e: String, procedure: String = #function, line: Int = #line,
                _ range: CursorRange?) -> ParserError {
         error(e, procedure: procedure, line: line, range?.start, range?.end)

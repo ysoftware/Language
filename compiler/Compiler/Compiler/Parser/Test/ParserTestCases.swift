@@ -101,7 +101,7 @@ extension ParserTest {
                                    memberName: "x", memderIndex: 0, exprType: int)
         
         printResultCase(code, result, Code([
-            StructDeclaration(name: "Vector", members: [
+            StructDeclaration(name: "Vector", id: "", members: [
                 vDecl("x", int, nil),
                 vDecl("y", int, nil)
             ]),
@@ -176,13 +176,13 @@ extension ParserTest {
         let result = parserResult(Parser(tokens).parse)
         
         printResultCase(code, result, Code([
-            vDecl("x", float, f(1)),
-            StructDeclaration(name: "A", members: [
+            StructDeclaration(name: "A", id: "", members: [
                 vDecl("a", string, nil),
                 vDecl("b", int, i(1), const: true),
                 vDecl("c", int, val("b", int)),
                 vDecl("d", float, val("x", float)),
-            ])
+            ]),
+            vDecl("x", float, f(1))
         ]))
     }
     
@@ -207,7 +207,7 @@ extension ParserTest {
                 returnType: float, flags: [], scope: Code([
                     Return(value: f(0.2))
                 ])),
-            StructDeclaration(name: "Value", members: [
+            StructDeclaration(name: "Value", id: "", members: [
                 vDecl("a", int, ProcedureCall(name: "getInt", exprType: int, arguments: [])),
                 vDecl("b", float, ProcedureCall(name: "getFloat", exprType: float, arguments: []))
             ])
@@ -221,12 +221,12 @@ extension ParserTest {
         
         printResultCase(
             code, result, Code([
-                vDecl("c", int, i(1)),
                 main([
                     vDecl("a", int, val("c", int)),
                     vDecl("b", int, val("a", int)),
                     ret(VoidLiteral())
-                ])
+                ]),
+                vDecl("c", int, i(1))
             ]))
     }
     

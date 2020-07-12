@@ -31,7 +31,9 @@ final class Free: Statement, Equatable {
 }
 
 final class ProcedureDeclaration: Statement, Declaration, Equatable {
-    
+
+    var ood: Int // @Todo: remove this when 2nd pass is implemented
+
     var isRValue: Bool  { false }
     var range: CursorRange
     
@@ -77,7 +79,7 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
 
     internal init(id: String, name: String, arguments: [Value],
                   returnType: Type, flags: ProcedureDeclaration.Flags, scope: Code,
-                  range: CursorRange = CursorRange()) {
+                  range: CursorRange = CursorRange(), ood: Int = 0) {
         self.id = id
         self.name = name
         self.arguments = arguments
@@ -85,10 +87,13 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
         self.flags = flags
         self.scope = scope
         self.range = range
+        self.ood = ood
     }
 }
 
 final class TypealiasDeclaration: Declaration, Equatable {
+
+    var ood: Int  = 0 // @Todo: remove this, ignored
 
     var isRValue: Bool { false }
     var range: CursorRange
@@ -115,7 +120,8 @@ final class TypealiasDeclaration: Declaration, Equatable {
 }
 
 final class StructDeclaration: Statement, Declaration, Equatable {
-    
+
+    var ood: Int // @Todo: remove this when 2nd pass is implemented
     var isRValue: Bool  { false }
     var range: CursorRange
     
@@ -137,16 +143,19 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     let id: String
     let members: [VariableDeclaration]
 
-    internal init(name: String, members: [VariableDeclaration], range: CursorRange = CursorRange()) {
+    internal init(name: String, id: String, members: [VariableDeclaration], range: CursorRange = CursorRange(), ood: Int = 0) {
         self.name = name
-        self.id = name
+        self.id = id
         self.members = members
         self.range = range
+        self.ood = ood
     }
 }
 
 final class VariableDeclaration: Statement, Declaration, Equatable {
-    
+
+    var ood: Int // @Todo: remove this when 2nd pass is implemented
+
     var isRValue: Bool  { false }
     var range: CursorRange
     
@@ -186,13 +195,14 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     }
     
     internal init(name: String, id: String, exprType: Type, flags: VariableDeclaration.Flags, expression: Expression?,
-                  range: CursorRange = CursorRange()) {
+                  range: CursorRange = CursorRange(), ood: Int = 0) {
         self.name = name
         self.id = id
         self.exprType = exprType
         self.flags = flags
         self.expression = expression
         self.range = range
+        self.ood = ood
     }
 }
 

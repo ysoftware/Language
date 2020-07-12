@@ -17,9 +17,7 @@ extension Parser {
     func doType(in scope: Scope) throws -> (type: Type, range: CursorRange) {
         guard let baseIdent = consumeIdent() else { throw error(ParserMessage.expectedType(token), token.startCursor, token.endCursor) }
 
-        var end = baseIdent.token.endCursor
         var solidTypes: [Type] = []
-
         if consumeOp("<") {
             while !consumeOp(">") {
                 if solidTypes.count > 0, !consumeSep(",") {
@@ -31,7 +29,7 @@ extension Parser {
         }
 
         var type: Type
-        let noPointerIdent = baseIdent.value.value.replacingOccurrences(of: "*", with: "")
+        let noPointerIdent = baseIdent.value.value.replacingOccurrences(of: "*", with: "") // @Todo: this is weird, check this
         if solidTypes.isEmpty {
             if let alias = scope.declarations[noPointerIdent] as? TypealiasDeclaration { // generic type
                 type = AliasType(name: alias.name)
@@ -48,17 +46,43 @@ extension Parser {
                 type = resolvedType
             }
         }
-        else {
+        else { // GENERIC TYPE
             type = StructureType(name: noPointerIdent, solidTypes: solidTypes)
-
             while consumeOp("*") {
                 type = pointer(type)
             }
+
+            // @Todo: what if we're using generic struct that's undeclared yet?
+            // maybe remember that we used it so it will be generated at the time of parsing the declaration?
+            if let (genericDecl, genericTypes) = genericDeclarations[noPointerIdent] {
+                if let genericStruct = genericDecl as? StructDeclaration {
+                    solidifyStructure(genericStruct, genericTypes: genericTypes, solidTypes: solidTypes)
+                }
+                // @Todo: else procedure
+            }
         }
 
-        end = lastToken.endCursor
-        let range = CursorRange(baseIdent.token.startCursor, end)
+        let range = CursorRange(baseIdent.token.startCursor, lastToken.endCursor)
         return (type, range)
+    }
+
+    func solidifyStructure(_ genericStruct: StructDeclaration, genericTypes: [String], solidTypes: [Type]) {
+        let solidTypesString = solidTypes.map(\.typeName)
+            .joined(separator: "_")
+            .replacingOccurrences(of: "*", with: "ptr")
+        let structId = genericStruct.name + solidTypesString
+        if structureDeclarations[structId] == nil {
+            // @Todo: generate solid structure
+            let solidMembers: [VariableDeclaration] = genericStruct.members.map {
+                $0.exprType = typeResolvingAliases(from: $0.exprType, decl: genericStruct,
+                                                   genericTypes: genericTypes, solidTypes: solidTypes)
+                return $0
+            }
+            let structure = StructDeclaration(name: genericStruct.name, id: structId, members: solidMembers, ood: ood)
+            ood += 1
+            structureDeclarations[structId] = structure
+            globalScope.declarations[structId] = structure
+        }
     }
     
     // MARK: - MEMBER ACCESS -
@@ -202,19 +226,20 @@ extension Parser {
         let id = "\(scope.id)\(name)"
         let varDecl = VariableDeclaration(
             name: name, id: id, exprType: type, flags: flags, expression: expr,
-            range: CursorRange(start, end))
+            range: CursorRange(start, end), ood: ood)
+        ood += 1
         
         // @Todo: check that dependency is added correctly for unresolved
         // we're supposed to add this decl as a dependant on the expression
         
         try verifyNameConflict(varDecl, in: scope)
-        appendDeclaration(varDecl, to: scope)
+        scope.declarations[varDecl.name] = varDecl
         return varDecl
     }
     
     // MARK: - STRUCT DECLARATION -
 
-    func doStructDecl() throws -> (StructDeclaration, [String]) {
+    func doStructDecl() throws {
         let start = token.startCursor
         guard consumeKeyword(.struct) else { report("can't call doStructDecl without checking for keyword first") }
         guard let name = consumeIdent()?.value
@@ -246,10 +271,17 @@ extension Parser {
                 else { throw error(ParserMessage.structExpectedBracketsEnd) }
             }
         }
-        let structDecl = StructDeclaration(name: name.value, members: members, range: CursorRange(start, end))
+        let structDecl = StructDeclaration(name: name.value, id: "", members: members, range: CursorRange(start, end), ood: ood)
+        ood += 1
         try verifyNameConflict(structDecl)
-        appendDeclaration(structDecl, to: globalScope)
-        return (structDecl, genericTypes)
+
+        if genericTypes.isEmpty {
+            globalScope.declarations[structDecl.name] = structDecl
+            structureDeclarations[structDecl.name] = structDecl
+        }
+        else {
+            genericDeclarations[structDecl.name] = (structDecl, genericTypes)
+        }
     }
     
     // MARK: - PROCEDURE CALL -
@@ -341,7 +373,7 @@ extension Parser {
     
     // MARK: - PROCEDURE DECLARATION -
 
-    func doProcDecl(in scope: Scope) throws -> (ProcedureDeclaration, [String]) {
+    func doProcDecl(in scope: Scope) throws {
         let start = token.startCursor
         guard consumeKeyword(.func) else { report("can't call doProcDecl without checking for keyword first") }
         guard let procNameIdent = consumeIdent()?.value else {
@@ -440,7 +472,8 @@ extension Parser {
             arguments.forEach { arg in
                 let argId = "\(procId)_arg_\(arg.name)"
                 let decl = VariableDeclaration(name: arg.name, id: argId, exprType: arg.exprType,
-                                               flags: [.isConstant], expression: arg)
+                                               flags: [.isConstant], expression: arg, ood: ood)
+                ood += 1
                 procedureScope.declarations[arg.name] = decl
             }
             
@@ -467,7 +500,8 @@ extension Parser {
         let genericTypes = genericTypeIdents.map { ($0.value as! Identifier).value }
         let procedure = ProcedureDeclaration(
             id: procId, name: procName, arguments: arguments, returnType: returnType, flags: flags,
-            scope: code, range: CursorRange(start, end))
+            scope: code, range: CursorRange(start, end), ood: ood)
+        ood += 1
 
         if procName == "main" && entry == nil || isForceEntry {
             entry = procedure
@@ -475,8 +509,14 @@ extension Parser {
         }
 
         try verifyNameConflict(procedure)
-        appendDeclaration(procedure, to: globalScope)
-        return (procedure, genericTypes)
+
+        if genericTypes.isEmpty {
+            globalScope.declarations[procedure.name] = procedure
+            procedureDeclarations[procedure.name] = procedure
+        }
+        else {
+            genericDeclarations[procedure.name] = (procedure, genericTypes)
+        }
     }
     
     // MARK: - IF-ELSE -
@@ -695,9 +735,9 @@ extension Parser {
                     if decl == nil {
                         let id = "\(scope.id)StringLiteral\(count)"
                         decl = VariableDeclaration(name: id, id: id, exprType: string,
-                                                   flags: .isConstant, expression: StringLiteral(value: value))
+                                                   flags: .isConstant, expression: StringLiteral(value: value), ood: ood)
+                        ood += 1
                         stringLiterals[value] = decl
-                        statements.insert(decl, at: 0)
                     }
                     expression = Value(name: decl.name, id: decl.id, exprType: string)
                 }
@@ -858,15 +898,11 @@ extension Parser {
             switch token.value  {
             case let keyword as Keyword:
                 if keyword == .func {
-                    let (decl, genericTypes) = try doProcDecl(in: globalScope)
-                    if genericTypes.isEmpty { statements.append(decl) }
-                    else { genericDeclarations[decl.name] = (decl, genericTypes) }
+                    try doProcDecl(in: globalScope)
                     break
                 }
                 if keyword == .struct {
-                    let (decl, genericTypes) = try doStructDecl()
-                    if genericTypes.isEmpty { statements.append(decl) }
-                    else { genericDeclarations[decl.name] = (decl, genericTypes) }
+                    try doStructDecl()
                     break
                 }
                 if keyword == .if { throw error(ParserMessage.ifNotExpectedAtGlobalScope, token.startCursor, token.endCursor) }
@@ -902,6 +938,11 @@ extension Parser {
         //
         //  guard entry != nil else { throw error(ParserMessage.noEntryPoint) }
 
+        let declarations: [Declaration] = Array(procedureDeclarations.values)
+            + Array(structureDeclarations.values)
+            + Array(stringLiterals.values)
+        declarations.sorted(by: { $0.ood > $1.ood }).forEach { statements.insert($0, at: 0) }
+
         return Code(statements)
     }
 }
@@ -924,10 +965,14 @@ final class Parser {
     var unresolved: [String: [Ast]] = [:] /// all with type unresolved
     var globalScope = Scope(id: Scope.globalId) /// all declarations in global scope
 
+    var structureDeclarations: [String: StructDeclaration] = [:]
+    var procedureDeclarations: [String: ProcedureDeclaration] = [:]
     var genericDeclarations: [String: (Declaration, [String])] = [:] /// structs or procedures and their generic types
 
     var scopeCounter = 0
     var i = 0
     var token: Token
     var entry: ProcedureDeclaration? /// main procedure of the program
+
+    var ood = 0 // @Todo: remove this when 2nd pass is implemented
 }

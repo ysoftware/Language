@@ -48,7 +48,8 @@ protocol Expression: Ast {
     var exprType: Type { get set }
 }
 
-protocol Declaration: Ast {
+protocol Declaration: Statement {
+    var ood: Int { get }
     var name: String { get }
     var id: String { get }
 }

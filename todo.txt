@@ -16,6 +16,7 @@ FEATURE
 - defer
 - arrays
 - subscript access
+- warnings (for unused structs and procedures)
 
 IRGEN
 - implement #main (with zeroinitialized arguments)
