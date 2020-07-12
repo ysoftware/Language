@@ -214,7 +214,7 @@ extension Parser {
     
     // MARK: - STRUCT DECLARATION -
 
-    func doStructDecl() throws -> StructDeclaration {
+    func doStructDecl() throws -> (StructDeclaration, [String]) {
         let start = token.startCursor
         guard consumeKeyword(.struct) else { report("can't call doStructDecl without checking for keyword first") }
         guard let name = consumeIdent()?.value
@@ -246,11 +246,10 @@ extension Parser {
                 else { throw error(ParserMessage.structExpectedBracketsEnd) }
             }
         }
-        let structDecl = StructDeclaration(name: name.value, members: members, genericTypes: genericTypes,
-                                           range: CursorRange(start, end))
+        let structDecl = StructDeclaration(name: name.value, members: members, range: CursorRange(start, end))
         try verifyNameConflict(structDecl)
         appendDeclaration(structDecl, to: globalScope)
-        return structDecl
+        return (structDecl, genericTypes)
     }
     
     // MARK: - PROCEDURE CALL -
@@ -342,7 +341,7 @@ extension Parser {
     
     // MARK: - PROCEDURE DECLARATION -
 
-    func doProcDecl(in scope: Scope) throws -> ProcedureDeclaration {
+    func doProcDecl(in scope: Scope) throws -> (ProcedureDeclaration, [String]) {
         let start = token.startCursor
         guard consumeKeyword(.func) else { report("can't call doProcDecl without checking for keyword first") }
         guard let procNameIdent = consumeIdent()?.value else {
@@ -468,7 +467,7 @@ extension Parser {
         let genericTypes = genericTypeIdents.map { ($0.value as! Identifier).value }
         let procedure = ProcedureDeclaration(
             id: procId, name: procName, arguments: arguments, returnType: returnType, flags: flags,
-            scope: code, genericTypes: genericTypes, range: CursorRange(start, end))
+            scope: code, range: CursorRange(start, end))
 
         if procName == "main" && entry == nil || isForceEntry {
             entry = procedure
@@ -477,7 +476,7 @@ extension Parser {
 
         try verifyNameConflict(procedure)
         appendDeclaration(procedure, to: globalScope)
-        return procedure
+        return (procedure, genericTypes)
     }
     
     // MARK: - IF-ELSE -
@@ -859,15 +858,15 @@ extension Parser {
             switch token.value  {
             case let keyword as Keyword:
                 if keyword == .func {
-                    let decl = try doProcDecl(in: globalScope)
-                    if decl.isGeneric { genericProcedures[decl.name] = decl }
-                    else { statements.append(decl) }
+                    let (decl, genericTypes) = try doProcDecl(in: globalScope)
+                    if genericTypes.isEmpty { statements.append(decl) }
+                    else { genericDeclarations[decl.name] = (decl, genericTypes) }
                     break
                 }
                 if keyword == .struct {
-                    let decl = try doStructDecl()
-                    if decl.isGeneric { genericStructs[decl.name] = decl }
-                    else { statements.append(decl) }
+                    let (decl, genericTypes) = try doStructDecl()
+                    if genericTypes.isEmpty { statements.append(decl) }
+                    else { genericDeclarations[decl.name] = (decl, genericTypes) }
                     break
                 }
                 if keyword == .if { throw error(ParserMessage.ifNotExpectedAtGlobalScope, token.startCursor, token.endCursor) }
@@ -925,8 +924,7 @@ final class Parser {
     var unresolved: [String: [Ast]] = [:] /// all with type unresolved
     var globalScope = Scope(id: Scope.globalId) /// all declarations in global scope
 
-    var genericStructs: [String: StructDeclaration] = [:] /// declarations of generic structs
-    var genericProcedures: [String: ProcedureDeclaration] = [:] /// declarations of generic procedures
+    var genericDeclarations: [String: (Declaration, [String])] = [:] /// structs or procedures and their generic types
 
     var scopeCounter = 0
     var i = 0

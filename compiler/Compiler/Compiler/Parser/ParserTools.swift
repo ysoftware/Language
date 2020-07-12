@@ -11,41 +11,33 @@ import Foundation
 extension Parser {
 
     func typeResolvingAliases(from type: Type, in scope: Scope, declName: String, solidTypes: [Type]) -> Type {
-        guard let decl = scope.declarations[declName] else {
-            // @Todo: consider correctly adding a dependency on a yet-undeclared struct
-            return UnresolvedType()
+        guard let (decl, genericTypes) = genericDeclarations[declName] else {
+            // @Todo: this is also the case for type of a non-generic struct
+            // maybe we should traverse the type to see if it contains any Aliastypes and depend on it
+            return type
         }
-        return typeResolvingAliases(from: type, decl: decl, solidTypes: solidTypes)
+        return typeResolvingAliases(from: type, decl: decl, genericTypes: genericTypes, solidTypes: solidTypes)
     }
 
-    func typeResolvingAliases(from type: Type, decl: Declaration, solidTypes: [Type]) -> Type {
+    func typeResolvingAliases(from type: Type, decl: Declaration, genericTypes: [String], solidTypes: [Type]) -> Type {
         if var ptr = type as? PointerType {
-            ptr.pointeeType = typeResolvingAliases(from: ptr.pointeeType,
-                                                   decl: decl, solidTypes: solidTypes)
+            ptr.pointeeType = typeResolvingAliases(from: ptr.pointeeType, decl: decl,
+                                                   genericTypes: genericTypes, solidTypes: solidTypes)
             return ptr
         }
         if var structure = type as? StructureType {
             for i in 0..<structure.solidTypes.count {
-                structure.solidTypes[i] = typeResolvingAliases(from: structure.solidTypes[i],
-                                                               decl: decl, solidTypes: solidTypes)
+                structure.solidTypes[i] = typeResolvingAliases(from: structure.solidTypes[i], decl: decl,
+                                                               genericTypes: genericTypes, solidTypes: solidTypes)
             }
             return structure
         }
         if let alias = type as? AliasType {
             let index: Int
-            if let decl = decl as? StructDeclaration {
-                guard let genericTypeIndex = decl.genericTypes.firstIndex(of: alias.name) else {
-                    report("generic type name not found in a struct declaration?")
-                }
-                index = genericTypeIndex
+            guard let genericTypeIndex = genericTypes.firstIndex(of: alias.name) else {
+                report("generic type name not found in a struct declaration?")
             }
-            else if let decl = decl as? ProcedureDeclaration {
-                guard let genericTypeIndex = decl.genericTypes.firstIndex(of: alias.name) else {
-                    report("generic type name not found in a struct declaration?")
-                }
-                index = genericTypeIndex
-            }
-            else { report("Weird declaration.") }
+            index = genericTypeIndex
 
             let solidType = solidTypes[index]
             return solidType

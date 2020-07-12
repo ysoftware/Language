@@ -47,9 +47,6 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
         var string = "[Procedure\(c) <\(id)>] \(name) -> \(returnType) "
-        if !genericTypes.isEmpty {
-            string.append("<\(genericTypes.joined(separator: ", "))>")
-        }
         string.append("; args: ")
         string.append(arguments.map { "\($0)" }.joined(separator: ", "))
         if flags.contains(.isVarargs) { string.append("... ") }
@@ -77,13 +74,10 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     let returnType: Type
     let flags: Flags
     let scope: Code
-    let genericTypes: [String]
 
-    var isGeneric: Bool { !genericTypes.isEmpty }
-    
     internal init(id: String, name: String, arguments: [Value],
                   returnType: Type, flags: ProcedureDeclaration.Flags, scope: Code,
-                  genericTypes: [String] = [], range: CursorRange = CursorRange()) {
+                  range: CursorRange = CursorRange()) {
         self.id = id
         self.name = name
         self.arguments = arguments
@@ -91,7 +85,6 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
         self.flags = flags
         self.scope = scope
         self.range = range
-        self.genericTypes = genericTypes
     }
 }
 
@@ -135,9 +128,6 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
         var string = "[Struct\(c) \(name)"
-        if !genericTypes.isEmpty {
-            string.append("<\(genericTypes.joined(separator: ", "))>")
-        }
         string.append("] ")
         members.forEach { string.append("\n        [Member] \($0.name): \($0.exprType.typeName)") }
         return string
@@ -146,15 +136,10 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     let name: String
     let id: String
     let members: [VariableDeclaration]
-    let genericTypes: [String]
-    
-    var isGeneric: Bool { !genericTypes.isEmpty }
-    
-    internal init(name: String, members: [VariableDeclaration], genericTypes: [String],
-                  range: CursorRange = CursorRange()) {
-        self.genericTypes = genericTypes
+
+    internal init(name: String, members: [VariableDeclaration], range: CursorRange = CursorRange()) {
         self.name = name
-        self.id = name // @Todo: do ids for generics
+        self.id = name
         self.members = members
         self.range = range
     }
