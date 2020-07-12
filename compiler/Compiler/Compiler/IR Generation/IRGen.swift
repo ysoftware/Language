@@ -107,7 +107,7 @@ final class IR {
         else {
             emitLocal("define \(returnType) @\(procedure.name) (\(arguments)) {")
 
-            if procedure.arguments.count > 0 {
+            if procedure.arguments.count > 0 { 
                 for arg in procedure.arguments {
                     var argString = "; procedure arguments\n"
                     let exprType = typeResolvingAliases(from: arg.exprType, decl: procedure, solidTypes: solidTypes)

@@ -10,7 +10,6 @@ struct Pair<Left, Right> {
 struct Node<Value> {
     next: Node<Value>*;
     value: Value;
-    tag: Int;
 }
 
 func list_append_pair<Left, Right>(head: Node<Pair<Left, Right>>*, left: Left, right: Right) {
