@@ -860,12 +860,14 @@ extension Parser {
             case let keyword as Keyword:
                 if keyword == .func {
                     let decl = try doProcDecl(in: globalScope)
-                    statements.append(decl)
+                    if decl.isGeneric { genericProcedures[decl.name] = decl }
+                    else { statements.append(decl) }
                     break
                 }
                 if keyword == .struct {
                     let decl = try doStructDecl()
-                    statements.append(decl)
+                    if decl.isGeneric { genericStructs[decl.name] = decl }
+                    else { statements.append(decl) }
                     break
                 }
                 if keyword == .if { throw error(ParserMessage.ifNotExpectedAtGlobalScope, token.startCursor, token.endCursor) }
@@ -917,16 +919,17 @@ final class Parser {
     
     let fileName: String?
     let tokens: [Token]
-    
-    // Variables
-    
-    var statements: [Statement] = []
-    var stringLiterals: [String: VariableDeclaration] = [:] /// id : VarDecl*
+
+    var statements: [Statement] = [] /// 
+    var stringLiterals: [String: VariableDeclaration] = [:] /// inline string declarations
     var unresolved: [String: [Ast]] = [:] /// all with type unresolved
     var globalScope = Scope(id: Scope.globalId) /// all declarations in global scope
-    
+
+    var genericStructs: [String: StructDeclaration] = [:] /// declarations of generic structs
+    var genericProcedures: [String: ProcedureDeclaration] = [:] /// declarations of generic procedures
+
     var scopeCounter = 0
     var i = 0
     var token: Token
-    var entry: ProcedureDeclaration?
+    var entry: ProcedureDeclaration? /// main procedure of the program
 }
