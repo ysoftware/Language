@@ -57,120 +57,117 @@ final class Scope: CustomDebugStringConvertible {
     }
 }
 
-extension Parser {
-    
-    final class ErrorMessage {
-        
-        // common
-        let unexpectedEndOfFile = "Unexpected end of file."
-        func notImplemented(_ t: Token) -> String { "Token not implemented: '\(t)'." }
-        let noEntryPoint = "Entry point is not defined. Declare a procedure called 'main' or use directive #main on any other procedure."
-        let expectedSemicolon = "Expected ';' after an expression."
-        let expectedExpression = "Expected expression."
-        let expectedParentheses = "Parentheses are expected around the condition expression."
-        let exprExpectedBrackets = "Expected closing bracket after expression."
-        func unexpectedToken(_ t: String) -> String { "Unexpected token: '\(t)'." }
-        func expectedType(_ t: Token) -> String { "Expected type declaration. Got '\(t)' instead." }
+final class ParserMessage {
 
-        func returnTypeNotMatching(_ e: Type, _ g: Type) -> String {
-            "Return type is expected to be '\(e)', but expression provided evaluates to '\(g)'."
-        }
-        
-        // other
-        func conditionTypeMismatch(_ t: Type) -> String { "Condition is expected to be of type 'Bool', '\(t.typeName)' was given." }
-        let sizeofExpectedType = "Type name is expected after 'sizeof'."
-        let castExpectsTypeInBrackets = "Expected type in round brackets after 'cast'."
-        let newExpectsTypeIdent = "Expected type identifier after 'new'."
-        let freeExpectsPointer = "Expected expression of pointer type after 'free'."
-        func valueNotPointer(_ v: Type) -> String { "Dereference operation expects a pointer. '\(v.typeName)' is given." }
+    // common
+    static let unexpectedEndOfFile = "Unexpected end of file."
+    static func notImplemented(_ t: Token) -> String { "Token not implemented: '\(t)'." }
+    static let noEntryPoint = "Entry point is not defined. Declare a procedure called 'main' or use directive #main on any other procedure."
+    static let expectedSemicolon = "Expected ';' after an expression."
+    static let expectedExpression = "Expected expression."
+    static let expectedParentheses = "Parentheses are expected around the condition expression."
+    static let exprExpectedBrackets = "Expected closing bracket after expression."
+    static func unexpectedToken(_ t: String) -> String { "Unexpected token: '\(t)'." }
+    static func expectedType(_ t: Token) -> String { "Expected type declaration. Got '\(t)' instead." }
 
-        // member access
-        func memberAccessNonStruct(_ t: Type) -> String {
-            "Trying to perform member access on a non-struct value of '\(t)'"
-        }
-
-        func memberAccessUndeclaredMember(_ m: String, _ s: String) -> String {
-            "Struct '\(s)' does not declare a member named '\(m)'."
-        }
-
-        // operation
-        func binopArgTypeMatch(_ l: Type, r: Type) -> String {
-            "Argument types don't match. Left is '\(l)', right is '\(r)'."
-        }
-        
-        func binopArgTypeSupport(_ n: String, t: Type) -> String {
-            "Operation \(n) doesn't support arguments of type '\(t)'."
-        }
-        
-        func declarationConflict(_ d: Declaration) -> String {
-            // @Todo point to definition by cursor
-            "Declaration conflicts with another declaration with the same name on line \(d.range.start.lineNumber)."
-        }
-        
-        // var assign
-        func assignPassedNotValue(_ s: Ast) -> String { "Expression is not a value: '\(s)'." }
-        func assignUndeclared(_ n: String) -> String { "Undeclared variable '\(n)'." }
-        func assignConst(_ n: String) -> String { "\(n) is declared as constant." }
-        func assignTypeMismatch(_ e: Type, _ g: Type) -> String { "Variable is declared as \(e), but expression given evaluates to \(g)." }
-        func assignNotRValue(_ n: String) -> String { "\(n) is not an rvalue." }
-
-        // var decl
-        func declTypeIsDeclaration() -> String { "Type specified matches to a declaration." }
-        let varDeclExpectedEquals = "Expected '=' or ':' for the variable or constant declaration."
-        func varDeclTypeMismatch(_ e: Type, _ g: Type) -> String { "Type supplied '\(g)' does not match the type '\(e)' as specified." }
-        let varDeclRequiresType = "Variable declaration without expression requires type to be specified."
-        
-        let expectedMemberIdentifier = "Expected identifier after '.' for member access."
-        let unexpectedMemberAccess = "Unexpected member access expression."
-
-        // if
-        let ifExpectedBrackets = "Expected brackets around if-else blocks."
-        let ifNotExpectedAtGlobalScope = "If statement is not expected at the global scope"
-        
-        // loop
-        let loopNotExpectedAtGlobalScope = "While statement is not expected at the global scope"
-        let loopExpectedClosingParentheses = "Closing parentheses is expected around the condition expression."
-        let loopExpectedBrackets = "Expected brackets around a loop body."
-        let loopLabelDuplicate = "Break with this label is already declared in the current scope."
-        let loopLabelNotFound = "Loop with this label is not found in the current scope."
-        
-        // break, continue
-        let breakContext = "Break can't be used outside of loop or switch."
-        let continueContext = "Continue can't be used outside of loop or switch."
-
-        // procedure call
-        let callExpectedOpenParentheses = "Open parentheses is expected after arguments."
-        let callExpectedClosingParentheses = "Closing parentheses is expected after arguments."
-        let callNotProcedure = "Trying to call something that's not a procedure."
-        func callArgumentsCount(_ r: Int, _ g: Int) -> String { "Procedure requires \(r) argument\(plural(r)), \(g) given." }
-        func callArgumentsVarCount(_ r: Int, _ g: Int) -> String { "Procedure requires at least \(r) arguments, \(g) given." }
-        
-        func callArgumentTypeMismatch(_ e: String, _ g: String) -> String {
-            "Argument of type '\(e)' is expected by the procedure, '\(g)' given."
-        }
-        
-        // procedure declaration
-        let procNestedNotSupported = "Nested procedure declarations are not supported."
-        let procArgumentParentheses = "Expected parentheses around arguments declaration."
-        let procForeignUnexpectedBody = "Foreign procedure can not declare a body."
-        let procExpectedBody = "Procedure is expected to have a body."
-        let procExpectedArgumentType = "Expected a type of an argument after colon."
-        let procExpectedArgumentName = "Expected argument name."
-        let procExpectedArgumentBeforeVarargs = "Variadic argument requires definition before '...'."
-        let procUndeclaredDirective = "Undeclared procedure directive."
-        let procMainRedecl = "Redeclaration of the entry procedure."
-        let procDirectiveDuplicate = "Duplicate procedure directive."
-        func procDirectiveConflict(_ l: String, _ r: String) -> String { "Directive \(r) conflicts with previously declared directive \(l)." }
-        func procExpectedName(_ g: Token) -> String { "Expected procedure name identifier after 'func'. Got \(g) instead." }
-        let procNotReturning = "Expected a return statement in a non-void procedure."
-        func unusedGenericType(_ t: String) -> String { "Generic type '\(t)' is not used in the procedure declaration." }
-
-        // struct declaration
-        let structExpectedName = "Expected struct name after 'struct'."
-        let structExpectedBrackets = "Expected brackets for structure declaration."
-        let structExpectedBracketsEnd = "Expected brackets after structure members."
-        let structExpectedClosingTriangleBracket = "Expected '>' after a list of types for a generic struct declaration."
-        let structExpectedGenericType = "Expected type name for a generic struct declaration."
-        func structExpectedGenericTypeIdent(_ g: Token) -> String { "Expected type name identifier. Got \(g) instead" }
+    static func returnTypeNotMatching(_ e: Type, _ g: Type) -> String {
+        "Return type is expected to be '\(e)', but expression provided evaluates to '\(g)'."
     }
+
+    // other
+    static func conditionTypeMismatch(_ t: Type) -> String { "Condition is expected to be of type 'Bool', '\(t.typeName)' was given." }
+    static let sizeofExpectedType = "Type name is expected after 'sizeof'."
+    static let castExpectsTypeInBrackets = "Expected type in round brackets after 'cast'."
+    static let newExpectsTypeIdent = "Expected type identifier after 'new'."
+    static let freeExpectsPointer = "Expected expression of pointer type after 'free'."
+    static func valueNotPointer(_ v: Type) -> String { "Dereference operation expects a pointer. '\(v.typeName)' is given." }
+
+    // member access
+    static func memberAccessNonStruct(_ t: Type) -> String {
+        "Trying to perform member access on a non-struct value of '\(t)'"
+    }
+
+    static func memberAccessUndeclaredMember(_ m: String, _ s: String) -> String {
+        "Struct '\(s)' does not declare a member named '\(m)'."
+    }
+
+    // operation
+    static func binopArgTypeMatch(_ l: Type, r: Type) -> String {
+        "Argument types don't match. Left is '\(l)', right is '\(r)'."
+    }
+
+    static func binopArgTypeSupport(_ n: String, t: Type) -> String {
+        "Operation \(n) doesn't support arguments of type '\(t)'."
+    }
+
+    static func declarationConflict(_ d: Declaration) -> String {
+        // @Todo point to definition by cursor
+        "Declaration conflicts with another declaration with the same name on line \(d.range.start.lineNumber)."
+    }
+
+    // var assign
+    static func assignPassedNotValue(_ s: Ast) -> String { "Expression is not a value: '\(s)'." }
+    static func assignUndeclared(_ n: String) -> String { "Undeclared variable '\(n)'." }
+    static func assignConst(_ n: String) -> String { "\(n) is declared as constant." }
+    static func assignTypeMismatch(_ e: Type, _ g: Type) -> String { "Variable is declared as \(e), but expression given evaluates to \(g)." }
+    static func assignNotRValue(_ n: String) -> String { "\(n) is not an rvalue." }
+
+    // var decl
+    static func declTypeIsDeclaration() -> String { "Type specified matches to a declaration." }
+    static let varDeclExpectedEquals = "Expected '=' or ':' for the variable or constant declaration."
+    static func varDeclTypeMismatch(_ e: Type, _ g: Type) -> String { "Type supplied '\(g)' does not match the type '\(e)' as specified." }
+    static let varDeclRequiresType = "Variable declaration without expression requires type to be specified."
+
+    static let expectedMemberIdentifier = "Expected identifier after '.' for member access."
+    static let unexpectedMemberAccess = "Unexpected member access expression."
+
+    // if
+    static let ifExpectedBrackets = "Expected brackets around if-else blocks."
+    static let ifNotExpectedAtGlobalScope = "If statement is not expected at the global scope"
+
+    // loop
+    static let loopNotExpectedAtGlobalScope = "While statement is not expected at the global scope"
+    static let loopExpectedClosingParentheses = "Closing parentheses is expected around the condition expression."
+    static let loopExpectedBrackets = "Expected brackets around a loop body."
+    static let loopLabelDuplicate = "Break with this label is already declared in the current scope."
+    static let loopLabelNotFound = "Loop with this label is not found in the current scope."
+
+    // break, continue
+    static let breakContext = "Break can't be used outside of loop or switch."
+    static let continueContext = "Continue can't be used outside of loop or switch."
+
+    // procedure call
+    static let callExpectedOpenParentheses = "Open parentheses is expected after arguments."
+    static let callExpectedClosingParentheses = "Closing parentheses is expected after arguments."
+    static let callNotProcedure = "Trying to call something that's not a procedure."
+    static func callArgumentsCount(_ r: Int, _ g: Int) -> String { "Procedure requires \(r) argument\(plural(r)), \(g) given." }
+    static func callArgumentsVarCount(_ r: Int, _ g: Int) -> String { "Procedure requires at least \(r) arguments, \(g) given." }
+
+    static func callArgumentTypeMismatch(_ e: String, _ g: String) -> String {
+        "Argument of type '\(e)' is expected by the procedure, '\(g)' given."
+    }
+
+    // procedure declaration
+    static let procNestedNotSupported = "Nested procedure declarations are not supported."
+    static let procArgumentParentheses = "Expected parentheses around arguments declaration."
+    static let procForeignUnexpectedBody = "Foreign procedure can not declare a body."
+    static let procExpectedBody = "Procedure is expected to have a body."
+    static let procExpectedArgumentType = "Expected a type of an argument after colon."
+    static let procExpectedArgumentName = "Expected argument name."
+    static let procExpectedArgumentBeforeVarargs = "Variadic argument requires definition before '...'."
+    static let procUndeclaredDirective = "Undeclared procedure directive."
+    static let procMainRedecl = "Redeclaration of the entry procedure."
+    static let procDirectiveDuplicate = "Duplicate procedure directive."
+    static func procDirectiveConflict(_ l: String, _ r: String) -> String { "Directive \(r) conflicts with previously declared directive \(l)." }
+    static func procExpectedName(_ g: Token) -> String { "Expected procedure name identifier after 'func'. Got \(g) instead." }
+    static let procNotReturning = "Expected a return statement in a non-void procedure."
+    static func unusedGenericType(_ t: String) -> String { "Generic type '\(t)' is not used in the procedure declaration." }
+
+    // struct declaration
+    static let structExpectedName = "Expected struct name after 'struct'."
+    static let structExpectedBrackets = "Expected brackets for structure declaration."
+    static let structExpectedBracketsEnd = "Expected brackets after structure members."
+    static let structExpectedClosingTriangleBracket = "Expected '>' after a list of types for a generic struct declaration."
+    static let structExpectedGenericType = "Expected type name for a generic struct declaration."
+    static func structExpectedGenericTypeIdent(_ g: Token) -> String { "Expected type name identifier. Got \(g) instead" }
 }

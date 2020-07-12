@@ -8,51 +8,51 @@
 
 import Foundation
 
-func typeResolvingAliases(from type: Type, in scope: Scope, declName: String, solidTypes: [Type]) -> Type {
-    guard let decl = scope.declarations[declName] else {
-        // @Todo: consider correctly adding a dependency on a yet-undeclared struct
-        return UnresolvedType()
-    }
-    return typeResolvingAliases(from: type, decl: decl, solidTypes: solidTypes)
-}
-
-func typeResolvingAliases(from type: Type, decl: Declaration, solidTypes: [Type]) -> Type {
-    if var ptr = type as? PointerType {
-        ptr.pointeeType = typeResolvingAliases(from: ptr.pointeeType,
-                                               decl: decl, solidTypes: solidTypes)
-        return ptr
-    }
-    if var structure = type as? StructureType {
-        for i in 0..<structure.solidTypes.count {
-            structure.solidTypes[i] = typeResolvingAliases(from: structure.solidTypes[i],
-                                                           decl: decl, solidTypes: solidTypes)
-        }
-        return structure
-    }
-    if let alias = type as? AliasType {
-        let index: Int
-        if let decl = decl as? StructDeclaration {
-            guard let genericTypeIndex = decl.genericTypes.firstIndex(of: alias.name) else {
-                report("generic type name not found in a struct declaration?")
-            }
-            index = genericTypeIndex
-        }
-        else if let decl = decl as? ProcedureDeclaration {
-            guard let genericTypeIndex = decl.genericTypes.firstIndex(of: alias.name) else {
-                report("generic type name not found in a struct declaration?")
-            }
-            index = genericTypeIndex
-        }
-        else { report("Weird declaration.") }
-
-        let solidType = solidTypes[index]
-        return solidType
-    }
-    return type
-}
-
 extension Parser {
-    
+
+    func typeResolvingAliases(from type: Type, in scope: Scope, declName: String, solidTypes: [Type]) -> Type {
+        guard let decl = scope.declarations[declName] else {
+            // @Todo: consider correctly adding a dependency on a yet-undeclared struct
+            return UnresolvedType()
+        }
+        return typeResolvingAliases(from: type, decl: decl, solidTypes: solidTypes)
+    }
+
+    func typeResolvingAliases(from type: Type, decl: Declaration, solidTypes: [Type]) -> Type {
+        if var ptr = type as? PointerType {
+            ptr.pointeeType = typeResolvingAliases(from: ptr.pointeeType,
+                                                   decl: decl, solidTypes: solidTypes)
+            return ptr
+        }
+        if var structure = type as? StructureType {
+            for i in 0..<structure.solidTypes.count {
+                structure.solidTypes[i] = typeResolvingAliases(from: structure.solidTypes[i],
+                                                               decl: decl, solidTypes: solidTypes)
+            }
+            return structure
+        }
+        if let alias = type as? AliasType {
+            let index: Int
+            if let decl = decl as? StructDeclaration {
+                guard let genericTypeIndex = decl.genericTypes.firstIndex(of: alias.name) else {
+                    report("generic type name not found in a struct declaration?")
+                }
+                index = genericTypeIndex
+            }
+            else if let decl = decl as? ProcedureDeclaration {
+                guard let genericTypeIndex = decl.genericTypes.firstIndex(of: alias.name) else {
+                    report("generic type name not found in a struct declaration?")
+                }
+                index = genericTypeIndex
+            }
+            else { report("Weird declaration.") }
+
+            let solidType = solidTypes[index]
+            return solidType
+        }
+        return type
+    }
+
     func nextScope(from: Scope, as context: Context? = nil) -> Scope {
         let newScope = Scope(declarations: from.declarations, id: "l\(scopeCounter)_", contexts: from.contexts)
         scopeCounter += 1
@@ -67,7 +67,7 @@ extension Parser {
 
         let baseType = base.exprType.getValueType()
         guard let structType = baseType as? StructureType else {
-            throw error(em.memberAccessNonStruct(baseType), base.range)
+            throw error(ParserMessage.memberAccessNonStruct(baseType), base.range)
         }
 
         // @Todo: consider correctly adding a dependency on a yet-undeclared struct
@@ -77,7 +77,7 @@ extension Parser {
 
         if let decl = foundDecl as? StructDeclaration {
             guard let index = decl.members.firstIndex(where: { $0.name == name }) else {
-                throw error(em.memberAccessUndeclaredMember(name, decl.name), memberRange)
+                throw error(ParserMessage.memberAccessUndeclaredMember(name, decl.name), memberRange)
             }
 
             // @Todo: check for typealiases in local scope
@@ -201,7 +201,7 @@ extension Parser {
     
     func verifyNameConflict(_ declaration: Declaration, in scope: Scope? = nil) throws {
         if let d = globalScope.declarations[declaration.name] ?? scope?.declarations[declaration.name] {
-            throw error(em.declarationConflict(d), d.range)
+            throw error(ParserMessage.declarationConflict(d), d.range)
         }
         return
     }
@@ -254,7 +254,7 @@ extension Parser {
             return arg
 
         case UnaryOperator.dereference:
-            guard let ptr = arg as? PointerType else { throw error(em.valueNotPointer(arg)) }
+            guard let ptr = arg as? PointerType else { throw error(ParserMessage.valueNotPointer(arg)) }
             return ptr.pointeeType
 
         case UnaryOperator.memoryAddress:
@@ -264,7 +264,7 @@ extension Parser {
             return any
 
         default:
-            throw error(em.notImplemented(token), token.range)
+            throw error(ParserMessage.notImplemented(token), token.range)
         }
     }
 

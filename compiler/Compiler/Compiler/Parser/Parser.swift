@@ -15,7 +15,7 @@ extension Parser {
     func matchType() -> Bool { token.value is Identifier }
 
     func doType(in scope: Scope) throws -> (type: Type, range: CursorRange) {
-        guard let baseIdent = consumeIdent() else { throw error(em.expectedType(token), token.startCursor, token.endCursor) }
+        guard let baseIdent = consumeIdent() else { throw error(ParserMessage.expectedType(token), token.startCursor, token.endCursor) }
 
         var end = baseIdent.token.endCursor
         var solidTypes: [Type] = []
@@ -23,7 +23,7 @@ extension Parser {
         if consumeOp("<") {
             while !consumeOp(">") {
                 if solidTypes.count > 0, !consumeSep(",") {
-                    throw error(em.structExpectedClosingTriangleBracket)
+                    throw error(ParserMessage.structExpectedClosingTriangleBracket)
                 }
                 let (solidType, _) = try doType(in: scope)
                 solidTypes.append(solidType)
@@ -44,7 +44,7 @@ extension Parser {
             }
             else {
                 guard let resolvedType = resolveType(named: baseIdent.value.value)
-                    else { throw error(em.expectedType(baseIdent.token)) }
+                    else { throw error(ParserMessage.expectedType(baseIdent.token)) }
                 type = resolvedType
             }
         }
@@ -76,7 +76,7 @@ extension Parser {
             }
         }
         guard let memberIdent = consumeIdent() else {
-            throw error(em.expectedMemberIdentifier, token.startCursor, token.endCursor)
+            throw error(ParserMessage.expectedMemberIdentifier, token.startCursor, token.endCursor)
         }
         let member = memberIdent.value.value
         let info = try resolveMemberTypeAndIndex(forName: member, of: base, in: scope, memberRange: memberIdent.token.range)
@@ -94,24 +94,24 @@ extension Parser {
             
             // find variable in scope
             guard let ast = scope.declarations[identifier.value]
-                else { throw error(em.assignUndeclared(identifier.value), token.startCursor, token.endCursor) }
+                else { throw error(ParserMessage.assignUndeclared(identifier.value), token.startCursor, token.endCursor) }
             guard let varDecl = ast as? VariableDeclaration
-                else { throw error(em.assignPassedNotValue(ast), token.startCursor, token.endCursor) }
+                else { throw error(ParserMessage.assignPassedNotValue(ast), token.startCursor, token.endCursor) }
             guard !varDecl.flags.contains(.isConstant)
-                else { throw error(em.assignConst(identifier.value), token.startCursor, token.endCursor) }
+                else { throw error(ParserMessage.assignConst(identifier.value), token.startCursor, token.endCursor) }
             
             let decl = resolveVarDecl(named: identifier.value, in: scope)
             let exprType = decl?.exprType ?? UnresolvedType()
             let id = decl?.id ?? Scope.unresolvedId
             var base: Expression = Value(name: identifier.value, id: id, exprType: exprType,
                                          range: token.range)
-            if !nextToken() { throw error(em.unexpectedEndOfFile) }
+            if !nextToken() { throw error(ParserMessage.unexpectedEndOfFile) }
             while matchMemberAccess() {
                 base = try doMemberAccess(of: base, in: scope)
             }
             // @Todo: check root member access base existence
             
-            guard consumeOp("=") else { throw error(em.unexpectedMemberAccess, base.range) }
+            guard consumeOp("=") else { throw error(ParserMessage.unexpectedMemberAccess, base.range) }
             return base
         }
         
@@ -132,7 +132,7 @@ extension Parser {
 
             if !expr.exprType.equals(to: expectingType) {
                 guard let converted = try convertExpression(expr, to: expectingType) else {
-                    throw error(em.assignTypeMismatch(expectingType, expr.exprType), expr.range)
+                    throw error(ParserMessage.assignTypeMismatch(expectingType, expr.exprType), expr.range)
                 }
                 expr = converted
             }
@@ -181,12 +181,12 @@ extension Parser {
                     expr = converted
                 }
                 else if !declaredType.type.equals(to: exprType) {
-                    throw error(em.varDeclTypeMismatch(exprType, declaredType.type),
+                    throw error(ParserMessage.varDeclTypeMismatch(exprType, declaredType.type),
                                 declaredType.range.start, declaredType.range.end)
                 }
             }
         }
-        else if !consumeSep(";") { throw error(em.expectedSemicolon) }
+        else if !consumeSep(";") { throw error(ParserMessage.expectedSemicolon) }
 
         // variable type inference
         let type: Type
@@ -196,7 +196,7 @@ extension Parser {
         else if let declType = declaredType?.type {
             type = declType
         }
-        else { throw error(em.varDeclRequiresType) } // @Todo: check cursors and if this error is even valid
+        else { throw error(ParserMessage.varDeclRequiresType) } // @Todo: check cursors and if this error is even valid
         
         let name = identifier.value.value
         let id = "\(scope.id)\(name)"
@@ -218,7 +218,7 @@ extension Parser {
         let start = token.startCursor
         guard consumeKeyword(.struct) else { report("can't call doStructDecl without checking for keyword first") }
         guard let name = consumeIdent()?.value
-            else { throw error(em.structExpectedName) }
+            else { throw error(ParserMessage.structExpectedName) }
         let end = token.endCursor
 
         // parse generic types here
@@ -226,15 +226,15 @@ extension Parser {
         var genericTypes: [String] = []
         if consumeOp("<") {
             while !consumeOp(">") {
-                if genericTypes.count > 0, !consumeSep(",") { throw error(em.structExpectedClosingTriangleBracket) }
-                guard let typeIdent = consumeIdent() else { throw error(em.structExpectedGenericType) }
+                if genericTypes.count > 0, !consumeSep(",") { throw error(ParserMessage.structExpectedClosingTriangleBracket) }
+                guard let typeIdent = consumeIdent() else { throw error(ParserMessage.structExpectedGenericType) }
                 genericTypes.append(typeIdent.value.value)
                 structScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: typeIdent.value.value)
             }
         }
 
         guard consumePunct("{")
-            else { throw error(em.structExpectedBrackets) }
+            else { throw error(ParserMessage.structExpectedBrackets) }
         var members: [VariableDeclaration] = []
         while tokens.count > i {
             if matchVarDecl() {
@@ -243,7 +243,7 @@ extension Parser {
             }
             else {
                 if consumePunct("}") { break }
-                else { throw error(em.structExpectedBracketsEnd) }
+                else { throw error(ParserMessage.structExpectedBracketsEnd) }
             }
         }
         let structDecl = StructDeclaration(name: name.value, members: members, genericTypes: genericTypes,
@@ -269,7 +269,7 @@ extension Parser {
         if consumeOp("<") {
             while !consumeOp(">") {
                 if solidTypes.count > 0, !consumeSep(",") {
-                    throw error(em.structExpectedClosingTriangleBracket)
+                    throw error(ParserMessage.structExpectedClosingTriangleBracket)
                 }
                 let (solidType, _) = try doType(in: scope)
                 solidTypes.append(solidType)
@@ -277,14 +277,14 @@ extension Parser {
         }
 
         var arguments: [Expression] = []
-        guard consumePunct("(") else { throw error(em.callExpectedOpenParentheses, token.range) }
+        guard consumePunct("(") else { throw error(ParserMessage.callExpectedOpenParentheses, token.range) }
         while tokens.count > i { // PROCEDURE CALL ARGUMENTS
             if (token.value as? Punctuator)?.value == ")" { break }
             let arg = try doExpression(in: scope, expectSemicolon: false)
             arguments.append(arg)
             if !consumeSep(",") { break }
         }
-        guard consumePunct(")") else { throw error(em.callExpectedClosingParentheses,
+        guard consumePunct(")") else { throw error(ParserMessage.callExpectedClosingParentheses,
                                                     lastToken.endCursor.advancingCharacter()) }
         let end = lastToken.endCursor
         var returnType: Type = UnresolvedType()
@@ -293,7 +293,7 @@ extension Parser {
 
         if let statement = foundDecl { // else - proceed
             guard let procDecl = statement as? ProcedureDeclaration
-                else { throw error(em.callNotProcedure, identToken.startCursor, identToken.endCursor) }
+                else { throw error(ParserMessage.callNotProcedure, identToken.startCursor, identToken.endCursor) }
             returnType = procDecl.returnType
 
             var argumentTypes: [Type] = []
@@ -306,16 +306,16 @@ extension Parser {
 
             let minArgWithoutVararg = argumentTypes.count - (procDecl.flags.contains(.isVarargs) ? 1 : 0)
             guard arguments.count >= minArgWithoutVararg else {
-                throw error(em.callArgumentsCount(argumentTypes.count, arguments.count), start, end)
+                throw error(ParserMessage.callArgumentsCount(argumentTypes.count, arguments.count), start, end)
             }
             for i in 0..<arguments.count {
                 guard argumentTypes.count > i || procDecl.flags.contains(.isVarargs) else {
                     if procDecl.flags.contains(.isVarargs) {
-                        throw error(em.callArgumentsVarCount(argumentTypes.count, arguments.count),
+                        throw error(ParserMessage.callArgumentsVarCount(argumentTypes.count, arguments.count),
                                     start, end)
                     }
                     else {
-                        throw error(em.callArgumentsCount(argumentTypes.count, arguments.count),
+                        throw error(ParserMessage.callArgumentsCount(argumentTypes.count, arguments.count),
                                     start, end)
                     }
                 }
@@ -326,7 +326,7 @@ extension Parser {
                     arguments[i].exprType = argumentTypes[i]// resolveType(of: declArgument)
                 }
                 else if !declArgument.equals(to: arguments[i].exprType) {
-                    throw error(em.callArgumentTypeMismatch(
+                    throw error(ParserMessage.callArgumentTypeMismatch(
                         declArgument.typeName, arguments[i].exprType.typeName), arguments[i].range)
                 }
             }
@@ -346,22 +346,22 @@ extension Parser {
         let start = token.startCursor
         guard consumeKeyword(.func) else { report("can't call doProcDecl without checking for keyword first") }
         guard let procNameIdent = consumeIdent()?.value else {
-            throw error(em.procExpectedName(token), token.startCursor, token.endCursor)
+            throw error(ParserMessage.procExpectedName(token), token.startCursor, token.endCursor)
         }
 
         let procedureScope = nextScope(from: globalScope)
         var genericTypeIdents: [Token] = [] // PROCEDURE GENERIC TYPES
         if consumeOp("<") {
             while !consumeOp(">") {
-                if genericTypeIdents.count > 0, !consumeSep(",") { throw error(em.structExpectedClosingTriangleBracket) }
-                guard let typeIdent = consumeIdent() else { throw error(em.structExpectedGenericType) }
+                if genericTypeIdents.count > 0, !consumeSep(",") { throw error(ParserMessage.structExpectedClosingTriangleBracket) }
+                guard let typeIdent = consumeIdent() else { throw error(ParserMessage.structExpectedGenericType) }
                 genericTypeIdents.append(typeIdent.token)
                 procedureScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: typeIdent.value.value)
             }
         }
         var unusedGenericTypes = genericTypeIdents
 
-        guard consumePunct("(") else { throw error(em.expectedParentheses) }
+        guard consumePunct("(") else { throw error(ParserMessage.expectedParentheses) }
         scopeCounter = 0 // reset scope counter
         let end = lastToken.endCursor
         let returnType: Type
@@ -383,16 +383,16 @@ extension Parser {
         while tokens.count > i { // PROCEDURE ARGUMENTS DECLARATION
             if (token.value as? Punctuator)?.value == ")" { break }
             if consumePunct("...") {
-                if arguments.isEmpty { throw error(em.procExpectedArgumentBeforeVarargs,
+                if arguments.isEmpty { throw error(ParserMessage.procExpectedArgumentBeforeVarargs,
                                                    tokens[i-2].endCursor.advancingCharacter()) }
                 flags.insert(.isVarargs)
                 break
             }
             else {
                 guard let argNameTok = consumeIdent() else {
-                    throw error(em.procExpectedArgumentName, token.startCursor, token.endCursor)
+                    throw error(ParserMessage.procExpectedArgumentName, token.startCursor, token.endCursor)
                 }
-                guard consumePunct(":") else { throw error(em.procExpectedArgumentType) }
+                guard consumePunct(":") else { throw error(ParserMessage.procExpectedArgumentType) }
                 let argType = try doType(in: procedureScope)
                 // @Todo: change argument from Type to something that will also contain argument name and label
                 let argName = argNameTok.value.value
@@ -404,7 +404,7 @@ extension Parser {
             }
             if !consumeSep(",") { break }
         }
-        if !consumePunct(")") { throw error(em.procArgumentParentheses) }
+        if !consumePunct(")") { throw error(ParserMessage.procArgumentParentheses) }
         if consumePunct("->") {
             returnType = try doType(in: procedureScope).type
             useType(returnType)
@@ -412,30 +412,30 @@ extension Parser {
         else { returnType = void }
 
         guard unusedGenericTypes.isEmpty else {
-            throw error(em.unusedGenericType((unusedGenericTypes[0].value as! Identifier).value), unusedGenericTypes[0].range)
+            throw error(ParserMessage.unusedGenericType((unusedGenericTypes[0].value as! Identifier).value), unusedGenericTypes[0].range)
         }
 
         while let (directiveToken, directive) = consume(Directive.self) {
             switch directive.value {
             case "foreign":
-                guard !flags.contains(.isForeign) else { throw error(em.procDirectiveDuplicate, directiveToken.range) }
-                guard !flags.contains(.main) else { throw error(em.procDirectiveConflict("#main", "#foreign"), directiveToken.range) }
+                guard !flags.contains(.isForeign) else { throw error(ParserMessage.procDirectiveDuplicate, directiveToken.range) }
+                guard !flags.contains(.main) else { throw error(ParserMessage.procDirectiveConflict("#main", "#foreign"), directiveToken.range) }
                 flags.insert(.isForeign)
                 procId = procName
             case "main":
-                guard !flags.contains(.isForeign) else { throw error(em.procDirectiveConflict("#foreign", "#main"), directiveToken.range) }
-                guard !flags.contains(.main) else { throw error(em.procDirectiveDuplicate, directiveToken.range) }
+                guard !flags.contains(.isForeign) else { throw error(ParserMessage.procDirectiveConflict("#foreign", "#main"), directiveToken.range) }
+                guard !flags.contains(.main) else { throw error(ParserMessage.procDirectiveDuplicate, directiveToken.range) }
                 flags.insert(.main)
                 isForceEntry = true
                 let previousForceEntry = entry?.flags.contains(.main) ?? false
-                if previousForceEntry && isForceEntry { throw error(em.procMainRedecl, directiveToken.range) }
+                if previousForceEntry && isForceEntry { throw error(ParserMessage.procMainRedecl, directiveToken.range) }
             default:
-                throw error(em.procUndeclaredDirective, directiveToken.startCursor, directiveToken.endCursor)
+                throw error(ParserMessage.procUndeclaredDirective, directiveToken.startCursor, directiveToken.endCursor)
             }
         }
 
         if consumePunct("{") {
-            if flags.contains(.isForeign) { throw error(em.procForeignUnexpectedBody) }
+            if flags.contains(.isForeign) { throw error(ParserMessage.procForeignUnexpectedBody) }
 
             // CREATE PROCEDURE-LOCAL VARIABLES FROM ARGUMENTS
             arguments.forEach { arg in
@@ -453,16 +453,16 @@ extension Parser {
                     returnStat.value = fixedExpr
                     continue
                 }
-                throw error(em.returnTypeNotMatching(returnType, returnStat.value.exprType), returnStat.range)
+                throw error(ParserMessage.returnTypeNotMatching(returnType, returnStat.value.exprType), returnStat.range)
             }
             
             if !(code.statements.last is Return) {
                 if returnType.equals(to: void) { code.statements.append(Return(value: VoidLiteral())) }
-                else { throw error(em.procNotReturning) }
+                else { throw error(ParserMessage.procNotReturning) }
             }
         }
         else if !flags.contains(.isForeign) {
-            throw error(em.procExpectedBody)
+            throw error(ParserMessage.procExpectedBody)
         }
 
         let genericTypes = genericTypeIdents.map { ($0.value as! Identifier).value }
@@ -495,18 +495,18 @@ extension Parser {
                 // @Todo: depend if on condition
             }
             else if !condition.exprType.equals(to: bool) {
-                throw error(em.conditionTypeMismatch(condition.exprType), condition.range)
+                throw error(ParserMessage.conditionTypeMismatch(condition.exprType), condition.range)
             }
-            if !consumePunct(")") { throw error(em.expectedParentheses) }
+            if !consumePunct(")") { throw error(ParserMessage.expectedParentheses) }
         }
         // @Todo: match condition type to bool (make the matching procedure)
-        if !consumePunct("{") { throw error(em.ifExpectedBrackets) }
+        if !consumePunct("{") { throw error(ParserMessage.ifExpectedBrackets) }
         ifBody = try doStatements(in: nextScope(from: scope))
-        guard consumePunct("}") else { throw error(em.ifExpectedBrackets) }
+        guard consumePunct("}") else { throw error(ParserMessage.ifExpectedBrackets) }
         if consumeKeyword(.else) {
-            if !consumePunct("{") { throw error(em.ifExpectedBrackets) }
+            if !consumePunct("{") { throw error(ParserMessage.ifExpectedBrackets) }
             elseBody = try doStatements(in: nextScope(from: scope))
-            guard consumePunct("}") else { throw error(em.ifExpectedBrackets) }
+            guard consumePunct("}") else { throw error(ParserMessage.ifExpectedBrackets) }
         }
         let ifStatement = Condition(condition: condition, block: Code(ifBody), elseBlock: Code(elseBody),
                                     range: tok.range)
@@ -533,7 +533,7 @@ extension Parser {
         guard consumeKeyword(.while) else { report("can't call doWhile without checking for keyword first") }
         if let labelIdent = labelIdent {
             if scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == labelIdent.value.value })
-            { throw error(em.loopLabelDuplicate, labelIdent.token.startCursor, labelIdent.token.endCursor) }
+            { throw error(ParserMessage.loopLabelDuplicate, labelIdent.token.startCursor, labelIdent.token.endCursor) }
         }
         let hasParentheses = consumePunct("(")
         var condition: Expression!
@@ -543,14 +543,14 @@ extension Parser {
                 // @Todo: depend while on condition
             }
             else if !condition.exprType.equals(to: bool) {
-                throw error(em.conditionTypeMismatch(condition.exprType), condition.range)
+                throw error(ParserMessage.conditionTypeMismatch(condition.exprType), condition.range)
             }
-            if !consumePunct(")") { throw error(em.expectedParentheses) }
+            if !consumePunct(")") { throw error(ParserMessage.expectedParentheses) }
         }
         // @Todo: match condition type to bool (make the matching procedure)
-        if !consumePunct("{") { throw error(em.loopExpectedBrackets) }
+        if !consumePunct("{") { throw error(ParserMessage.loopExpectedBrackets) }
         let loopBody = try doStatements(in: nextScope(from: scope, as: ContextLoop(label: label)))
-        guard consumePunct("}") else { throw error(em.loopExpectedBrackets) }
+        guard consumePunct("}") else { throw error(ParserMessage.loopExpectedBrackets) }
         let whileStatement = WhileLoop(userLabel: label, condition: condition, block: Code(loopBody),
                                        range: CursorRange(start, end))
         return whileStatement
@@ -560,14 +560,14 @@ extension Parser {
         let tok = token
         guard consumeKeyword(.break) else { report("can't call doBreak without checking for keyword first") }
         let labelIdent = consumeIdent()
-        guard consumeSep(";") else { throw error(em.expectedSemicolon) }
+        guard consumeSep(";") else { throw error(ParserMessage.expectedSemicolon) }
         if let labelIdent = labelIdent {
             if !scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == labelIdent.value.value })
-            { throw error(em.loopLabelNotFound, labelIdent.token.startCursor, labelIdent.token.endCursor) }
+            { throw error(ParserMessage.loopLabelNotFound, labelIdent.token.startCursor, labelIdent.token.endCursor) }
         }
         else {
             if nil == scope.contexts.last(where: { $0 is ContextLoop })
-                { throw error(em.breakContext, tok.startCursor, tok.endCursor) }
+                { throw error(ParserMessage.breakContext, tok.startCursor, tok.endCursor) }
         }
         let br = Break(userLabel: labelIdent?.value.value, range: tok.range)
         return br
@@ -577,14 +577,14 @@ extension Parser {
         let tok = token
         guard consumeKeyword(.continue) else { report("can't call doContinue without checking for keyword first") }
         let labelIdent = consumeIdent()
-        guard consumeSep(";") else { throw error(em.expectedSemicolon) }
+        guard consumeSep(";") else { throw error(ParserMessage.expectedSemicolon) }
         if let labelIdent = labelIdent {
             if !scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == labelIdent.value.value })
-            { throw error(em.loopLabelNotFound, labelIdent.token.startCursor, labelIdent.token.endCursor) }
+            { throw error(ParserMessage.loopLabelNotFound, labelIdent.token.startCursor, labelIdent.token.endCursor) }
         }
         else {
             if nil == scope.contexts.last(where: { $0 is ContextLoop })
-                { throw error(em.continueContext, tok.startCursor, tok.endCursor) }
+                { throw error(ParserMessage.continueContext, tok.startCursor, tok.endCursor) }
         }
         let cont = Continue(userLabel: labelIdent?.value.value, range: tok.range)
         return cont
@@ -594,7 +594,7 @@ extension Parser {
     
     /// `Binary` or `any single expression`
     func doExpression(in scope: Scope, expectSemicolon: Bool = true, _ priority: Int = 0) throws -> Expression {
-        guard tokens.count > i else { throw error(em.unexpectedEndOfFile, lastToken.endCursor) }
+        guard tokens.count > i else { throw error(ParserMessage.unexpectedEndOfFile, lastToken.endCursor) }
 
         var left = try doExpr(in: scope)
         while let op = token.value as? Operator, let opPriority = precedence(of: op.value), opPriority >= priority {
@@ -613,17 +613,17 @@ extension Parser {
 
             let range = CursorRange(left.range.start, right.range.end)
             guard left.exprType.equals(to: right.exprType) else {
-                throw error(em.binopArgTypeMatch(left.exprType, r: right.exprType), range)
+                throw error(ParserMessage.binopArgTypeMatch(left.exprType, r: right.exprType), range)
             }
             guard isAccepting(op.value, argType: left.exprType) else {
-                throw error(em.binopArgTypeSupport(op.value, t: left.exprType), range)
+                throw error(ParserMessage.binopArgTypeSupport(op.value, t: left.exprType), range)
             }
             
             let type = returnType(ofBinaryOperation: op.value, arg: left.exprType)
             left = BinaryOperator(name: op.value, exprType: type, arguments: (left, right), range: range)
         }
         
-        if expectSemicolon, !consumeSep(";") { throw error(em.expectedSemicolon) }
+        if expectSemicolon, !consumeSep(";") { throw error(ParserMessage.expectedSemicolon) }
         return left
     }
     
@@ -634,7 +634,7 @@ extension Parser {
         var arg: Expression!
         if consumePunct("(") {
             arg = try doExpression(in: scope, expectSemicolon: false)
-            if !consumePunct(")") { throw error(em.ifExpectedBrackets) }
+            if !consumePunct(")") { throw error(ParserMessage.ifExpectedBrackets) }
             return arg
         }
         else if let (opTok, op) = consumeOperator() { // unary operation
@@ -649,7 +649,7 @@ extension Parser {
         switch token.value {
             
         case let keyword as Keyword:
-            guard nextToken() else { throw error(em.unexpectedEndOfFile) }
+            guard nextToken() else { throw error(ParserMessage.unexpectedEndOfFile) }
             switch keyword {
             case .sizeof:
                 let start = token.startCursor
@@ -663,11 +663,11 @@ extension Parser {
             case .cast:
                 let start = token.startCursor
                 guard consumePunct("(") else {
-                    throw error(em.castExpectsTypeInBrackets, token.startCursor, token.endCursor)
+                    throw error(ParserMessage.castExpectsTypeInBrackets, token.startCursor, token.endCursor)
                 }
                 let type = try doType(in: scope)
                 guard consumePunct(")") else {
-                    throw error(em.castExpectsTypeInBrackets, token.startCursor, token.endCursor)
+                    throw error(ParserMessage.castExpectsTypeInBrackets, token.startCursor, token.endCursor)
                 }
                 // @Todo: depend on this type to be resolved
                 let expr = try doExpression(in: scope, expectSemicolon: false)
@@ -676,7 +676,7 @@ extension Parser {
                 
             default:
                 print("Expression unknown: \(token)")
-                throw error(em.notImplemented(token), token.range)
+                throw error(ParserMessage.notImplemented(token), token.range)
             }
             
         case let literal as TokenLiteral:
@@ -703,7 +703,7 @@ extension Parser {
                     expression = Value(name: decl.name, id: decl.id, exprType: string)
                 }
             }
-            if !nextToken() { throw error(em.unexpectedEndOfFile) }
+            if !nextToken() { throw error(ParserMessage.unexpectedEndOfFile) }
         case let identifier as Identifier:
             let tok = token
             if matchProcCall() {
@@ -711,7 +711,7 @@ extension Parser {
                 break
             }
             
-            if !nextToken() { throw error(em.unexpectedEndOfFile) }
+            if !nextToken() { throw error(ParserMessage.unexpectedEndOfFile) }
 
             let decl = resolveVarDecl(named: identifier.value, in: scope)
             let exprType = decl?.exprType ?? UnresolvedType()
@@ -737,14 +737,14 @@ extension Parser {
                             appendUnresolved(identifier.value, expression)
                         }
                     }
-                    else { throw error(em.assignPassedNotValue(statement), tok.startCursor, tok.endCursor) }
+                    else { throw error(ParserMessage.assignPassedNotValue(statement), tok.startCursor, tok.endCursor) }
                 }
             }
-        case is Punctuator: throw error(em.expectedExpression)
-        case is Separator: throw error(em.expectedExpression)
+        case is Punctuator: throw error(ParserMessage.expectedExpression)
+        case is Separator: throw error(ParserMessage.expectedExpression)
         default:
             print("Expression unknown: \(token)")
-            throw error(em.notImplemented(token), token.range)
+            throw error(ParserMessage.notImplemented(token), token.range)
         }
         expression.range = CursorRange(start, lastToken.endCursor)
         return expression
@@ -761,12 +761,12 @@ extension Parser {
                 if punct.value == "}" { // done with the scope
                     return statements
                 }
-                throw error(em.unexpectedToken(punct.value), token.startCursor, token.endCursor)
+                throw error(ParserMessage.unexpectedToken(punct.value), token.startCursor, token.endCursor)
                 
             case let keyword as Keyword: // @Clean: this is a copy from the main loop
                 switch keyword {
                 case .func:
-                    throw error(em.procNestedNotSupported, token.startCursor, token.endCursor)
+                    throw error(ParserMessage.procNestedNotSupported, token.startCursor, token.endCursor)
                 case .break:
                     let decl = try doBreak(in: scope)
                     statements.append(decl)
@@ -781,10 +781,10 @@ extension Parser {
                     continue loop
                 case .free:
                     let start = token.startCursor
-                    guard nextToken() else { throw error(em.unexpectedEndOfFile) }
+                    guard nextToken() else { throw error(ParserMessage.unexpectedEndOfFile) }
                     let expr = try doExpression(in: scope, expectSemicolon: true)
                     let type = resolveType(of: expr)
-                    guard type is PointerType else { throw error(em.freeExpectsPointer) }
+                    guard type is PointerType else { throw error(ParserMessage.freeExpectsPointer) }
                     let free = Free(expression: expr, range: CursorRange(start, expr.range.end))
                     statements.append(free)
                     continue loop
@@ -810,7 +810,7 @@ extension Parser {
                     statements.append(returnStatement)
                 }
                 else {
-                    throw error(em.unexpectedToken(keyword.rawValue), token.startCursor, token.endCursor)
+                    throw error(ParserMessage.unexpectedToken(keyword.rawValue), token.startCursor, token.endCursor)
                 }
                 
             case is Identifier: // @Clean: this is a copy from the main loop
@@ -838,7 +838,7 @@ extension Parser {
                     break
                 }
                 
-                throw error(em.unexpectedToken("\(token)"), token.startCursor, token.endCursor)
+                throw error(ParserMessage.unexpectedToken("\(token)"), token.startCursor, token.endCursor)
             case is Comment:
                 if !nextToken() { break loop }
             case let separator as Separator:
@@ -847,7 +847,7 @@ extension Parser {
             case is EOF:
                 break loop
             default:
-                throw error(em.unexpectedToken("\(token)"), token.startCursor, token.endCursor)
+                throw error(ParserMessage.unexpectedToken("\(token)"), token.startCursor, token.endCursor)
             }
         }
         return statements
@@ -868,17 +868,17 @@ extension Parser {
                     statements.append(decl)
                     break
                 }
-                if keyword == .if { throw error(em.ifNotExpectedAtGlobalScope, token.startCursor, token.endCursor) }
-                if matchWhile() { throw error(em.loopNotExpectedAtGlobalScope, token.startCursor, token.endCursor) }
-                if keyword == .break { throw error(em.breakContext, token.startCursor, token.endCursor) }
-                if keyword == .continue { throw error(em.continueContext, token.startCursor, token.endCursor) }
+                if keyword == .if { throw error(ParserMessage.ifNotExpectedAtGlobalScope, token.startCursor, token.endCursor) }
+                if matchWhile() { throw error(ParserMessage.loopNotExpectedAtGlobalScope, token.startCursor, token.endCursor) }
+                if keyword == .break { throw error(ParserMessage.breakContext, token.startCursor, token.endCursor) }
+                if keyword == .continue { throw error(ParserMessage.continueContext, token.startCursor, token.endCursor) }
                 if keyword == .fallthrough { throw error("@Todo: FALLTHROUGH ERROR MESSAGE", token.startCursor, token.endCursor) }
 
                 print("Keyword \(keyword.rawValue) is not YET implemented.")
-                throw error(em.notImplemented(token), token.range)
+                throw error(ParserMessage.notImplemented(token), token.range)
                     
             case is Identifier:
-                if matchWhile() { throw error(em.loopNotExpectedAtGlobalScope) }
+                if matchWhile() { throw error(ParserMessage.loopNotExpectedAtGlobalScope) }
                 
                 if matchVarDecl() {
                     let decl = try doVarDecl(in: globalScope)
@@ -887,7 +887,7 @@ extension Parser {
                 }
                 
                 print("(main loop) Unexpected identifier: feature might not have YET been implemented\n\(token)\n")
-                throw error(em.notImplemented(token), token.range)
+                throw error(ParserMessage.notImplemented(token), token.range)
             
             case let separator as Separator:
                 if separator.value == ";" { if !nextToken() { break loop } /* ignore */ }
@@ -899,7 +899,7 @@ extension Parser {
         // @Todo: tests will fail with this check
         // and it doesn't help much without #main working anyway
         //
-        //  guard entry != nil else { throw error(em.noEntryPoint) }
+        //  guard entry != nil else { throw error(ParserMessage.noEntryPoint) }
 
         return Code(statements)
     }
@@ -926,7 +926,6 @@ final class Parser {
     var globalScope = Scope(id: Scope.globalId) /// all declarations in global scope
     
     var scopeCounter = 0
-    let em: ErrorMessage = ErrorMessage()
     var i = 0
     var token: Token
     var entry: ProcedureDeclaration?

@@ -10,7 +10,6 @@ import Foundation
 
 final class ParserTest {
     fileprivate var failed = 0
-    let em = Parser.ErrorMessage()
     
     static func run() {
         let i = ParserTest()

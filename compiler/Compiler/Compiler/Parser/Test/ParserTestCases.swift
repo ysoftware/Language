@@ -400,7 +400,7 @@ extension ParserTest {
         
         let error = ParserError(startCursor: Cursor(character: 30),
                                 endCursor: Cursor(character: 37),
-                                message: em.returnTypeNotMatching(float, string))
+                                message: ParserMessage.returnTypeNotMatching(float, string))
         printErrorCase(code, result, error)
     }
     
