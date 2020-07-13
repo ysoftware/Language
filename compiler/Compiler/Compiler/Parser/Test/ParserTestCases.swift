@@ -33,40 +33,40 @@ extension ParserTest {
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
 
-//        printResultCase(code, result, Code([
-//            StructDeclaration(name: "Node", members: [
-//                vDecl("next", pointer(structure("Node", [alias("Value")]))),
-//                vDecl("value", alias("Value")),
-//            ], genericTypes: ["Value"]),
-//
-//            StructDeclaration(name: "Pair", members: [
-//                vDecl("left", pointer(alias("Value"))),
-//                vDecl("right", pointer(alias("Value2"))),
-//            ], genericTypes: ["Value", "Value2"]),
-//
-//            main([
-//                vDecl("list_int", pointer(structure("Node", [int])), New(type: structure("Node", [int]))),
-//                vDecl("int", int, MemberAccess(base: val("list_int", pointer(structure("Node", [int]))),
-//                                               memberName: "value", memderIndex: 1, exprType: int)),
-//                vDecl("list_list_int", pointer(structure("Node", [structure("Node", [int])])),
-//                      New(type: structure("Node", [structure("Node", [int])]))),
-//                vAssign("int",
-//                        MemberAccess(base:
-//                            MemberAccess(base: val("list_list_int", pointer(structure("Node", [structure("Node", [int])]))),
-//                            memberName: "value", memderIndex: 1, exprType: structure("Node", [int])),
-//                        memberName: "value", memderIndex: 1, exprType: int)),
-//
-//                vDecl("list_int_float", pointer(structure("Node", [structure("Pair", [int, float]) ])),
-//                      New(type: structure("Node", [structure("Pair", [int, float]) ]) )),
-//
-//                vDecl("next_pair", pointer(structure("Node", [structure("Pair", [int, float]) ])),
-//                      MemberAccess(base: val("list_int_float", pointer(structure("Node", [structure("Pair", [int, float]) ]))),
-//                                   memberName: "next", memderIndex: 0,
-//                                   exprType: pointer(structure("Node", [structure("Pair", [int, float])])) )),
-//
-//                ret(VoidLiteral())
-//            ])
-//        ]))
+        printResultCase(code, result, Code([
+            StructDeclaration(name: "Node", id: "", members: [
+                vDecl("next", pointer(structure("Node", [alias("Value")]))),
+                vDecl("value", alias("Value")),
+            ]),
+
+            StructDeclaration(name: "Pair", id: "", members: [
+                vDecl("left", pointer(alias("Value"))),
+                vDecl("right", pointer(alias("Value2"))),
+            ]),
+
+            main([
+                vDecl("list_int", pointer(structure("Node", [int])), New(type: structure("Node", [int]))),
+                vDecl("int", int, MemberAccess(base: val("list_int", pointer(structure("Node", [int]))),
+                                               memberName: "value", memderIndex: 1, exprType: int)),
+                vDecl("list_list_int", pointer(structure("Node", [structure("Node", [int])])),
+                      New(type: structure("Node", [structure("Node", [int])]))),
+                vAssign("int",
+                        MemberAccess(base:
+                            MemberAccess(base: val("list_list_int", pointer(structure("Node", [structure("Node", [int])]))),
+                            memberName: "value", memderIndex: 1, exprType: structure("Node", [int])),
+                        memberName: "value", memderIndex: 1, exprType: int)),
+
+                vDecl("list_int_float", pointer(structure("Node", [structure("Pair", [int, float]) ])),
+                      New(type: structure("Node", [structure("Pair", [int, float]) ]) )),
+
+                vDecl("next_pair", pointer(structure("Node", [structure("Pair", [int, float]) ])),
+                      MemberAccess(base: val("list_int_float", pointer(structure("Node", [structure("Pair", [int, float]) ]))),
+                                   memberName: "next", memderIndex: 0,
+                                   exprType: pointer(structure("Node", [structure("Pair", [int, float])])) )),
+
+                ret(VoidLiteral())
+            ])
+        ]))
     }
 
     func testGenericStructDecl() {
@@ -75,18 +75,18 @@ extension ParserTest {
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
 
-//        printResultCase(code, result, Code([
-//            StructDeclaration(name: "A", members: [
-//                vDecl("a", structure("A", [int])),
-//                vDecl("b", pointer(structure("A", [int]))),
-//                vDecl("c", alias("T")),
-//                vDecl("d", pointer(alias("T"))),
-//                vDecl("e", structure("A", [alias("T")])),
-//                vDecl("f", structure("A", [pointer(alias("T"))])),
-//                vDecl("g", structure("A", [pointer(int)])),
-//                vDecl("h", structure("A", [structure("A", [int])])),
-//            ], genericTypes: ["T"])
-//        ]))
+        printResultCase(code, result, Code([
+            StructDeclaration(name: "A", id: "A", members: [
+                vDecl("a", structure("A", [int])),
+                vDecl("b", pointer(structure("A", [int]))),
+                vDecl("c", alias("T")),
+                vDecl("d", pointer(alias("T"))),
+                vDecl("e", structure("A", [alias("T")])),
+                vDecl("f", structure("A", [pointer(alias("T"))])),
+                vDecl("g", structure("A", [pointer(int)])),
+                vDecl("h", structure("A", [structure("A", [int])])),
+            ])
+        ]))
     }
     
     func testMemberAccess() {
@@ -101,7 +101,7 @@ extension ParserTest {
                                    memberName: "x", memderIndex: 0, exprType: int)
         
         printResultCase(code, result, Code([
-            StructDeclaration(name: "Vector", id: "", members: [
+            StructDeclaration(name: "Vector", id: "Vector", members: [
                 vDecl("x", int, nil),
                 vDecl("y", int, nil)
             ]),
@@ -176,7 +176,7 @@ extension ParserTest {
         let result = parserResult(Parser(tokens).parse)
         
         printResultCase(code, result, Code([
-            StructDeclaration(name: "A", id: "", members: [
+            StructDeclaration(name: "A", id: "A", members: [
                 vDecl("a", string, nil),
                 vDecl("b", int, i(1), const: true),
                 vDecl("c", int, val("b", int)),
@@ -207,7 +207,7 @@ extension ParserTest {
                 returnType: float, flags: [], scope: Code([
                     Return(value: f(0.2))
                 ])),
-            StructDeclaration(name: "Value", id: "", members: [
+            StructDeclaration(name: "Value", id: "Value", members: [
                 vDecl("a", int, ProcedureCall(name: "getInt", exprType: int, arguments: [])),
                 vDecl("b", float, ProcedureCall(name: "getFloat", exprType: float, arguments: []))
             ])

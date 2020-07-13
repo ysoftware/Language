@@ -1,6 +1,7 @@
 WORKING ON
-- generic procedures (include argument types in proc id)
-- move complicated stuff from IRGen to Parser (like making string literals global and generating solid generic structs and procedures)
+= generic procedures (include argument types in proc id)
+    - deal with struct/proc ids
+    - pre-parsing of generic procedure statements
 
 
 TODO

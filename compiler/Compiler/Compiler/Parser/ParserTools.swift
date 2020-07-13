@@ -10,6 +10,48 @@ import Foundation
 
 extension Parser {
 
+    func solidifyProcedure(_ genericProcedure: ProcedureDeclaration, genericTypes: [String], solidTypes: [Type]) {
+        let solidTypesString = solidTypes.map(\.typeName)
+            .joined(separator: "_")
+            .replacingOccurrences(of: "*", with: "ptr")
+        let procId = genericProcedure.id + solidTypesString
+        guard procedureDeclarations[procId] == nil else { return }
+
+        // arguments
+        let arguments = genericProcedure.arguments
+
+        // stataments
+        let scope = genericProcedure.scope
+
+        // return type
+        let returnType = genericProcedure.returnType
+
+        let proc = ProcedureDeclaration(id: procId, name: genericProcedure.name,
+                                        arguments: arguments, returnType: returnType,
+                                        flags: genericProcedure.flags, scope: scope)
+        ood += 1
+        procedureDeclarations[procId] = proc
+        globalScope.declarations[procId] = proc
+    }
+
+    func solidifyStructure(_ genericStruct: StructDeclaration, genericTypes: [String], solidTypes: [Type]) {
+        let solidTypesString = solidTypes.map(\.typeName)
+            .joined(separator: "_")
+            .replacingOccurrences(of: "*", with: "ptr")
+        let structId = genericStruct.id + solidTypesString
+        guard structureDeclarations[structId] == nil else { return }
+
+        let solidMembers: [VariableDeclaration] = genericStruct.members.map {
+            $0.exprType = typeResolvingAliases(from: $0.exprType, decl: genericStruct,
+                                               genericTypes: genericTypes, solidTypes: solidTypes)
+            return $0
+        }
+        let structure = StructDeclaration(name: genericStruct.name, id: structId, members: solidMembers, ood: ood)
+        ood += 1
+        structureDeclarations[structId] = structure
+        globalScope.declarations[structId] = structure
+    }
+
     func typeResolvingAliases(from type: Type, in scope: Scope, declName: String, solidTypes: [Type]) -> Type {
         guard let (decl, genericTypes) = genericDeclarations[declName] else {
             // @Todo: this is also the case for type of a non-generic struct
@@ -65,18 +107,34 @@ extension Parser {
         // @Todo: consider correctly adding a dependency on a yet-undeclared struct
 
         // @Todo: check if searching in the right way
-        let foundDecl = globalScope.declarations[structType.name] ?? scope.declarations[structType.name]
 
-        if let decl = foundDecl as? StructDeclaration {
+        // @Todo: probably should always use struct.id
+        // and make a proper id for a StructType containing solid types
+
+        let solidTypesString = structType.solidTypes.map(\.typeName)
+            .joined(separator: "_")
+            .replacingOccurrences(of: "*", with: "ptr")
+        let structId = structType.name + solidTypesString
+
+        if let decl = globalScope.declarations[structType.name] as? StructDeclaration {
+            guard let index = decl.members.firstIndex(where: { $0.name == name }) else {
+                throw error(ParserMessage.memberAccessUndeclaredMember(name, decl.name), memberRange)
+            }
+
+            return (decl.members[index].exprType, index)
+        }
+        else if let (decl, genericTypes) = genericDeclarations[structId] { // @Todo: change to structId
+            guard let decl = decl as? StructDeclaration else {
+                throw error(ParserMessage.memberAccessNonStruct(baseType), base.range) // @Todo: check if this is correct
+            }
             guard let index = decl.members.firstIndex(where: { $0.name == name }) else {
                 throw error(ParserMessage.memberAccessUndeclaredMember(name, decl.name), memberRange)
             }
 
             // @Todo: check for typealiases in local scope
 
-            let solidifiedType = typeResolvingAliases(from: decl.members[index].exprType,
-                                                      in: scope,
-                                                      declName: structType.name,
+            let solidifiedType = typeResolvingAliases(from: decl.members[index].exprType, decl: decl,
+                                                      genericTypes: genericTypes,
                                                       solidTypes: structType.solidTypes)
             return (solidifiedType, index)
         }

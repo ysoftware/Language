@@ -47,7 +47,7 @@ extension Type {
     }
 
     /// returns the updated base type
-    func updateSubtypes(with block: (Type) throws ->Type) rethrows -> Type {
+    func updateSubtypes(with block: (Type) throws -> Type) rethrows -> Type {
         let type = self
         if var pointer = type as? PointerType {
             pointer.pointeeType = try block(pointer.pointeeType)

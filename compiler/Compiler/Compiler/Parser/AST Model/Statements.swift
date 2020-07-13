@@ -128,12 +128,12 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     static func == (lhs: StructDeclaration, rhs: StructDeclaration) -> Bool {
         lhs.name == rhs.name
             && lhs.members.elementsEqual(rhs.members) { $0.equals(to: $1) }
-            // @Todo: compare generic types
+            && lhs.id == rhs.id
     }
     
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
-        var string = "[Struct\(c) \(name)"
+        var string = "[Struct\(c) \(name) (\(id))"
         string.append("] ")
         members.forEach { string.append("\n        [Member] \($0.name): \($0.exprType.typeName)") }
         return string

@@ -59,6 +59,9 @@ final class Scope: CustomDebugStringConvertible {
 
 final class ParserMessage {
 
+    // generic decls
+    static func genericNotStructType(_ t: Declaration) -> String { "Expected type. Got '\(t)' instead." }
+
     // common
     static let unexpectedEndOfFile = "Unexpected end of file."
     static func notImplemented(_ t: Token) -> String { "Token not implemented: '\(t)'." }

@@ -55,10 +55,10 @@ extension Parser {
             // @Todo: what if we're using generic struct that's undeclared yet?
             // maybe remember that we used it so it will be generated at the time of parsing the declaration?
             if let (genericDecl, genericTypes) = genericDeclarations[noPointerIdent] {
-                if let genericStruct = genericDecl as? StructDeclaration {
-                    solidifyStructure(genericStruct, genericTypes: genericTypes, solidTypes: solidTypes)
+                guard let genericStruct = genericDecl as? StructDeclaration else {
+                    throw error(ParserMessage.genericNotStructType(genericDecl), genericDecl.range)
                 }
-                // @Todo: else procedure
+                solidifyStructure(genericStruct, genericTypes: genericTypes, solidTypes: solidTypes)
             }
         }
 
@@ -66,25 +66,6 @@ extension Parser {
         return (type, range)
     }
 
-    func solidifyStructure(_ genericStruct: StructDeclaration, genericTypes: [String], solidTypes: [Type]) {
-        let solidTypesString = solidTypes.map(\.typeName)
-            .joined(separator: "_")
-            .replacingOccurrences(of: "*", with: "ptr")
-        let structId = genericStruct.name + solidTypesString
-        if structureDeclarations[structId] == nil {
-            // @Todo: generate solid structure
-            let solidMembers: [VariableDeclaration] = genericStruct.members.map {
-                $0.exprType = typeResolvingAliases(from: $0.exprType, decl: genericStruct,
-                                                   genericTypes: genericTypes, solidTypes: solidTypes)
-                return $0
-            }
-            let structure = StructDeclaration(name: genericStruct.name, id: structId, members: solidMembers, ood: ood)
-            ood += 1
-            structureDeclarations[structId] = structure
-            globalScope.declarations[structId] = structure
-        }
-    }
-    
     // MARK: - MEMBER ACCESS -
     
     func matchMemberAccess() -> Bool {
@@ -271,7 +252,8 @@ extension Parser {
                 else { throw error(ParserMessage.structExpectedBracketsEnd) }
             }
         }
-        let structDecl = StructDeclaration(name: name.value, id: "", members: members, range: CursorRange(start, end), ood: ood)
+        let structDecl = StructDeclaration(name: name.value, id: name.value, members: members,
+                                           range: CursorRange(start, end), ood: ood)
         ood += 1
         try verifyNameConflict(structDecl)
 
@@ -317,7 +299,7 @@ extension Parser {
         }
         guard consumePunct(")") else { throw error(ParserMessage.callExpectedClosingParentheses,
                                                     lastToken.endCursor.advancingCharacter()) }
-        let end = lastToken.endCursor
+        let range = CursorRange(start, lastToken.endCursor)
         var returnType: Type = UnresolvedType()
 
         let foundDecl = scope.declarations[name.value] ?? internalProcedures.first(where: { $0.name == name.value })
@@ -337,17 +319,15 @@ extension Parser {
 
             let minArgWithoutVararg = argumentTypes.count - (procDecl.flags.contains(.isVarargs) ? 1 : 0)
             guard arguments.count >= minArgWithoutVararg else {
-                throw error(ParserMessage.callArgumentsCount(argumentTypes.count, arguments.count), start, end)
+                throw error(ParserMessage.callArgumentsCount(argumentTypes.count, arguments.count), range)
             }
             for i in 0..<arguments.count {
                 guard argumentTypes.count > i || procDecl.flags.contains(.isVarargs) else {
                     if procDecl.flags.contains(.isVarargs) {
-                        throw error(ParserMessage.callArgumentsVarCount(argumentTypes.count, arguments.count),
-                                    start, end)
+                        throw error(ParserMessage.callArgumentsVarCount(argumentTypes.count, arguments.count), range)
                     }
                     else {
-                        throw error(ParserMessage.callArgumentsCount(argumentTypes.count, arguments.count),
-                                    start, end)
+                        throw error(ParserMessage.callArgumentsCount(argumentTypes.count, arguments.count), range)
                     }
                 }
                 let declArgument = argumentTypes.count > i ? argumentTypes[i] : argumentTypes.last!
@@ -362,9 +342,15 @@ extension Parser {
                 }
             }
         }
+        else if let (genericDecl, genericTypes) = genericDeclarations[name.value] {
+            guard let genericProc = genericDecl as? ProcedureDeclaration else {
+                throw error(ParserMessage.callNotProcedure, range)
+            }
+            solidifyProcedure(genericProc, genericTypes: genericTypes, solidTypes: solidTypes)
+        }
 
         let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments,
-                                 solidTypes: solidTypes, range: CursorRange(start, end))
+                                 solidTypes: solidTypes, range: range)
         if !returnType.isResolved {
             appendUnresolved(returnType.typeName, call)
         }
@@ -373,7 +359,7 @@ extension Parser {
     
     // MARK: - PROCEDURE DECLARATION -
 
-    func doProcDecl(in scope: Scope) throws {
+    func doProcDecl() throws {
         let start = token.startCursor
         guard consumeKeyword(.func) else { report("can't call doProcDecl without checking for keyword first") }
         guard let procNameIdent = consumeIdent()?.value else {
@@ -898,7 +884,7 @@ extension Parser {
             switch token.value  {
             case let keyword as Keyword:
                 if keyword == .func {
-                    try doProcDecl(in: globalScope)
+                    try doProcDecl()
                     break
                 }
                 if keyword == .struct {
