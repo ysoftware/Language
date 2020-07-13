@@ -34,15 +34,15 @@ extension ParserTest {
         let result = parserResult(Parser(tokens).parse)
 
         printResultCase(code, result, Code([
-            StructDeclaration(name: "Node", id: "", members: [
-                vDecl("next", pointer(structure("Node", [alias("Value")]))),
-                vDecl("value", alias("Value")),
-            ]),
-
-            StructDeclaration(name: "Pair", id: "", members: [
-                vDecl("left", pointer(alias("Value"))),
-                vDecl("right", pointer(alias("Value2"))),
-            ]),
+//            StructDeclaration(name: "Node", id: "", members: [
+//                vDecl("next", pointer(structure("Node", [alias("Value")]))),
+//                vDecl("value", alias("Value")),
+//            ]),
+//
+//            StructDeclaration(name: "Pair", id: "", members: [
+//                vDecl("left", pointer(alias("Value"))),
+//                vDecl("right", pointer(alias("Value2"))),
+//            ]),
 
             main([
                 vDecl("list_int", pointer(structure("Node", [int])), New(type: structure("Node", [int]))),
@@ -70,22 +70,26 @@ extension ParserTest {
     }
 
     func testGenericStructDecl() {
-        let code = "struct A<T> { a: A<Int>; b: A<Int>*; c: T; d: T*; e: A<T>; f: A<T*>; g: A<Int*>; h: A<A<Int>>; }"
+        let code = """
+        struct A<T> { a: A<Int>; b: A<Int>*; c: T; d: T*; e: A<T>; f: A<T*>; g: A<Int*>; h: A<A<Int>>; }
+        func main() { x: A<Void>; }
+        """
 
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
 
         printResultCase(code, result, Code([
-            StructDeclaration(name: "A", id: "A", members: [
+            StructDeclaration(name: "A", id: "A_Void__solidified", members: [
                 vDecl("a", structure("A", [int])),
                 vDecl("b", pointer(structure("A", [int]))),
-                vDecl("c", alias("T")),
-                vDecl("d", pointer(alias("T"))),
-                vDecl("e", structure("A", [alias("T")])),
-                vDecl("f", structure("A", [pointer(alias("T"))])),
+                vDecl("c", void),
+                vDecl("d", pointer(void)),
+                vDecl("e", structure("A", [void])),
+                vDecl("f", structure("A", [pointer(void)])),
                 vDecl("g", structure("A", [pointer(int)])),
                 vDecl("h", structure("A", [structure("A", [int])])),
-            ])
+            ]),
+            main([ vDecl("x", structure("A", [void])), ret(VoidLiteral()) ])
         ]))
     }
     

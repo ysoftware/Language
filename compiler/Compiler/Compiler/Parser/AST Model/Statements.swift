@@ -133,9 +133,8 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
-        var string = "[Struct\(c) \(name) (\(id))"
-        string.append("] ")
-        members.forEach { string.append("\n        [Member] \($0.name): \($0.exprType.typeName)") }
+        var string = "[Struct\(c) \(id)]\n"
+        string.append(members.map { "    [Member] \($0.name): \($0.exprType.typeName)" }.joined(separator: ",\n"))
         return string
     }
     

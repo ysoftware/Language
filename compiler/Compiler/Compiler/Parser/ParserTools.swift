@@ -11,10 +11,7 @@ import Foundation
 extension Parser {
 
     func solidifyProcedure(_ genericProcedure: ProcedureDeclaration, genericTypes: [String], solidTypes: [Type]) {
-        let solidTypesString = solidTypes.map(\.typeName)
-            .joined(separator: "_")
-            .replacingOccurrences(of: "*", with: "ptr")
-        let procId = genericProcedure.id + solidTypesString
+        let procId = solidId(forName: genericProcedure.name, solidTypes: solidTypes) + "__solidified"
         guard procedureDeclarations[procId] == nil else { return }
 
         // arguments
@@ -34,11 +31,18 @@ extension Parser {
         globalScope.declarations[procId] = proc
     }
 
+    func solidId(forName name: String, solidTypes: [Type]) -> String {
+        let solidTypesString = solidTypes.map {
+            if let genericType = $0 as? StructureType, genericType.isGeneric {
+                return solidId(forName: genericType.name, solidTypes: genericType.solidTypes)
+            }
+            return $0.typeName
+        }.joined(separator: "_").replacingOccurrences(of: "*", with: "ptr")
+        return "\(name)_\(solidTypesString)"
+    }
+
     func solidifyStructure(_ genericStruct: StructDeclaration, genericTypes: [String], solidTypes: [Type]) {
-        let solidTypesString = solidTypes.map(\.typeName)
-            .joined(separator: "_")
-            .replacingOccurrences(of: "*", with: "ptr")
-        let structId = genericStruct.id + solidTypesString
+        let structId = solidId(forName: genericStruct.name, solidTypes: solidTypes) + "__solidified"
         guard structureDeclarations[structId] == nil else { return }
 
         let solidMembers: [VariableDeclaration] = genericStruct.members.map {

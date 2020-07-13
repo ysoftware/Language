@@ -52,7 +52,7 @@ final class ParserTest {
             print("\(name)".color(.lightRed))
             print("\(code)\n".color(.cyan))
             print("Expected error:", expect.message, "\n===".color(.darkGray))
-            print(result)
+            print(result.statements.map(\.debugDescription).joined(separator: "\n"))
             print("===\n\n".color(.darkGray))
             
         case .failure(let error):
@@ -103,7 +103,7 @@ final class ParserTest {
         if result.count != expect.count {
             print("Counts don't match:".color(.lightGray), result.count,
             "Expected:".color(.lightGray), expect.count, "\n===".color(.darkGray))
-            print(result)
+            print(result.map(\.debugDescription).joined(separator: "\n"))
             print("===\n\n".color(.darkGray))
         }
         else {

@@ -274,10 +274,6 @@ func structure(_ name: String, _ solid: [Type] = []) -> StructureType {
     StructureType(name: name, solidTypes: solid)
 }
 
-func alias(_ name: String) -> AliasType {
-    AliasType(name: name)
-}
-
 func pointer(_ type: Type) -> PointerType {
     PointerType(pointeeType: type)
 }
