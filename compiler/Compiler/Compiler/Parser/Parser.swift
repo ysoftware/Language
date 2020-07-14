@@ -207,8 +207,7 @@ extension Parser {
         let id = "\(scope.id)\(name)"
         let varDecl = VariableDeclaration(
             name: name, id: id, exprType: type, flags: flags, expression: expr,
-            range: CursorRange(start, end), ood: ood)
-        ood += 1
+            range: CursorRange(start, end), ood: order())
         
         // @Todo: check that dependency is added correctly for unresolved
         // we're supposed to add this decl as a dependant on the expression
@@ -253,8 +252,7 @@ extension Parser {
             }
         }
         let structDecl = StructDeclaration(name: name.value, id: name.value, members: members,
-                                           range: CursorRange(start, end), ood: ood)
-        ood += 1
+                                           range: CursorRange(start, end), ood: order())
         try verifyNameConflict(structDecl)
 
         if genericTypes.isEmpty {
@@ -263,6 +261,15 @@ extension Parser {
         }
         else {
             genericDeclarations[structDecl.name] = (structDecl, genericTypes)
+        }
+
+        members.forEach { member in
+            if let structType = member.exprType as? StructureType,
+                structType.isGeneric,
+                !structType.solidTypes.contains(where: { $0.typeName.contains("=") }) {
+
+                solidifyStructure(structDecl, genericTypes: genericTypes, solidTypes: structType.solidTypes)
+            }
         }
     }
     
@@ -458,8 +465,7 @@ extension Parser {
             arguments.forEach { arg in
                 let argId = "\(procId)_arg_\(arg.name)"
                 let decl = VariableDeclaration(name: arg.name, id: argId, exprType: arg.exprType,
-                                               flags: [.isConstant], expression: arg, ood: ood)
-                ood += 1
+                                               flags: [.isConstant], expression: arg, ood: order())
                 procedureScope.declarations[arg.name] = decl
             }
             
@@ -486,8 +492,7 @@ extension Parser {
         let genericTypes = genericTypeIdents.map { ($0.value as! Identifier).value }
         let procedure = ProcedureDeclaration(
             id: procId, name: procName, arguments: arguments, returnType: returnType, flags: flags,
-            scope: code, range: CursorRange(start, end), ood: ood)
-        ood += 1
+            scope: code, range: CursorRange(start, end), ood: order())
 
         if procName == "main" && entry == nil || isForceEntry {
             entry = procedure
@@ -721,8 +726,8 @@ extension Parser {
                     if decl == nil {
                         let id = "\(scope.id)StringLiteral\(count)"
                         decl = VariableDeclaration(name: id, id: id, exprType: string,
-                                                   flags: .isConstant, expression: StringLiteral(value: value), ood: ood)
-                        ood += 1
+                                                   flags: .isConstant, expression: StringLiteral(value: value),
+                                                   ood: order())
                         stringLiterals[value] = decl
                     }
                     expression = Value(name: decl.name, id: decl.id, exprType: string)
@@ -957,8 +962,7 @@ final class Parser {
 
     var scopeCounter = 0
     var i = 0
+    var ood = 0 /// order of declaration
     var token: Token
     var entry: ProcedureDeclaration? /// main procedure of the program
-
-    var ood = 0 // @Todo: remove this when 2nd pass is implemented
 }

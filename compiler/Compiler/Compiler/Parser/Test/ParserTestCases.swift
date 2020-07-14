@@ -78,17 +78,24 @@ extension ParserTest {
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
 
-        printResultCase(code, result, Code([
-            StructDeclaration(name: "A", id: "A_Void__solidified", members: [
+        func solidStruct(_ type: Type) -> StructDeclaration {
+            StructDeclaration(name: "A", id: solidId(forName: "A", solidTypes: [type]) + "__solidified", members: [
                 vDecl("a", structure("A", [int])),
                 vDecl("b", pointer(structure("A", [int]))),
-                vDecl("c", void),
-                vDecl("d", pointer(void)),
-                vDecl("e", structure("A", [void])),
-                vDecl("f", structure("A", [pointer(void)])),
+                vDecl("c", type),
+                vDecl("d", pointer(type)),
+                vDecl("e", structure("A", [type])),
+                vDecl("f", structure("A", [pointer(type)])),
                 vDecl("g", structure("A", [pointer(int)])),
-                vDecl("h", structure("A", [structure("A", [int])])),
-            ]),
+                vDecl("h", structure("A", [structure("A", [type])])),
+            ])
+        }
+
+        printResultCase(code, result, Code([
+            solidStruct(int),
+            solidStruct(pointer(int)),
+            solidStruct(structure("A", [int])),
+            solidStruct(void),
             main([ vDecl("x", structure("A", [void])), ret(VoidLiteral()) ])
         ]))
     }

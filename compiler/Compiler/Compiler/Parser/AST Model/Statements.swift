@@ -140,7 +140,7 @@ final class StructDeclaration: Statement, Declaration, Equatable {
     
     let name: String
     let id: String
-    let members: [VariableDeclaration]
+    var members: [VariableDeclaration]
 
     internal init(name: String, id: String, members: [VariableDeclaration], range: CursorRange = CursorRange(), ood: Int = 0) {
         self.name = name

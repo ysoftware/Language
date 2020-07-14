@@ -8,6 +8,16 @@
 
 import Foundation
 
+func solidId(forName name: String, solidTypes: [Type]) -> String {
+    let solidTypesString = solidTypes.map {
+        if let genericType = $0 as? StructureType, genericType.isGeneric {
+            return solidId(forName: genericType.name, solidTypes: genericType.solidTypes)
+        }
+        return $0.typeName
+    }.joined(separator: "_").replacingOccurrences(of: "*", with: "ptr")
+    return "\(name)_\(solidTypesString)"
+}
+
 extension Parser {
 
     func solidifyProcedure(_ genericProcedure: ProcedureDeclaration, genericTypes: [String], solidTypes: [Type]) {
@@ -25,20 +35,9 @@ extension Parser {
 
         let proc = ProcedureDeclaration(id: procId, name: genericProcedure.name,
                                         arguments: arguments, returnType: returnType,
-                                        flags: genericProcedure.flags, scope: scope)
-        ood += 1
+                                        flags: genericProcedure.flags, scope: scope, ood: order())
         procedureDeclarations[procId] = proc
         globalScope.declarations[procId] = proc
-    }
-
-    func solidId(forName name: String, solidTypes: [Type]) -> String {
-        let solidTypesString = solidTypes.map {
-            if let genericType = $0 as? StructureType, genericType.isGeneric {
-                return solidId(forName: genericType.name, solidTypes: genericType.solidTypes)
-            }
-            return $0.typeName
-        }.joined(separator: "_").replacingOccurrences(of: "*", with: "ptr")
-        return "\(name)_\(solidTypesString)"
     }
 
     func solidifyStructure(_ genericStruct: StructDeclaration, genericTypes: [String], solidTypes: [Type]) {
@@ -50,8 +49,7 @@ extension Parser {
                                                genericTypes: genericTypes, solidTypes: solidTypes)
             return $0
         }
-        let structure = StructDeclaration(name: genericStruct.name, id: structId, members: solidMembers, ood: ood)
-        ood += 1
+        let structure = StructDeclaration(name: genericStruct.name, id: structId, members: solidMembers, ood: order())
         structureDeclarations[structId] = structure
         globalScope.declarations[structId] = structure
     }
@@ -112,13 +110,7 @@ extension Parser {
 
         // @Todo: check if searching in the right way
 
-        // @Todo: probably should always use struct.id
-        // and make a proper id for a StructType containing solid types
-
-        let solidTypesString = structType.solidTypes.map(\.typeName)
-            .joined(separator: "_")
-            .replacingOccurrences(of: "*", with: "ptr")
-        let structId = structType.name + solidTypesString
+        let structId = solidId(forName: structType.name, solidTypes: structType.solidTypes)
 
         if let decl = globalScope.declarations[structType.name] as? StructDeclaration {
             guard let index = decl.members.firstIndex(where: { $0.name == name }) else {
@@ -322,7 +314,13 @@ extension Parser {
     func advance(_ count: Int = 1) {
         i += count
     }
-    
+
+    @inline(__always)
+    func order() -> Int {
+        defer { ood += 1 }
+        return ood
+    }
+
     /// advances the counter and sets `token` to the next in the array
     @inline(__always)
     func nextToken() -> Bool {
