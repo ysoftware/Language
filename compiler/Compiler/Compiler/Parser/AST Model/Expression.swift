@@ -30,10 +30,14 @@ final class New: Expression, Equatable {
         self.type = type
         self.exprType = pointer(type)
     }
+
+    func makeCopy() -> New {
+        New(type: type, range: range)
+    }
 }
 
 /// A variable or constant passed by name.
-final class Value: Expression, Equatable {
+final class Value: Expression, Equatable, Copying {
     
     var isRValue: Bool  { true }
     var range: CursorRange
@@ -59,6 +63,10 @@ final class Value: Expression, Equatable {
         self.exprType = exprType
         self.range = range
     }
+
+    func makeCopy() -> Value {
+        Value(name: name, id: id, exprType: exprType, range: range)
+    }
 }
 
 final class SizeOf: Expression, Equatable {
@@ -82,6 +90,10 @@ final class SizeOf: Expression, Equatable {
         self.range = range
         self.type = type
         self.exprType = exprType
+    }
+
+    func makeCopy() -> SizeOf {
+        SizeOf(type: type, exprType: exprType, range: range)
     }
 }
 
@@ -116,6 +128,11 @@ final class MemberAccess: Expression, Equatable {
         self.range = range
         self.base = base
         self.memberIndex = memderIndex
+    }
+
+    func makeCopy() -> MemberAccess {
+        MemberAccess(base: base.makeCopy(), memberName: memberName, memderIndex: memberIndex,
+                     exprType: exprType, range: range)
     }
 }
 
@@ -152,6 +169,10 @@ final class UnaryOperator: Expression, Equatable {
         self.exprType = exprType
         self.range = range
     }
+
+    func makeCopy() -> UnaryOperator {
+        UnaryOperator(name: name, exprType: exprType, argument: argument.makeCopy(), range: range)
+    }
 }
 
 final class BinaryOperator: Expression, Equatable {
@@ -183,6 +204,11 @@ final class BinaryOperator: Expression, Equatable {
         self.exprType = exprType
         self.arguments = arguments
         self.range = range
+    }
+
+    func makeCopy() -> BinaryOperator {
+        BinaryOperator(name: name, exprType: exprType,
+                       arguments: (arguments.0.makeCopy(), arguments.1.makeCopy()), range: range)
     }
 }
 
@@ -221,6 +247,12 @@ final class ProcedureCall: Expression, Statement, Equatable {
         self.range = range
         self.solidTypes = solidTypes
     }
+
+    func makeCopy() -> ProcedureCall {
+        let args = arguments.map { ($0 as Copying).makeCopy() } as! [Expression]
+        return ProcedureCall(name: name, exprType: exprType, arguments: args,
+                             solidTypes: solidTypes, range: range)
+    }
 }
 
 final class StringLiteral: LiteralExpr, Equatable {
@@ -245,6 +277,10 @@ final class StringLiteral: LiteralExpr, Equatable {
 
     var exprType: Type = string
     var value: String
+
+    func makeCopy() -> StringLiteral {
+        StringLiteral(value: value, range: range)
+    }
 }
 
 final class IntLiteral: LiteralExpr, Equatable {
@@ -274,6 +310,10 @@ final class IntLiteral: LiteralExpr, Equatable {
     var exprType: Type
     var value: Int
     var isFinalized = false
+
+    func makeCopy() -> IntLiteral {
+        IntLiteral(value: value, exprType: exprType, range: range)
+    }
 }
 
 final class FloatLiteral: LiteralExpr, Equatable {
@@ -304,6 +344,10 @@ final class FloatLiteral: LiteralExpr, Equatable {
     var exprType: Type
     var value: Float64
     var isFinalized = false
+
+    func makeCopy() -> FloatLiteral {
+        FloatLiteral(value: value, exprType: exprType, range: range)
+    }
 }
 
 final class VoidLiteral: LiteralExpr {
@@ -320,6 +364,10 @@ final class VoidLiteral: LiteralExpr {
     
     internal init(range: CursorRange = CursorRange()) {
         self.range = range
+    }
+
+    func makeCopy() -> VoidLiteral {
+        VoidLiteral(range: range)
     }
 }
 
@@ -341,5 +389,9 @@ final class NullLiteral: LiteralExpr {
         self.range = range
         
         guard !exprType.isResolved || exprType is PointerType else { report("Null literal is always a pointer.") }
+    }
+
+    func makeCopy() -> NullLiteral {
+        NullLiteral(exprType: exprType, range: range)
     }
 }

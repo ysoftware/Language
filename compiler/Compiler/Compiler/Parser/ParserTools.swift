@@ -20,18 +20,47 @@ func solidId(forName name: String, solidTypes: [Type]) -> String {
 
 extension Parser {
 
+    func solidifyType(_ type: Type, genericTypes: [String], solidTypes: [Type]) -> Type {
+        assert(genericTypes.count == solidTypes.count)
+        return type.updateSubtypes { child in
+            if let alias = child as? AliasType {
+                guard let index = genericTypes.firstIndex(of: alias.name) else {
+                    report("generic type name not found in a struct declaration! \(alias.name) vs [\(genericTypes.joined(separator: ", "))]")
+                }
+                return solidTypes[index]
+            }
+            return child
+        }
+    }
+
+    func solidifyAst(_ ast: Ast, genericTypes: [String], solidTypes: [Type]) {
+        if let expr = ast as? Expression {
+            expr.exprType = solidifyType(expr.exprType, genericTypes: genericTypes, solidTypes: solidTypes)
+        } else if let varDecl = ast as? VariableDeclaration {
+            varDecl.exprType = solidifyType(varDecl.exprType, genericTypes: genericTypes, solidTypes: solidTypes)
+        } else if let assign = ast as? Assignment {
+            solidifyAst(assign.receiver, genericTypes: genericTypes, solidTypes: solidTypes)
+            solidifyAst(assign.expression, genericTypes: genericTypes, solidTypes: solidTypes)
+        }
+    }
+
     func solidifyProcedure(_ genericProcedure: ProcedureDeclaration, genericTypes: [String], solidTypes: [Type]) {
+        assert(genericTypes.count == solidTypes.count)
         let procId = solidId(forName: genericProcedure.name, solidTypes: solidTypes) + "__solidified"
         guard procedureDeclarations[procId] == nil else { return }
 
         // arguments
-        let arguments = genericProcedure.arguments
-
-        // stataments
-        let scope = genericProcedure.scope
+        let arguments = genericProcedure.arguments.makeCopy()
+        arguments.forEach { $0.exprType = solidifyType($0.exprType, genericTypes: genericTypes, solidTypes: solidTypes) }
 
         // return type
-        let returnType = genericProcedure.returnType
+        let returnType = solidifyType(genericProcedure.returnType, genericTypes: genericTypes, solidTypes: solidTypes)
+
+        // stataments
+        let scope = genericProcedure.scope.makeCopy()
+        scope.statements.forEach {
+            solidifyAst($0, genericTypes: genericTypes, solidTypes: solidTypes)
+        }
 
         let proc = ProcedureDeclaration(id: procId, name: genericProcedure.name,
                                         arguments: arguments, returnType: returnType,
@@ -53,6 +82,7 @@ extension Parser {
     }
 
     func solidifyStructure(_ genericStruct: StructDeclaration, genericTypes: [String], solidTypes: [Type]) throws {
+        assert(genericTypes.count == solidTypes.count)
         let structId = solidId(forName: genericStruct.name, solidTypes: solidTypes) + "__solidified"
         guard structureDeclarations[structId] == nil else { return }
 
@@ -92,6 +122,7 @@ extension Parser {
     }
 
     func typeResolvingAliases(from type: Type, decl: Declaration, genericTypes: [String], solidTypes: [Type]) -> Type {
+        assert(genericTypes.count == solidTypes.count)
         if var ptr = type as? PointerType {
             ptr.pointeeType = typeResolvingAliases(from: ptr.pointeeType, decl: decl,
                                                    genericTypes: genericTypes, solidTypes: solidTypes)
@@ -99,8 +130,8 @@ extension Parser {
         }
         if var structure = type as? StructureType {
             for i in 0..<structure.solidTypes.count {
-                structure.solidTypes[i] = typeResolvingAliases(from: structure.solidTypes[i], decl: decl,
-                                                               genericTypes: genericTypes, solidTypes: solidTypes)
+                structure.solidTypes[i] = typeResolvingAliases(from: structure.solidTypes[i],
+                                                               declName: structure.name, solidTypes: structure.solidTypes)
             }
             return structure
         }

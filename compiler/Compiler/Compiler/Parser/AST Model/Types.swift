@@ -189,6 +189,13 @@ extension Type {
             return a.pointeeType.equals(to: b.pointeeType)
             
         case (_, is AnyType), (is AnyType, _): return true
+
+            
+        case (let a as AliasType, let b as AliasType):
+            return a.name == b.name
+        case (is AliasType, _), (_, is AliasType):
+            return true
+
         default: return false
         }
     }

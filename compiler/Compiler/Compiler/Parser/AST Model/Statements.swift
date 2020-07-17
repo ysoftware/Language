@@ -8,7 +8,7 @@
 
 import Foundation
 
-final class Free: Statement, Equatable {
+final class Free: Statement, Equatable, Copying {
     
     var isRValue: Bool  { false }
     var range: CursorRange
@@ -27,6 +27,10 @@ final class Free: Statement, Equatable {
     internal init(expression: Expression, range: CursorRange = CursorRange()) {
         self.expression = expression
         self.range = range
+    }
+
+    func makeCopy() -> Free {
+        Free(expression: expression.makeCopy(), range: range)
     }
 }
 
@@ -89,9 +93,15 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
         self.range = range
         self.ood = ood
     }
+
+    func makeCopy() -> ProcedureDeclaration {
+        ProcedureDeclaration(id: id, name: name, arguments: arguments.makeCopy(),
+                             returnType: returnType, flags: flags, scope: scope.makeCopy(),
+                             range: range, ood: ood)
+    }
 }
 
-final class TypealiasDeclaration: Declaration, Equatable {
+final class TypealiasDeclaration: Declaration, Equatable, Copying {
 
     var ood: Int  = 0 // @Todo: remove this, ignored
 
@@ -116,6 +126,10 @@ final class TypealiasDeclaration: Declaration, Equatable {
         self.name = name
         self.id = name
         self.range = range
+    }
+
+    func makeCopy() -> TypealiasDeclaration {
+        TypealiasDeclaration(name: name, range: range)
     }
 }
 
@@ -149,9 +163,13 @@ final class StructDeclaration: Statement, Declaration, Equatable {
         self.range = range
         self.ood = ood
     }
+
+    func makeCopy() -> StructDeclaration {
+        StructDeclaration(name: name, id: id, members: members.makeCopy(), range: range, ood: ood)
+    }
 }
 
-final class VariableDeclaration: Statement, Declaration, Equatable {
+final class VariableDeclaration: Statement, Declaration, Equatable, Copying {
 
     var ood: Int // @Todo: remove this when 2nd pass is implemented
 
@@ -188,10 +206,6 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
     var exprType: Type
     let flags: Flags
     let expression: Expression?
-
-    func copy() -> VariableDeclaration {
-        VariableDeclaration(name: name, id: id, exprType: exprType, flags: flags, expression: expression)
-    }
     
     internal init(name: String, id: String, exprType: Type, flags: VariableDeclaration.Flags, expression: Expression?,
                   range: CursorRange = CursorRange(), ood: Int = 0) {
@@ -203,9 +217,14 @@ final class VariableDeclaration: Statement, Declaration, Equatable {
         self.range = range
         self.ood = ood
     }
+
+    func makeCopy() -> VariableDeclaration {
+        VariableDeclaration(name: name, id: id, exprType: exprType, flags: flags,
+                            expression: expression?.makeCopy(), range: range, ood: ood)
+    }
 }
 
-final class Assignment: Statement, Equatable {
+final class Assignment: Statement, Equatable, Copying {
     
     var isRValue: Bool  { false }
     var range: CursorRange
@@ -229,5 +248,9 @@ final class Assignment: Statement, Equatable {
         self.receiver = receiver
         self.expression = expression
         self.range = range
+    }
+
+    func makeCopy() -> Assignment {
+        Assignment(receiver: receiver.makeCopy(), expression: expression.makeCopy(), range: range)
     }
 }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-final class Condition: Statement, Equatable {
+final class Condition: Statement, Equatable, Copying {
     
     var isRValue: Bool  { false }
     var range: CursorRange
@@ -36,9 +36,13 @@ final class Condition: Statement, Equatable {
         self.elseBlock = elseBlock
         self.range = range
     }
+
+    func makeCopy() -> Condition {
+        Condition(condition: condition.makeCopy(), block: block.makeCopy(), elseBlock: elseBlock.makeCopy())
+    }
 }
 
-final class WhileLoop: Statement, Equatable {
+final class WhileLoop: Statement, Equatable, Copying {
     
     var isRValue: Bool  { false }
     var range: CursorRange
@@ -59,14 +63,16 @@ final class WhileLoop: Statement, Equatable {
     let condition: Expression
     let block: Code
 
-    internal init(userLabel:
-    
-    String?, condition: Expression, block: Code,
-             range: CursorRange = CursorRange()) {
+    internal init(userLabel: String?, condition: Expression, block: Code,
+                  range: CursorRange = CursorRange()) {
         self.userLabel = userLabel
         self.condition = condition
         self.block = block
         self.range = range
+    }
+
+    func makeCopy() -> WhileLoop {
+        WhileLoop(userLabel: userLabel, condition: condition.makeCopy(), block: block.makeCopy(), range: range)
     }
 }
 
@@ -94,6 +100,10 @@ final class Break: Statement, Equatable {
         self.userLabel = userLabel
         self.range = range
     }
+
+    func makeCopy() -> Break {
+        Break(userLabel: userLabel, range: range)
+    }
 }
 
 final class Continue: Statement, Equatable {
@@ -120,9 +130,13 @@ final class Continue: Statement, Equatable {
         self.userLabel = userLabel
         self.range = range
     }
+
+    func makeCopy() -> Continue {
+        Continue(userLabel: userLabel, range: range)
+    }
 }
 
-final class Return: Statement, Equatable {
+final class Return: Statement, Equatable, Copying {
     
     var isRValue: Bool  { false }
     var range: CursorRange
@@ -144,5 +158,9 @@ final class Return: Statement, Equatable {
                   range: CursorRange = CursorRange()) {
         self.value = value
         self.range = range
+    }
+
+    func makeCopy() -> Return {
+        Return(value: value.makeCopy(), range: range)
     }
 }

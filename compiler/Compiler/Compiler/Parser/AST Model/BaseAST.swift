@@ -8,7 +8,15 @@
 
 import Foundation
 
-final class Code: Ast, Equatable {
+protocol Copying {
+    func makeCopy() -> Self
+}
+
+extension Array: Copying where Element: Copying {
+    func makeCopy() -> Array<Element> { map { $0.makeCopy() }}
+}
+
+final class Code: Ast, Equatable, Copying {
     
     var isRValue: Bool  { false }
     var range: CursorRange
@@ -34,9 +42,14 @@ final class Code: Ast, Equatable {
         self.statements = code
         self.range = CursorRange()
     }
+
+    func makeCopy() -> Code {
+        let statms = statements.map { ($0 as Copying).makeCopy() } as! [Statement]
+        return Code(statms)
+    }
 }
 
-protocol Ast: class, CustomDebugStringConvertible {
+protocol Ast: class, CustomDebugStringConvertible, Copying {
     var range: CursorRange { get set }
     var isRValue: Bool { get }
 }
