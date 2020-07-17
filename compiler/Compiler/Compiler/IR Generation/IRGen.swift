@@ -129,12 +129,12 @@ extension IR {
                 emitLocal("call void (i8*) @free (i8* \(bitcastVal))\n")
                 
             case let structure as StructDeclaration:
-                let structId = "%\(structure.name)_struct"
+                let structId = "%\(structure.id)_struct"
                 let membersString = structure.members.map(\.exprType)
                     .map(matchType)
                     .joined(separator: ", ")
                 emitGlobal("")
-                emitGlobal("; struct decl: \(structId)")
+                emitGlobal("; struct decl: \(structure.name)")
                 emitGlobal("\(structId) = type { \(membersString) }")
                 
             case let procedure as ProcedureDeclaration:

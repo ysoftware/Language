@@ -135,6 +135,14 @@ struct StructureType: Type, Equatable {
     let name: String
     var solidTypes: [Type]
 
+    var id: String {
+        if solidTypes.isEmpty {
+            return name
+        } else {
+            return solidId(forName: name, solidTypes: solidTypes) + "__solidified"
+        }
+    }
+
     internal init(name: String, solidTypes: [Type] = []) {
         self.name = name
         self.solidTypes = solidTypes

@@ -51,15 +51,6 @@ extension Parser {
             while consumeOp("*") {
                 type = pointer(type)
             }
-
-            // @Todo: what if we're using generic struct that's undeclared yet?
-            // maybe remember that we used it so it will be generated at the time of parsing the declaration?
-            if let (genericDecl, genericTypes) = genericDeclarations[noPointerIdent] {
-                guard let genericStruct = genericDecl as? StructDeclaration else {
-                    throw error(ParserMessage.genericNotStructType(genericDecl), genericDecl.range)
-                }
-                solidifyStructure(genericStruct, genericTypes: genericTypes, solidTypes: solidTypes)
-            }
         }
 
         let range = CursorRange(baseIdent.token.startCursor, lastToken.endCursor)
@@ -202,7 +193,11 @@ extension Parser {
             type = declType
         }
         else { throw error(ParserMessage.varDeclRequiresType) } // @Todo: check cursors and if this error is even valid
-        
+
+        if let structType = type.getValueType() as? StructureType {
+            try solidifyStructure(type: structType)
+        }
+
         let name = identifier.value.value
         let id = "\(scope.id)\(name)"
         let varDecl = VariableDeclaration(
@@ -211,7 +206,7 @@ extension Parser {
         
         // @Todo: check that dependency is added correctly for unresolved
         // we're supposed to add this decl as a dependant on the expression
-        
+
         try verifyNameConflict(varDecl, in: scope)
         scope.declarations[varDecl.name] = varDecl
         return varDecl
@@ -262,15 +257,6 @@ extension Parser {
         else {
             genericDeclarations[structDecl.name] = (structDecl, genericTypes)
         }
-
-        members.forEach { member in
-            if let structType = member.exprType as? StructureType,
-                structType.isGeneric,
-                !structType.solidTypes.contains(where: { $0.typeName.contains("=") }) {
-
-                solidifyStructure(structDecl, genericTypes: genericTypes, solidTypes: structType.solidTypes)
-            }
-        }
     }
     
     // MARK: - PROCEDURE CALL -
@@ -319,8 +305,7 @@ extension Parser {
             var argumentTypes: [Type] = []
             for i in 0..<procDecl.arguments.count {
                 let arg = procDecl.arguments[i]
-                let solidType = typeResolvingAliases(from: arg.exprType, in: scope,
-                                                     declName: procDecl.name, solidTypes: solidTypes)
+                let solidType = typeResolvingAliases(from: arg.exprType, declName: procDecl.name, solidTypes: solidTypes)
                 argumentTypes.append(solidType)
             }
 
@@ -468,7 +453,7 @@ extension Parser {
                                                flags: [.isConstant], expression: arg, ood: order())
                 procedureScope.declarations[arg.name] = decl
             }
-            
+
             let statements = try doStatements(in: procedureScope)
             code = Code(statements)
 

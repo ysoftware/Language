@@ -60,7 +60,10 @@ func matchType(_ type: Type) -> String {
     case is VoidType:
         return "void"
     case let structure as StructureType:
-        return "%\(structure.name)_struct"
+        if structure.id.contains("=") {
+            report("Unsolidified type in IR Gen: \(structure).")
+        }
+        return "%\(structure.id)_struct"
     case is UnresolvedType:
         report("Unresolved type in IR Gen.")
     case let a as AliasType:

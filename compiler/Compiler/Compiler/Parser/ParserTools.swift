@@ -40,7 +40,19 @@ extension Parser {
         globalScope.declarations[procId] = proc
     }
 
-    func solidifyStructure(_ genericStruct: StructDeclaration, genericTypes: [String], solidTypes: [Type]) {
+    func solidifyStructure(type: StructureType) throws {
+        // @Todo: what if we're using generic struct that's undeclared yet?
+        // maybe remember that we used it so it will be generated at the time of parsing the declaration?
+        let noPointerIdent = type.name // @Todo: this is weird, check this
+        if let (genericDecl, genericTypes) = genericDeclarations[noPointerIdent] {
+            guard let genericStruct = genericDecl as? StructDeclaration else {
+                throw error(ParserMessage.genericNotStructType(genericDecl), genericDecl.range)
+            }
+            try solidifyStructure(genericStruct, genericTypes: genericTypes, solidTypes: type.solidTypes)
+        }
+    }
+
+    func solidifyStructure(_ genericStruct: StructDeclaration, genericTypes: [String], solidTypes: [Type]) throws {
         let structId = solidId(forName: genericStruct.name, solidTypes: solidTypes) + "__solidified"
         guard structureDeclarations[structId] == nil else { return }
 
@@ -52,9 +64,25 @@ extension Parser {
         let structure = StructDeclaration(name: genericStruct.name, id: structId, members: solidMembers, ood: order())
         structureDeclarations[structId] = structure
         globalScope.declarations[structId] = structure
+
+        // ?
+        try structure.members.forEach { member in
+            if let structType = member.exprType as? StructureType,
+                structType.isGeneric,
+                !structType.solidTypes.contains(where: { $0.typeName.contains("=") }) {
+
+                try solidifyStructure(structure, genericTypes: genericTypes, solidTypes: solidTypes)
+            }
+        }
+
+        try solidTypes.forEach { type in
+            if let structType = type as? StructureType, structType.isGeneric {
+                try solidifyStructure(type: structType)
+            }
+        }
     }
 
-    func typeResolvingAliases(from type: Type, in scope: Scope, declName: String, solidTypes: [Type]) -> Type {
+    func typeResolvingAliases(from type: Type, declName: String, solidTypes: [Type]) -> Type {
         guard let (decl, genericTypes) = genericDeclarations[declName] else {
             // @Todo: this is also the case for type of a non-generic struct
             // maybe we should traverse the type to see if it contains any Aliastypes and depend on it
@@ -110,8 +138,6 @@ extension Parser {
 
         // @Todo: check if searching in the right way
 
-        let structId = solidId(forName: structType.name, solidTypes: structType.solidTypes)
-
         if let decl = globalScope.declarations[structType.name] as? StructDeclaration {
             guard let index = decl.members.firstIndex(where: { $0.name == name }) else {
                 throw error(ParserMessage.memberAccessUndeclaredMember(name, decl.name), memberRange)
@@ -119,7 +145,7 @@ extension Parser {
 
             return (decl.members[index].exprType, index)
         }
-        else if let (decl, genericTypes) = genericDeclarations[structId] { // @Todo: change to structId
+        else if let (decl, genericTypes) = genericDeclarations[structType.name] {
             guard let decl = decl as? StructDeclaration else {
                 throw error(ParserMessage.memberAccessNonStruct(baseType), base.range) // @Todo: check if this is correct
             }
