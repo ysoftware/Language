@@ -35,21 +35,36 @@ extension Parser {
 
     func solidifyAst(_ ast: Ast?, genericTypes: [String], solidTypes: [Type]) {
         guard let ast = ast else { return }
+        func recurse(_ ast: Ast?) { solidifyAst(ast, genericTypes: genericTypes, solidTypes: solidTypes) }
+
         if let varDecl = ast as? VariableDeclaration {
             varDecl.exprType = solidifyType(varDecl.exprType, genericTypes: genericTypes, solidTypes: solidTypes)
-            solidifyAst(varDecl.expression, genericTypes: genericTypes, solidTypes: solidTypes)
+            recurse(varDecl.expression)
         } else if let assign = ast as? Assignment {
-            solidifyAst(assign.receiver, genericTypes: genericTypes, solidTypes: solidTypes)
-            solidifyAst(assign.expression, genericTypes: genericTypes, solidTypes: solidTypes)
+            recurse(assign.receiver)
+            recurse(assign.expression)
         } else if let access = ast as? MemberAccess {
-            solidifyAst(access.base, genericTypes: genericTypes, solidTypes: solidTypes)
+            let structType = access.base.exprType.getValueType() as! StructureType
+            recurse(access.base)
+            access.exprType = typeResolvingAliases(from: access.exprType, declName: structType.name, solidTypes: structType.solidTypes)
         } else if let new = ast as? New {
             new.type = solidifyType(new.type, genericTypes: genericTypes, solidTypes: solidTypes)
         } else if let binop = ast as? BinaryOperator {
-            solidifyAst(binop.arguments.0, genericTypes: genericTypes, solidTypes: solidTypes)
-            solidifyAst(binop.arguments.1, genericTypes: genericTypes, solidTypes: solidTypes)
+            recurse(binop.arguments.0)
+            recurse(binop.arguments.1)
+        } else if let unop = ast as? UnaryOperator {
+            recurse(unop.argument)
         } else if let ret = ast as? Return {
-            solidifyAst(ret.value, genericTypes: genericTypes, solidTypes: solidTypes)
+            recurse(ret.value)
+        } else if let wl = ast as? WhileLoop {
+            recurse(wl.block)
+            recurse(wl.condition)
+        } else if let cond = ast as? Condition {
+            recurse(cond.condition)
+            recurse(cond.block)
+            recurse(cond.elseBlock)
+        } else if let code = ast as? Code {
+            code.statements.forEach(recurse)
         }
 
         // also generally solidify all expressions
@@ -140,8 +155,16 @@ extension Parser {
         }
         if var structure = type as? StructureType {
             for i in 0..<structure.solidTypes.count {
-                structure.solidTypes[i] = typeResolvingAliases(from: structure.solidTypes[i],
-                                                               declName: structure.name, solidTypes: structure.solidTypes)
+
+                // @Todo: DEAL WITH THIS CHECK SOON
+                // this is totally not robust
+                // I need to figure out if we can set solid types passed as argument to this type
+                // remember how I wanted to make aliases into "=Node.Value"? maybe do that
+                if solidTypes.count == structure.solidTypes.count {
+
+                    structure.solidTypes[i] = typeResolvingAliases(from: structure.solidTypes[i],
+                                                                   declName: structure.name, solidTypes: solidTypes)
+                }
             }
             return structure
         }

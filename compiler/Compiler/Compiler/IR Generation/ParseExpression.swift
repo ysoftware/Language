@@ -51,11 +51,7 @@ internal extension IR {
             
         case let call as ProcedureCall:
             if internalProcedures.contains(where: { $0.name == call.name }) { return doInternalProcedure(call) }
-            
-            guard let procedure = procedures[call.name] else {
-                report("Undefined procedure call: \(call.name)")
-            }
-            
+
             var arguments: [String] = []
             
             for arg in call.arguments {
@@ -92,7 +88,11 @@ internal extension IR {
                 }
                 code += "\n"
             }
-            
+
+            guard let procedure = procedures[call.id] else {
+                report("Undefined procedure call: \(call.id)")
+            }
+
             code += "; procedure \(procedure.name)\n"
             let returnType = matchType(procedure.returnType)
             let argValues = arguments.joined(separator: ", ")

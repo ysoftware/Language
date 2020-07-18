@@ -233,7 +233,15 @@ final class ProcedureCall: Expression, Statement, Equatable {
         }
         return string
     }
-    
+
+    var id: String {
+        if solidTypes.isEmpty {
+            return name
+        } else {
+            return solidId(forName: name, solidTypes: solidTypes) + "__solidified"
+        }
+    }
+
     let name: String
     var exprType: Type
     let arguments: [Expression]

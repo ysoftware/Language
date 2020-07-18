@@ -55,7 +55,7 @@ final class WhileLoop: Statement, Equatable, Copying {
         let c = PrintCursors ? " \(range)" : ""
         var string = "[While\(c)] "
         if let label = userLabel { string.append("(\(label)) ") }
-        string.append("\(condition) \(block)")
+        string.append("\(condition)\n\(block)")
         return string
     }
     
