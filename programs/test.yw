@@ -12,7 +12,7 @@ struct Node<Value> {
     value: Value;
 }
 
-func list_append_pair<Left, Right>(head: Node<Pair<Left, Right>>*, left: Left, right: Right) -> Node<Pair<Left, Right>>* {
+func list_append_pair<Left, Right>(head: Node<Pair<Left, Right>>*, left: Left, right: Right) {
     pair: Pair<Left, Right>;
     node := new Node<Pair<Left, Right>>;
     node.value = pair;
@@ -25,20 +25,19 @@ func list_append_pair<Left, Right>(head: Node<Pair<Left, Right>>*, left: Left, r
         current = current.next;
     }
     current.next = node;
-    return node;
 }
 
 func main(count: Int, arguments: Int8**) -> Int {
 
     head := new Node<Pair<Int, Int>>;
 
-    list_append_pair<Int, Int>(head, 0, 2);
+    list_append_pair<Int, Int>(head, 0, 42);
     second := head.next;
     printf("second value is lhs: %d rhs: %d\n", second.value.left, second.value.right);
 
-    list_append_pair<Int, Int>(head, -1, 1);
+    list_append_pair<Int, Int>(head, 3, 134);
     third := second.next;
-    printf("third value is lhs: %d rhs: %d\n", third.value.left, third.value.right);
+    printf("third  value is lhs: %d rhs: %d\n", third.value.left, third.value.right);
 
     return 0;
 }

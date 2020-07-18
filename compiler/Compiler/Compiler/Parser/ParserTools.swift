@@ -65,6 +65,8 @@ extension Parser {
             recurse(cond.elseBlock)
         } else if let code = ast as? Code {
             code.statements.forEach(recurse)
+        } else if let call = ast as? ProcedureCall {
+            call.arguments.forEach(recurse)
         }
 
         // also generally solidify all expressions
@@ -138,6 +140,7 @@ extension Parser {
     }
 
     func typeResolvingAliases(from type: Type, declName: String, solidTypes: [Type]) -> Type {
+        guard type.isAlias else { return type }
         guard let (_, genericTypes) = genericDeclarations[declName] else {
             // @Todo: this is also the case for type of a non-generic struct
             // maybe we should traverse the type to see if it contains any Aliastypes and depend on it
@@ -336,7 +339,10 @@ extension Parser {
     }
     
     func verifyNameConflict(_ declaration: Declaration, in scope: Scope? = nil) throws {
-        if let d = globalScope.declarations[declaration.name] ?? scope?.declarations[declaration.name] {
+        if let d = globalScope.declarations[declaration.name]
+            ?? scope?.declarations[declaration.name]
+            ?? genericDeclarations[declaration.name]?.0 {
+            
             throw error(ParserMessage.declarationConflict(d), d.range)
         }
         return

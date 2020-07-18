@@ -339,6 +339,7 @@ extension Parser {
                 throw error(ParserMessage.callNotProcedure, range)
             }
             solidifyProcedure(genericProc, genericTypes: genericTypes, solidTypes: solidTypes)
+            returnType = genericProc.returnType
         }
 
         let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments,

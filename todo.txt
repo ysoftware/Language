@@ -26,6 +26,7 @@ IRGEN
 - move string literal to a global value (from Parser responsibility to IRGen) to match sizeof
 
 PARSER
+- Floating point constants (https://llvm.org/docs/LangRef.html#simple-constants)
 - unit test generic procedures
     - all generic types are used in procedure arguments
 - unit tests scope ids (comparison)
