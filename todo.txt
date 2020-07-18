@@ -1,23 +1,19 @@
 WORKING ON
-= generic procedures (include argument types in proc id)
-    - deal with struct/proc ids
-    - pre-parsing of generic procedure statements
-
 
 TODO
+- #member(List.append) procedure directive
 
 READ
 - https://habr.com/ru/company/otus/blog/442554/
 
 FEATURE
-- generic type member access resolution at the point of solidifying // func has_next<T>(nextable: T) -> Bool { return nextable.next != nil; }
-- #member(List.append) procedure directive
 - this should work: obj := new Int; &obj = 1; 
 - proper variadic procedures [different types of arguments / empty variadic arguments]
 - defer
 - arrays
 - subscript access
 - warnings (for unused structs and procedures)
+- generic type member access resolution at the point of solidifying // func has_next<T>(nextable: T) -> Bool { return nextable.next != nil; }
 
 IRGEN
 - implement #main (with zeroinitialized arguments)

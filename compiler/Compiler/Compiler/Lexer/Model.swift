@@ -115,7 +115,7 @@ final class Token: Equatable, CustomDebugStringConvertible {
             }
         }
         else if let keyword = value as? Keyword {
-            return "[Keyword \(keyword.rawValue)]"
+            return "[Keyword \(keyword.rawValue) \(c)]"
         }
         else { return "[Token \(value)\(c)]" }
     }

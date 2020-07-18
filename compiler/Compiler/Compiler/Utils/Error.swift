@@ -88,5 +88,5 @@ func report(_ error: String, _ start: Cursor? = nil, _ end: Cursor? = nil, proc:
     
     print("Internal Error: \(error)")
     print("Context: \(proc)#\(ln)")
-    quit(1)
+    fatalError()
 }

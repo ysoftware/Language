@@ -63,6 +63,7 @@ final class ParserMessage {
     static func genericNotStructType(_ t: Declaration) -> String { "Expected type. Got '\(t)' instead." }
 
     // common
+    static let temp = "Temporary error message"
     static let unexpectedEndOfFile = "Unexpected end of file."
     static func notImplemented(_ t: Token) -> String { "Token not implemented: '\(t)'." }
     static let noEntryPoint = "Entry point is not defined. Declare a procedure called 'main' or use directive #main on any other procedure."
@@ -78,6 +79,7 @@ final class ParserMessage {
     }
 
     // other
+    static func structShouldBeGeneric(_ t: String) -> String { "Struct '\(t)' is declared generic and has to be solidified at use." }
     static func conditionTypeMismatch(_ t: Type) -> String { "Condition is expected to be of type 'Bool', '\(t.typeName)' was given." }
     static let sizeofExpectedType = "Type name is expected after 'sizeof'."
     static let castExpectsTypeInBrackets = "Expected type in round brackets after 'cast'."

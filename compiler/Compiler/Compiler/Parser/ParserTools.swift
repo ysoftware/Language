@@ -21,7 +21,6 @@ func solidId(forName name: String, solidTypes: [Type]) -> String {
 extension Parser {
 
     func solidifyType(_ type: Type, genericTypes: [String], solidTypes: [Type]) -> Type {
-        assert(genericTypes.count == solidTypes.count)
         return type.updateSubtypes { child in
             if let alias = child as? AliasType {
                 guard let index = genericTypes.firstIndex(of: alias.name) else {
@@ -76,7 +75,6 @@ extension Parser {
     }
 
     func solidifyProcedure(_ genericProcedure: ProcedureDeclaration, genericTypes: [String], solidTypes: [Type]) {
-        assert(genericTypes.count == solidTypes.count)
         let procId = solidId(forName: genericProcedure.name, solidTypes: solidTypes) + "__solidified"
         guard procedureDeclarations[procId] == nil else { return }
 
@@ -113,7 +111,6 @@ extension Parser {
     }
 
     func solidifyStructure(_ genericStruct: StructDeclaration, genericTypes: [String], solidTypes: [Type]) throws {
-        assert(genericTypes.count == solidTypes.count)
         guard !solidTypes.map(\.isAlias).contains(true) else { return }
 
         let structId = solidId(forName: genericStruct.name, solidTypes: solidTypes) + "__solidified"
@@ -150,7 +147,10 @@ extension Parser {
     }
 
     func typeResolvingAliases(from type: Type, genericTypes: [String], solidTypes: [Type]) -> Type {
-        assert(genericTypes.count == solidTypes.count)
+        guard genericTypes.count == solidTypes.count else {
+            report("Got generic types: [\(genericTypes.joined(separator: ", "))] but solidTypes: [\(solidTypes.map(\.typeName).joined(separator: ", "))]")
+        }
+
         if var ptr = type as? PointerType {
             ptr.pointeeType = typeResolvingAliases(from: ptr.pointeeType,
                                                    genericTypes: genericTypes, solidTypes: solidTypes)
@@ -213,6 +213,10 @@ extension Parser {
             return (decl.members[index].exprType, index)
         }
         else if let (decl, genericTypes) = genericDeclarations[structType.name] {
+            guard structType.solidTypes.count == genericTypes.count else {
+                throw error(ParserMessage.temp)
+            }
+
             guard let decl = decl as? StructDeclaration else {
                 throw error(ParserMessage.memberAccessNonStruct(baseType), base.range) // @Todo: check if this is correct
             }

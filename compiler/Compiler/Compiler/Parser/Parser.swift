@@ -41,9 +41,23 @@ extension Parser {
                 }
             }
             else {
-                guard let resolvedType = resolveType(named: baseIdent.value.value)
-                    else { throw error(ParserMessage.expectedType(baseIdent.token)) }
-                type = resolvedType
+                let noPointerType = typeNamed(baseIdent.value.value).getValueType().typeName
+                guard genericDeclarations[noPointerType] == nil else {
+                    throw error(ParserMessage.structShouldBeGeneric(noPointerType), baseIdent.token.range)
+                }
+
+                type = typeNamed(baseIdent.value.value)
+                if type is StructureType {
+
+                    if let decl = globalScope.declarations[baseIdent.value.value] {
+                        guard let structure = decl as? StructDeclaration else {
+                            throw error(ParserMessage.expectedType(baseIdent.token))
+                        }
+                        type = StructureType(name: structure.name)
+                    } else {
+                        type = UnresolvedType()
+                    }
+                }
             }
         }
         else { // GENERIC TYPE
@@ -663,7 +677,8 @@ extension Parser {
             arg = try doExpr(in: scope)
             
             let type = try returnType(ofUnaryOperation: op.value, arg: arg.exprType)
-            let op = UnaryOperator(name: op.value, exprType: type, argument: arg, range: opTok.range)
+            let op = UnaryOperator(name: op.value, exprType: type, argument: arg,
+                                   range: CursorRange(opTok.range.start, arg.range.end))
             return op
         }
         
@@ -819,16 +834,17 @@ extension Parser {
                     statements.append(decl)
                 }
                 else if consumeKeyword(.return) {
+                    let returnRange = lastToken.range
                     var returnExpression: Expression?
                     if !consumeSep(";") {
                         returnExpression = try doExpression(in: scope, expectSemicolon: false)
                         // @Todo: should be expectSemicolon: true?
                         // are we even eating a semicolon?
                     }
-                    let end = returnExpression?.range.end ?? lastToken.range.end
+                    let end = returnExpression?.range.end ?? returnRange.end
                     let returnStatement = Return(
                         value: returnExpression ?? VoidLiteral(),
-                        range: CursorRange(lastToken.startCursor, end))
+                        range: CursorRange(returnRange.start, end))
                     statements.append(returnStatement)
                 }
                 else {
