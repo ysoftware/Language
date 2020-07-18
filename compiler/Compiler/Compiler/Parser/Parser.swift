@@ -358,6 +358,10 @@ extension Parser {
             guard let genericProc = genericDecl as? ProcedureDeclaration else {
                 throw error(ParserMessage.callNotProcedure, range)
             }
+
+            guard genericTypes.count == solidTypes.count else {
+                throw error(ParserMessage.procShouldBeGeneric(name.value), range)
+            }
             solidifyProcedure(genericProc, genericTypes: genericTypes, solidTypes: solidTypes)
             returnType = genericProc.returnType
         }

@@ -174,7 +174,7 @@ extension Parser {
         if let alias = type as? AliasType {
             let index: Int
             guard let genericTypeIndex = genericTypes.firstIndex(of: alias.name) else {
-                report("generic type name not found in a struct declaration?")
+                report("generic type name not found in a struct declaration! \(alias.name) vs [\(genericTypes.joined(separator: ", "))]")
             }
             index = genericTypeIndex
 

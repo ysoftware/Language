@@ -61,6 +61,8 @@ final class ParserMessage {
 
     // generic decls
     static func genericNotStructType(_ t: Declaration) -> String { "Expected type. Got '\(t)' instead." }
+    static func structShouldBeGeneric(_ t: String) -> String { "Struct '\(t)' is declared generic and has to be solidified at usage." }
+    static func procShouldBeGeneric(_ t: String) -> String { "Procedure '\(t)' is declared generic and has to be solidified at usage." }
 
     // common
     static let temp = "Temporary error message"
@@ -79,7 +81,6 @@ final class ParserMessage {
     }
 
     // other
-    static func structShouldBeGeneric(_ t: String) -> String { "Struct '\(t)' is declared generic and has to be solidified at use." }
     static func conditionTypeMismatch(_ t: Type) -> String { "Condition is expected to be of type 'Bool', '\(t.typeName)' was given." }
     static let sizeofExpectedType = "Type name is expected after 'sizeof'."
     static let castExpectsTypeInBrackets = "Expected type in round brackets after 'cast'."
