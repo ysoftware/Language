@@ -12,6 +12,7 @@ protocol Type: CustomDebugStringConvertible {
 
     var isResolved: Bool { get }
     var isGeneric: Bool { get }
+    var isAlias: Bool { get }
 
     /// Type removing all top-level pointers
     /// `Int** -> Int`
@@ -32,6 +33,8 @@ extension Type {
     var debugDescription: String { typeName }
 
     var isResolved: Bool { !(self is UnresolvedType) }
+
+    var isAlias: Bool { typeName.contains("=") }
 
     var isGeneric: Bool {
         if let pointer = self as? PointerType {

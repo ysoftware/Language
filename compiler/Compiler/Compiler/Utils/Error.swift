@@ -79,14 +79,14 @@ struct Cursor: Equatable, CustomDebugStringConvertible {
     }
 }
 
-func report(_ error: String, _ range: CursorRange? = nil, fl: String = #file, ln: Int = #line) -> Never {
-    report(error, range?.start, range?.end, fl: fl, ln: ln)
+func report(_ error: String, _ range: CursorRange? = nil, proc: String = #function, ln: Int = #line) -> Never {
+    report(error, range?.start, range?.end, proc: proc, ln: ln)
 }
 
 // @Todo: refactor this to single point of error reporting
-func report(_ error: String, _ start: Cursor? = nil, _ end: Cursor? = nil, fl: String = #file, ln: Int = #line) -> Never {
+func report(_ error: String, _ start: Cursor? = nil, _ end: Cursor? = nil, proc: String = #function, ln: Int = #line) -> Never {
     
     print("Internal Error: \(error)")
-    print("Context: \(fl) #\(ln)")
+    print("Context: \(proc)#\(ln)")
     quit(1)
 }

@@ -33,14 +33,28 @@ extension Parser {
         }
     }
 
-    func solidifyAst(_ ast: Ast, genericTypes: [String], solidTypes: [Type]) {
-        if let expr = ast as? Expression {
-            expr.exprType = solidifyType(expr.exprType, genericTypes: genericTypes, solidTypes: solidTypes)
-        } else if let varDecl = ast as? VariableDeclaration {
+    func solidifyAst(_ ast: Ast?, genericTypes: [String], solidTypes: [Type]) {
+        guard let ast = ast else { return }
+        if let varDecl = ast as? VariableDeclaration {
             varDecl.exprType = solidifyType(varDecl.exprType, genericTypes: genericTypes, solidTypes: solidTypes)
+            solidifyAst(varDecl.expression, genericTypes: genericTypes, solidTypes: solidTypes)
         } else if let assign = ast as? Assignment {
             solidifyAst(assign.receiver, genericTypes: genericTypes, solidTypes: solidTypes)
             solidifyAst(assign.expression, genericTypes: genericTypes, solidTypes: solidTypes)
+        } else if let access = ast as? MemberAccess {
+            solidifyAst(access.base, genericTypes: genericTypes, solidTypes: solidTypes)
+        } else if let new = ast as? New {
+            new.type = solidifyType(new.type, genericTypes: genericTypes, solidTypes: solidTypes)
+        } else if let binop = ast as? BinaryOperator {
+            solidifyAst(binop.arguments.0, genericTypes: genericTypes, solidTypes: solidTypes)
+            solidifyAst(binop.arguments.1, genericTypes: genericTypes, solidTypes: solidTypes)
+        } else if let ret = ast as? Return {
+            solidifyAst(ret.value, genericTypes: genericTypes, solidTypes: solidTypes)
+        }
+
+        // also generally solidify all expressions
+        if let expr = ast as? Expression {
+            expr.exprType = solidifyType(expr.exprType, genericTypes: genericTypes, solidTypes: solidTypes)
         }
     }
 
@@ -83,24 +97,20 @@ extension Parser {
 
     func solidifyStructure(_ genericStruct: StructDeclaration, genericTypes: [String], solidTypes: [Type]) throws {
         assert(genericTypes.count == solidTypes.count)
+        guard !solidTypes.map(\.isAlias).contains(true) else { return }
+
         let structId = solidId(forName: genericStruct.name, solidTypes: solidTypes) + "__solidified"
         guard structureDeclarations[structId] == nil else { return }
 
-        let solidMembers: [VariableDeclaration] = genericStruct.members.map {
-            $0.exprType = typeResolvingAliases(from: $0.exprType, decl: genericStruct,
-                                               genericTypes: genericTypes, solidTypes: solidTypes)
-            return $0
+        let solidMembers: [VariableDeclaration] = genericStruct.members.makeCopy().map {
+            solidifyAst($0, genericTypes: genericTypes, solidTypes: solidTypes); return $0
         }
         let structure = StructDeclaration(name: genericStruct.name, id: structId, members: solidMembers, ood: order())
         structureDeclarations[structId] = structure
         globalScope.declarations[structId] = structure
 
-        // ?
         try structure.members.forEach { member in
-            if let structType = member.exprType as? StructureType,
-                structType.isGeneric,
-                !structType.solidTypes.contains(where: { $0.typeName.contains("=") }) {
-
+            if let structType = member.exprType.getValueType() as? StructureType, !structType.solidTypes.contains(where: \.isAlias) {
                 try solidifyStructure(structure, genericTypes: genericTypes, solidTypes: solidTypes)
             }
         }
@@ -113,18 +123,18 @@ extension Parser {
     }
 
     func typeResolvingAliases(from type: Type, declName: String, solidTypes: [Type]) -> Type {
-        guard let (decl, genericTypes) = genericDeclarations[declName] else {
+        guard let (_, genericTypes) = genericDeclarations[declName] else {
             // @Todo: this is also the case for type of a non-generic struct
             // maybe we should traverse the type to see if it contains any Aliastypes and depend on it
             return type
         }
-        return typeResolvingAliases(from: type, decl: decl, genericTypes: genericTypes, solidTypes: solidTypes)
+        return typeResolvingAliases(from: type, genericTypes: genericTypes, solidTypes: solidTypes)
     }
 
-    func typeResolvingAliases(from type: Type, decl: Declaration, genericTypes: [String], solidTypes: [Type]) -> Type {
+    func typeResolvingAliases(from type: Type, genericTypes: [String], solidTypes: [Type]) -> Type {
         assert(genericTypes.count == solidTypes.count)
         if var ptr = type as? PointerType {
-            ptr.pointeeType = typeResolvingAliases(from: ptr.pointeeType, decl: decl,
+            ptr.pointeeType = typeResolvingAliases(from: ptr.pointeeType,
                                                    genericTypes: genericTypes, solidTypes: solidTypes)
             return ptr
         }
@@ -186,7 +196,7 @@ extension Parser {
 
             // @Todo: check for typealiases in local scope
 
-            let solidifiedType = typeResolvingAliases(from: decl.members[index].exprType, decl: decl,
+            let solidifiedType = typeResolvingAliases(from: decl.members[index].exprType,
                                                       genericTypes: genericTypes,
                                                       solidTypes: structType.solidTypes)
             return (solidifiedType, index)

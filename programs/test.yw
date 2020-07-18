@@ -21,10 +21,10 @@ func list_append_pair<Left, Right>(head: Node<Pair<Left, Right>>*, left: Left, r
     node.value.right = right;
 
     current := head;
-    while (current.next != null) {
-        current = current.next;
-    }
-    current.next = node;
+    // while (current.next != null) {
+        // current = current.next;
+    // }
+    // current.next = node;
     return node;
 }
 

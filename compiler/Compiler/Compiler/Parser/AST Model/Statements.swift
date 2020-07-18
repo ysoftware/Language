@@ -52,10 +52,12 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
-        var string = "[Procedure\(c) <\(id)>] \(name) -> \(returnType) "
-        string.append("; args: ")
-        string.append(arguments.map { "\($0)" }.joined(separator: ", "))
-        if flags.contains(.isVarargs) { string.append("... ") }
+        var string = "\n[Procedure\(c) <\(id)>] \(name) -> \(returnType) "
+        if !arguments.isEmpty {
+            string.append("\n    ; args: \n")
+            string.append(arguments.map { "         \($0)" }.joined(separator: "\n"))
+            if flags.contains(.isVarargs) { string.append("... ") }
+        }
         if flags.contains(.main) { string.append(" #main") }
         if flags.contains(.isForeign) { string.append(" #foreign") }
         else if scope.isEmpty { string.append(" (empty body) ") }
@@ -187,7 +189,7 @@ final class VariableDeclaration: Statement, Declaration, Equatable, Copying {
         let c = PrintCursors ? " \(range)" : ""
         var string = "[VarDecl\(c) <\(id)>] \(name): \(exprType) "
         if flags.contains(.isConstant) { string.append("(constant) ") }
-        if let exp = expression { string.append("= \(exp) ") }
+        if let exp = expression { string.append("\n        = \(exp) ") }
         else {
             if exprType is StructureType { string.append("[zero initialized] ") }
             else { string.append("[uninitialized] ") }
@@ -236,7 +238,7 @@ final class Assignment: Statement, Equatable, Copying {
     
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
-        return "[Assign\(c) \(receiver) = \(expression)]"
+        return "[Assign\(c) \(receiver)\n        = \(expression)]"
     }
     
     let receiver: Ast
