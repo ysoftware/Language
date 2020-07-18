@@ -257,6 +257,12 @@ extension Parser {
         else {
             genericDeclarations[structDecl.name] = (structDecl, genericTypes)
         }
+
+        for member in members {
+            if let structType = member.exprType.getValueType() as? StructureType {
+                try solidifyStructure(type: structType)
+            }
+        }
     }
     
     // MARK: - PROCEDURE CALL -

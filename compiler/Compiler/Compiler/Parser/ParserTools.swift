@@ -342,7 +342,7 @@ extension Parser {
         if let d = globalScope.declarations[declaration.name]
             ?? scope?.declarations[declaration.name]
             ?? genericDeclarations[declaration.name]?.0 {
-            
+
             throw error(ParserMessage.declarationConflict(d), d.range)
         }
         return
