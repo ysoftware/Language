@@ -42,6 +42,8 @@ LEXER
 BUGS
 - code with just "1" outputs 0 statements and isn't failing
 - func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 - 0.5; } // should resolve to float (because of 0.5)
+- head := new Node<Pair<Int, Int>>; list_append_pair<Int, Float>(head, 3, 134); // type checking doesn't catch this
+- [Call] list_append_pair->Void ([Value <l1_head>] head: Node<Pair<Int32, Int8>>*, [Int32 0], [Int32 42]) // Int literal is not converted to Int8 in a generic call
 
 OPTIMIZATION
 - don't load the same value argument if passed twice in call expr, like a = add(a, a)

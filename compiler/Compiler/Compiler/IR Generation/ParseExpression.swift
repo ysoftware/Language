@@ -165,8 +165,9 @@ internal extension IR {
                 let instruction: String
                 if let argType = op.argument.exprType as? IntType, let resultType = op.exprType as? IntType {
                     instruction = resultType.size > argType.size ? "zext" : "trunc" // extend/truncate
-                }
-                else {
+                } else if let argType = op.argument.exprType as? FloatType, let resultType = op.exprType as? FloatType {
+                    instruction = resultType.size > argType.size ? "fpext" : "fptrunc" // extend/truncate
+                } else {
                     instruction = "bitcast"
                 }
                 code += "\(value) = \(instruction) \(matchType(op.argument.exprType)) \(val) to \(matchType(op.exprType))"

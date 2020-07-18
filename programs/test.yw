@@ -1,6 +1,6 @@
 func malloc(size: Int) -> Void* #foreign;
 func `free`(pointer: Void*) #foreign;
-func printf(format: String, arguments: Int, ...) #foreign;
+func printf(format: String, arg: Int, arg2: Float64, ...) #foreign;
 
 struct Pair<Left, Right> {
     left: Left;
@@ -29,15 +29,17 @@ func list_append_pair<Left, Right>(head: Node<Pair<Left, Right>>*, left: Left, r
 
 func main(count: Int, arguments: Int8**) -> Int {
 
-    head := new Node<Pair<Int, Int>>;
+    test := cast(Int64) 123;
 
-    list_append_pair<Int, Int>(head, 0, 42);
+    head := new Node<Pair<Int, Float64>>;
+
+    list_append_pair<Int, Float64>(head, 0, cast(Float64) 12.0);
     second := head.next;
-    printf("second value is lhs: %d rhs: %d\n", second.value.left, second.value.right);
+    printf("second value is lhs: %d rhs: %f\n", second.value.left, second.value.right);
 
-    list_append_pair<Int, Int>(head, 3, 134);
+    list_append_pair<Int, Float64>(head, 3, cast(Float64) 13.0);
     third := second.next;
-    printf("third  value is lhs: %d rhs: %d\n", third.value.left, third.value.right);
+    printf("third  value is lhs: %d rhs: %f\n", third.value.left, third.value.right);
 
     return 0;
 }
