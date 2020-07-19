@@ -1,7 +1,6 @@
 WORKING ON
 
 TODO
-- convert aliases to be like "=Node.Value"
 - generic procedure parsing tests
 - #member(List.append) procedure directive
 
