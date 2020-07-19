@@ -14,7 +14,7 @@ func has_next<T>(nextable: T) -> Bool {
 func main(count: Int, arguments: Int8**) -> Int {
 
     head := new Node<Pair<Int, Float>>;
-    has_next(head);
+    has_next<Node<Pair<Int, Float>>>(head);
 
     return 0;
 }

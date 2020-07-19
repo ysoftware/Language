@@ -2,7 +2,13 @@ WORKING ON
 
 TODO
 - generic procedure parsing tests
-- #member(List.append) procedure directive
+- #method() procedure directive
+    func list_append<Value>(head: Node<Value, Value) -> Node<Value> #method(Node<T>.append) { ... } 
+        head: new Node<Int>;  head = head.adding(1).adding(2);
+        parsed to: assign head = [call list_append([call list_append(head, 1)], 2)]
+    func integer_sum(lhs: Int, rhs: Int) -> Int #method(Int.adding) { ... }
+        val := 1.adding(1).adding(2).adding(5);
+        parsed to: vDecl val = [call integer_sum([call integer_sum([call integer_sum(1), 1)], 2)], 5)]
 
 READ
 - https://habr.com/ru/company/otus/blog/442554/
@@ -37,6 +43,7 @@ LEXER
 - proc call doesn't fail without semicolon at the end
 
 BUGS
+- while (i < 100000) { // do we not have a less than?
 - A<Void>; should be an error?
 - this should work: obj := new Int; &obj = 1; 
 - code with just "1" outputs 0 statements and isn't failing

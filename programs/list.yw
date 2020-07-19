@@ -34,8 +34,9 @@ func list_append(head: Node*, value: Int) {
 
 func list_removing_element_at(head: Node*, index: Int) -> Node* { // new head: nullable
     if (index == 0) {
+        next := head.next;
         free head;
-        return head.next;
+        return next;
     }
 
     previous := head;
