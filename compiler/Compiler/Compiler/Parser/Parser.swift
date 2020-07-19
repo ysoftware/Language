@@ -242,8 +242,9 @@ extension Parser {
             while !consumeOp(">") {
                 if genericTypes.count > 0, !consumeSep(",") { throw error(ParserMessage.structExpectedClosingTriangleBracket) }
                 guard let typeIdent = consumeIdent() else { throw error(ParserMessage.structExpectedGenericType) }
-                genericTypes.append(typeIdent.value.value)
-                structScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: typeIdent.value.value)
+                let genericType = "\(name.value).\(typeIdent.value.value)"
+                genericTypes.append(genericType)
+                structScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: genericType)
             }
         }
 
@@ -325,7 +326,8 @@ extension Parser {
             var argumentTypes: [Type] = []
             for i in 0..<procDecl.arguments.count {
                 let arg = procDecl.arguments[i]
-                let solidType = typeResolvingAliases(from: arg.exprType, declName: procDecl.name, solidTypes: solidTypes)
+                let solidType = typeResolvingAliases(from: arg.exprType, declName: procDecl.name,
+                                                     genericTypes: [], solidTypes: solidTypes)
                 argumentTypes.append(solidType)
             }
 
@@ -363,7 +365,7 @@ extension Parser {
                 throw error(ParserMessage.procShouldBeGeneric(name.value), range)
             }
             solidifyProcedure(genericProc, genericTypes: genericTypes, solidTypes: solidTypes)
-            returnType = genericProc.returnType
+            returnType = solidifyType(genericProc.returnType, genericTypes: genericTypes, solidTypes: solidTypes) 
         }
 
         let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments,
@@ -389,8 +391,9 @@ extension Parser {
             while !consumeOp(">") {
                 if genericTypeIdents.count > 0, !consumeSep(",") { throw error(ParserMessage.structExpectedClosingTriangleBracket) }
                 guard let typeIdent = consumeIdent() else { throw error(ParserMessage.structExpectedGenericType) }
+                let genericType = "\(procNameIdent.value).\(typeIdent.value.value)"
                 genericTypeIdents.append(typeIdent.token)
-                procedureScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: typeIdent.value.value)
+                procedureScope.declarations[typeIdent.value.value] = TypealiasDeclaration(name: genericType)
             }
         }
         var unusedGenericTypes = genericTypeIdents
@@ -499,7 +502,7 @@ extension Parser {
             throw error(ParserMessage.procExpectedBody)
         }
 
-        let genericTypes = genericTypeIdents.map { ($0.value as! Identifier).value }
+        let genericTypes = genericTypeIdents.map { "\(procName).\(($0.value as! Identifier).value)" }
         let procedure = ProcedureDeclaration(
             id: procId, name: procName, arguments: arguments, returnType: returnType, flags: flags,
             scope: code, range: CursorRange(start, end), ood: order())

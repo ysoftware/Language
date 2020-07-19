@@ -19,7 +19,7 @@ final class Free: Statement, Equatable, Copying {
     
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
-        return "[Free\(c)]"
+        return "[Free\(c) \(expression)]"
     }
     
     var expression: Expression
@@ -52,7 +52,7 @@ final class ProcedureDeclaration: Statement, Declaration, Equatable {
     
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
-        var string = "\n[Procedure\(c) <\(id)>] \(name) -> \(returnType) "
+        var string = "\n[Procedure\(c) \(id)] -> \(returnType) "
         if !arguments.isEmpty {
             string.append("\n    ; args: \n")
             string.append(arguments.map { "         \($0)" }.joined(separator: "\n"))

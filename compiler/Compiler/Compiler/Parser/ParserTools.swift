@@ -24,7 +24,7 @@ extension Parser {
         return type.updateSubtypes { child in
             if let alias = child as? AliasType {
                 guard let index = genericTypes.firstIndex(of: alias.name) else {
-                    report("generic type name not found in a struct declaration! \(alias.name) vs [\(genericTypes.joined(separator: ", "))]")
+                    report("Generic type name not found in a struct declaration of type '\(type.typeName)'.\nLooking for alias '\(alias.name)' in generic types: [\(genericTypes.joined(separator: ", "))]\nSolidTypes supplied: [\(solidTypes.map(\.typeName).joined(separator: ", "))]\n", token.range)
                 }
                 return solidTypes[index]
             }
@@ -45,9 +45,13 @@ extension Parser {
         } else if let access = ast as? MemberAccess {
             let structType = access.base.exprType.getValueType() as! StructureType
             recurse(access.base)
-            access.exprType = typeResolvingAliases(from: access.exprType, declName: structType.name, solidTypes: structType.solidTypes)
+            access.exprType = typeResolvingAliases(from: access.exprType, declName: structType.name,
+                                                   genericTypes: genericTypes,
+                                                   solidTypes: solidTypes + structType.solidTypes)
         } else if let new = ast as? New {
             new.type = solidifyType(new.type, genericTypes: genericTypes, solidTypes: solidTypes)
+        } else if let free = ast as? Free {
+            recurse(free.expression)
         } else if let binop = ast as? BinaryOperator {
             recurse(binop.arguments.0)
             recurse(binop.arguments.1)
@@ -68,7 +72,7 @@ extension Parser {
             call.arguments.forEach(recurse)
         }
 
-        // also generally solidify all expressions
+        // also generally solidify the type of expression
         if let expr = ast as? Expression {
             expr.exprType = solidifyType(expr.exprType, genericTypes: genericTypes, solidTypes: solidTypes)
         }
@@ -136,14 +140,14 @@ extension Parser {
         }
     }
 
-    func typeResolvingAliases(from type: Type, declName: String, solidTypes: [Type]) -> Type {
+    func typeResolvingAliases(from type: Type, declName: String, genericTypes: [String], solidTypes: [Type]) -> Type {
         guard type.isAlias else { return type }
-        guard let (_, genericTypes) = genericDeclarations[declName] else {
+        guard let (_, declGenericTypes) = genericDeclarations[declName] else {
             // @Todo: this is also the case for type of a non-generic struct
             // maybe we should traverse the type to see if it contains any Aliastypes and depend on it
             return type
         }
-        return typeResolvingAliases(from: type, genericTypes: genericTypes, solidTypes: solidTypes)
+        return typeResolvingAliases(from: type, genericTypes: genericTypes + declGenericTypes, solidTypes: solidTypes)
     }
 
     func typeResolvingAliases(from type: Type, genericTypes: [String], solidTypes: [Type]) -> Type {
@@ -159,22 +163,17 @@ extension Parser {
         if var structure = type as? StructureType {
             for i in 0..<structure.solidTypes.count {
 
-                // @Todo: DEAL WITH THIS CHECK SOON
-                // this is totally not robust
-                // I need to figure out if we can set solid types passed as argument to this type
-                // remember how I wanted to make aliases into "=Node.Value"? maybe do that
-                if solidTypes.count == structure.solidTypes.count {
-
-                    structure.solidTypes[i] = typeResolvingAliases(from: structure.solidTypes[i],
-                                                                   declName: structure.name, solidTypes: solidTypes)
-                }
+                structure.solidTypes[i] = typeResolvingAliases(from: structure.solidTypes[i],
+                                                               declName: structure.name,
+                                                               genericTypes: genericTypes,
+                                                               solidTypes: solidTypes + structure.solidTypes)
             }
             return structure
         }
         if let alias = type as? AliasType {
             let index: Int
             guard let genericTypeIndex = genericTypes.firstIndex(of: alias.name) else {
-                report("Generic type name not found in a struct declaration of type '\(type.typeName)'. Looking for alias '\(alias.name)' in generic types: [\(genericTypes.joined(separator: ", "))] (solidTypes supplied: [\(solidTypes.map(\.typeName).joined(separator: ", "))])", token.range)
+                report("Generic type name not found in a struct declaration of type '\(type.typeName)'.\nLooking for alias '\(alias.name)' in generic types: [\(genericTypes.joined(separator: ", "))]\nSolidTypes supplied: [\(solidTypes.map(\.typeName).joined(separator: ", "))]\n", token.range)
             }
             index = genericTypeIndex
 

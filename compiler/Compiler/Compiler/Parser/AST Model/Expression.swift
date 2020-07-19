@@ -225,7 +225,7 @@ final class ProcedureCall: Expression, Statement, Equatable {
     
     var debugDescription: String {
         let c = PrintCursors ? " \(range)" : ""
-        var string = "[Call\(c)] \(name)->\(exprType)"
+        var string = "[Call\(c)] \(name) -> \(exprType)"
         if !arguments.isEmpty {
             string += "\n\t\t\t("
             string += arguments.map { String(describing: $0) }.joined(separator: ", ")

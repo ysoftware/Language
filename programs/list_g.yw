@@ -88,7 +88,7 @@ func list_get_value_at<A>(head: Node<A>*, index: Int) -> A* { // value: nullable
 
 func main(count: Int, arguments: Int8**) -> Int {
 
-    printf("List: ", 0);
+    printf("Generic List: ", 0);
     head := new Node<Int>;
     head.value = 0;
 
