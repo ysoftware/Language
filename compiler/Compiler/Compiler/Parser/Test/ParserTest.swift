@@ -62,12 +62,12 @@ final class ParserTest {
                 print("OK \(name)".color(.darkGray))
                 return
             }
+            failed += 1
             print("\(name)\n".color(.lightRed))
             error.context.map { print("Error context: ", $0) }
             print("\(code)\n".color(.cyan))
-            print("Expected error:", expect.message, "\n===".color(.darkGray))
-            print("Received error:", error.message)
-            print("===\n\n".color(.darkGray))
+            print("Expected error: \(expect.message)\n".color(.darkGray))
+            printParserError(error, code)
         }
     }
     

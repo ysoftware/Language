@@ -2,16 +2,17 @@ WORKING ON
 
 TODO
 - #member(List.append) procedure directive
+- A<Void>; should be an error?
 
 READ
 - https://habr.com/ru/company/otus/blog/442554/
 
 FEATURE
-- this should work: obj := new Int; &obj = 1; 
+- array and subscript access
 - proper variadic procedures [different types of arguments / empty variadic arguments]
 - defer
-- arrays
-- subscript access
+
+PROBABLY NEVER
 - warnings (for unused structs and procedures)
 - generic type member access resolution at the point of solidifying // func has_next<T>(nextable: T) -> Bool { return nextable.next != nil; }
 
@@ -36,6 +37,7 @@ LEXER
 - proc call doesn't fail without semicolon at the end
 
 BUGS
+- this should work: obj := new Int; &obj = 1; 
 - code with just "1" outputs 0 statements and isn't failing
 - func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 - 0.5; } // should resolve to float (because of 0.5)
 - head := new Node<Pair<Int, Int>>; list_append_pair<Int, Float>(head, 3, 134); // type checking doesn't catch this

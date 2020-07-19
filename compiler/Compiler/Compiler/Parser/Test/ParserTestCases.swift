@@ -72,7 +72,7 @@ extension ParserTest {
     func testGenericStructDecl() {
         let code = """
         struct A<T> { a: A<Int>; b: A<Int>*; c: T; d: T*; e: A<T>; f: A<T*>; g: A<Int*>; h: A<A<Int>>; }
-        func main() { x: A<Void>; }
+        func main() { x: A<String>; }
         """
 
         let tokens = try! Lexer(code).analyze().tokens
@@ -87,7 +87,7 @@ extension ParserTest {
                 vDecl("e", structure("A", [type])),
                 vDecl("f", structure("A", [pointer(type)])),
                 vDecl("g", structure("A", [pointer(int)])),
-                vDecl("h", structure("A", [structure("A", [type])])),
+                vDecl("h", structure("A", [structure("A", [int])])),
             ])
         }
 
@@ -95,8 +95,8 @@ extension ParserTest {
             solidStruct(int),
             solidStruct(pointer(int)),
             solidStruct(structure("A", [int])),
-            solidStruct(void),
-            main([ vDecl("x", structure("A", [void])), ret(VoidLiteral()) ])
+            solidStruct(string),
+            main([ vDecl("x", structure("A", [string])), ret(VoidLiteral()) ])
         ]))
     }
     
@@ -409,7 +409,7 @@ extension ParserTest {
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
         
-        let error = ParserError(startCursor: Cursor(character: 30),
+        let error = ParserError(startCursor: Cursor(character: 23),
                                 endCursor: Cursor(character: 37),
                                 message: ParserMessage.returnTypeNotMatching(float, string))
         printErrorCase(code, result, error)
