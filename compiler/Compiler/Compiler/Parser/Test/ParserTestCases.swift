@@ -17,7 +17,7 @@ extension ParserTest {
     func testGenericStructUsage() {
         let code = """
         struct Node<Value> { next: Node<Value>*; value: Value; }
-        struct Pair<Value, Value2> { left: Value*; right: Value2*; }
+        struct Pair<Value, Value2> { left: Value; right: Value2; }
 
         func main() {
             list_int := new Node<Int>;
@@ -34,15 +34,25 @@ extension ParserTest {
         let result = parserResult(Parser(tokens).parse)
 
         printResultCase(code, result, Code([
-//            StructDeclaration(name: "Node", id: "", members: [
-//                vDecl("next", pointer(structure("Node", [alias("Value")]))),
-//                vDecl("value", alias("Value")),
-//            ]),
-//
-//            StructDeclaration(name: "Pair", id: "", members: [
-//                vDecl("left", pointer(alias("Value"))),
-//                vDecl("right", pointer(alias("Value2"))),
-//            ]),
+            StructDeclaration(name: "Node", id: "Node_Int32__solidified", members: [
+                vDecl("next", pointer(structure("Node", [int]))),
+                vDecl("value", int),
+            ]),
+
+            StructDeclaration(name: "Node", id: "Node_Node_Int32__solidified", members: [
+                vDecl("next", pointer(structure("Node", [structure("Node", [int])]))),
+                vDecl("value", structure("Node", [int])),
+            ]),
+
+            StructDeclaration(name: "Node", id: "Node_Pair_Int32_Float32__solidified", members: [
+                vDecl("next", pointer(structure("Node", [structure("Pair", [int, float])]))),
+                vDecl("value", structure("Pair", [int, float])),
+            ]),
+
+            StructDeclaration(name: "Pair", id: "Pair_Int32_Float32__solidified", members: [
+                vDecl("left", int),
+                vDecl("right", float),
+            ]),
 
             main([
                 vDecl("list_int", pointer(structure("Node", [int])), New(type: structure("Node", [int]))),
