@@ -78,7 +78,7 @@ extension Parser {
     }
     
     func doMemberAccess(of base: Expression, in scope: Scope) throws -> Expression {
-        guard consumePunct(".") else { report("call matchMemberAccess required before calling this") }
+        guard consumePunct(".") else { report("call matchMemberAccess required before calling this", token.range) }
         
         if let value = base as? Value, value.exprType.equals(to: UnresolvedType()) {
             if let decl = scope.declarations[value.name] as? VariableDeclaration {
@@ -166,7 +166,7 @@ extension Parser {
     func doVarDecl(in scope: Scope) throws -> VariableDeclaration {
         let start = token.startCursor
         guard let identifier = consumeIdent(), consumePunct(":")
-            else { report("call matchVarDecl required before calling this") }
+            else { report("call matchVarDecl required before calling this", token.range) }
 
         // @Todo: check that identifier doesn't have forbidden symbols like '*'
 
@@ -230,7 +230,7 @@ extension Parser {
 
     func doStructDecl() throws {
         let start = token.startCursor
-        guard consumeKeyword(.struct) else { report("can't call doStructDecl without checking for keyword first") }
+        guard consumeKeyword(.struct) else { report("can't call doStructDecl without checking for keyword first", token.range) }
         guard let name = consumeIdent()?.value
             else { throw error(ParserMessage.structExpectedName) }
         let end = token.endCursor
@@ -289,7 +289,7 @@ extension Parser {
     func doProcCall(in scope: Scope) throws -> ProcedureCall {
         let start = token.startCursor
         guard let (identToken, name) = consumeIdent()
-            else { report("call matchProcedureCall required before calling this") }
+            else { report("call matchProcedureCall required before calling this", token.range) }
 
         var solidTypes: [Type] = []
         if consumeOp("<") {
@@ -378,7 +378,7 @@ extension Parser {
 
     func doProcDecl() throws {
         let start = token.startCursor
-        guard consumeKeyword(.func) else { report("can't call doProcDecl without checking for keyword first") }
+        guard consumeKeyword(.func) else { report("can't call doProcDecl without checking for keyword first", token.range) }
         guard let procNameIdent = consumeIdent()?.value else {
             throw error(ParserMessage.procExpectedName(token), token.startCursor, token.endCursor)
         }
@@ -524,7 +524,7 @@ extension Parser {
     
     func doIf(in scope: Scope) throws -> Condition {
         let tok = token
-        guard consumeKeyword(.if) else { report("can't call doIf without checking for keyword first") }
+        guard consumeKeyword(.if) else { report("can't call doIf without checking for keyword first", token.range) }
         let hasParentheses = consumePunct("(")
         var condition: Expression!
         var ifBody: [Statement] = []
@@ -567,10 +567,10 @@ extension Parser {
         let labelIdent = consumeIdent()
         let label = labelIdent?.value.value
         if labelIdent != nil {
-            guard consumePunct(":") else { report("call matchWhile required before calling this") }
+            guard consumePunct(":") else { report("call matchWhile required before calling this", token.range) }
         }
         let end = token.endCursor
-        guard consumeKeyword(.while) else { report("can't call doWhile without checking for keyword first") }
+        guard consumeKeyword(.while) else { report("can't call doWhile without checking for keyword first", token.range) }
         if let labelIdent = labelIdent {
             if scope.contexts.contains(where: { ($0 as? ContextLoop)?.label == labelIdent.value.value })
             { throw error(ParserMessage.loopLabelDuplicate, labelIdent.token.startCursor, labelIdent.token.endCursor) }
@@ -598,7 +598,7 @@ extension Parser {
     
     func doBreak(in scope: Scope) throws -> Break {
         let tok = token
-        guard consumeKeyword(.break) else { report("can't call doBreak without checking for keyword first") }
+        guard consumeKeyword(.break) else { report("can't call doBreak without checking for keyword first", token.range) }
         let labelIdent = consumeIdent()
         guard consumeSep(";") else { throw error(ParserMessage.expectedSemicolon) }
         if let labelIdent = labelIdent {
@@ -615,7 +615,7 @@ extension Parser {
     
     func doContinue(in scope: Scope) throws -> Continue {
         let tok = token
-        guard consumeKeyword(.continue) else { report("can't call doContinue without checking for keyword first") }
+        guard consumeKeyword(.continue) else { report("can't call doContinue without checking for keyword first", token.range) }
         let labelIdent = consumeIdent()
         guard consumeSep(";") else { throw error(ParserMessage.expectedSemicolon) }
         if let labelIdent = labelIdent {

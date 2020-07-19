@@ -80,13 +80,8 @@ struct Cursor: Equatable, CustomDebugStringConvertible {
 }
 
 func report(_ error: String, _ range: CursorRange? = nil, proc: String = #function, ln: Int = #line) -> Never {
-    report(error, range?.start, range?.end, proc: proc, ln: ln)
-}
-
-// @Todo: refactor this to single point of error reporting
-func report(_ error: String, _ start: Cursor? = nil, _ end: Cursor? = nil, proc: String = #function, ln: Int = #line) -> Never {
-    
-    print("Internal Error: \(error)")
+    let position = range.map { " around \($0.start)" } ?? ""
+    print("Internal Error\(position): \(error)")
     print("Context: \(proc)#\(ln)")
-    fatalError()
+    quit(1)
 }

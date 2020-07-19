@@ -98,14 +98,14 @@ func main(count: Int, arguments: Int8**) -> Int {
     list_append<Int>(head, 4);
     list_append<Int>(head, 5);
 
-    head = list_removing_element_at<Value>(head, 5);
-    head = list_removing_element_at<Value>(head, 3);
-    head = list_removing_element_at<Value>(head, 0);
-    head = list_removing_element_at<Value>(head, 9);
+    head = list_removing_element_at<Int>(head, 5);
+    head = list_removing_element_at<Int>(head, 3);
+    head = list_removing_element_at<Int>(head, 0);
+    head = list_removing_element_at<Int>(head, 9);
 
-    if (*list_get_value_at<Value>(head, 0) != 1) { return 1; }
-    if (*list_get_value_at<Value>(head, 1) != 2) { return 2; }
-    if (*list_get_value_at<Value>(head, 2) != 4) { return 3; }
+    if (*list_get_value_at<Int>(head, 0) != 1) { return 1; }
+    if (*list_get_value_at<Int>(head, 1) != 2) { return 2; }
+    if (*list_get_value_at<Int>(head, 2) != 4) { return 3; }
 
     printf("OK\n", 0);
     return 0;

@@ -1,9 +1,9 @@
 WORKING ON
 
 TODO
+- convert aliases to be like "=Node.Value"
 - generic procedure parsing tests
 - #member(List.append) procedure directive
-- A<Void>; should be an error?
 
 READ
 - https://habr.com/ru/company/otus/blog/442554/
@@ -38,6 +38,7 @@ LEXER
 - proc call doesn't fail without semicolon at the end
 
 BUGS
+- A<Void>; should be an error?
 - this should work: obj := new Int; &obj = 1; 
 - code with just "1" outputs 0 statements and isn't failing
 - func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 - 0.5; } // should resolve to float (because of 0.5)
