@@ -158,6 +158,11 @@ internal extension IR {
             }
             else if op.name == UnaryOperator.cast {
                 let (load, val) = getExpressionResult(op.argument)
+
+                guard !op.argument.exprType.equals(to: op.exprType) else {
+                    return (load, val)
+                }
+
                 value = "%\(count())"
                 load.map { code += "\($0)\n" }
                 code += "; unary operator: cast \n"

@@ -43,6 +43,10 @@ extension Parser {
             recurse(assign.receiver)
             recurse(assign.expression)
         } else if let access = ast as? MemberAccess {
+            guard !(access.base.exprType is UnresolvedType) else {
+                report("trying to solidify Unresolved \(access)")
+                return // @Todo: refactor to error
+            }
             let structType = access.base.exprType.getValueType() as! StructureType
             recurse(access.base)
             access.exprType = typeResolvingAliases(from: access.exprType, declName: structType.name,
@@ -69,9 +73,12 @@ extension Parser {
         } else if let code = ast as? Code {
             code.statements.forEach(recurse)
         } else if let call = ast as? ProcedureCall {
+            call.solidTypes = call.solidTypes.map { typeResolvingAliases(from: $0, genericTypes: genericTypes, solidTypes: solidTypes) }
             try! maybeSolidifyProcedure(named: call.name, solidTypes: solidTypes, range: call.range) // @Todo: deal with this throw
             call.arguments.forEach(recurse)
-            call.solidTypes = call.solidTypes.map { typeResolvingAliases(from: $0, genericTypes: genericTypes, solidTypes: solidTypes) }
+            if let ret = procedureDeclarations[call.id]?.returnType {
+                call.exprType = ret // @Todo: is this hacky?
+            }
         } else if let sizeof = ast as? SizeOf {
             sizeof.type = solidifyType(sizeof.type, genericTypes: genericTypes, solidTypes: solidTypes)
         }

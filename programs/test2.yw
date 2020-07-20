@@ -1,24 +1,72 @@
+func malloc(size: Int) -> Void* #foreign;
+func `free`(pointer: Void*) #foreign;
+func printf(format: String, arg: Int, ...) #foreign;
+func sprintf(format: String, arg: Int, ...) -> String #foreign;
+
 struct Node<Value> {
     next: Node<Value>*;
     value: Value;
 }
 
-func transform<F, T>(value: F) -> T #foreign;
+func transform<F, T>(value: F) -> T {
+
+    return cast(T) value + 1;
+}
 
 func list_transform<F, T>(head: Node<F>*) -> Node<T>* {
     new_head := new Node<T>;
+    new_head.value = transform<F, T>(head.value);
 
-    new_current := new_head;
+    new_last := new_head;
     current := head;
+    
     while (current.next != null) {
-        new_current.value = transform<F, T>(current.value);
+        next := new Node<T>;
+        next.value = transform<F, T>(current.next.value);
+        new_last.next = next;
+        new_last = next;
 
         current = current.next;
     }
     return new_head;
 }
 
-func main() {
+func list_print(head: Node<Int>*) {
+    useSeparator := false;
+    current := head;
+    while (current != null) {
+        if (useSeparator) {
+            printf(", ", 0);
+        }
+        printf("%d", current.value);
+        current = current.next;
+        useSeparator = true;
+    }
+    printf("\n", 0);
+}
+
+func list_append(head: Node<Int>*, value: Int) {
+    node := new Node<Int>;
+    node.value = value;
+
+    current := head;
+    while (current.next != null) {
+        current = current.next;
+    }
+    current.next = node;
+}
+
+func main() -> Int {
     int_list    : Node<Int>*    = new Node<Int>;
-    string_list : Node<String>* = list_transform<Int, String>(int_list);
+    list_append(int_list, 0);
+    list_append(int_list, 1);
+    list_append(int_list, 2);
+    list_append(int_list, 3);
+    list_append(int_list, 4);
+
+    list_print(int_list);
+    int_list2 : Node<Int>* = list_transform<Int, Int>(int_list);
+    list_print(int_list2);
+
+    return 0;
 }
