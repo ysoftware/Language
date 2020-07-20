@@ -2,7 +2,7 @@ WORKING ON
 
 TODO
 - generic procedure parsing tests
-- #method() procedure directive
+- @method() procedure attribute
     func list_append<Value>(head: Node<Value, Value) -> Node<Value> #method(Node<T>.append) { ... } 
         head: new Node<Int>;  head = head.adding(1).adding(2);
         parsed to: assign head = [call list_append([call list_append(head, 1)], 2)]

@@ -32,8 +32,9 @@ final class Lexer {
     internal init(fileName: String? = nil, _ string: String) {
         self.fileName = fileName
         self.characters = Array(string)
-        self.char = string[i]
         self.stringCount = string.count
+        if stringCount > 0 { self.char = string[i] }
+        else { char = " " }
     }
     
     let fileName: String?

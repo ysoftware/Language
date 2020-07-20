@@ -14,6 +14,38 @@ func parserResult<T>(_ block: () throws -> T) -> Result<T, ParserError> {
 
 extension ParserTest {
 
+    func testGenericProcedureUsage() {
+        let code = """
+        func
+        func main() {  }
+        """
+
+        let tokens = try! Lexer(code).analyze().tokens
+        let result = parserResult(Parser(tokens).parse)
+
+        printResultCase(code, result, Code([
+
+        ]))
+    }
+
+    func testGenericProcedureDecl() {
+        let code = """
+        func transform<F, T>(value: F) -> T #foreign;
+        func list_transform<F, T>(head: Node<F>*) -> Node<T>*;
+        func main() {
+            int_list    : Node<Int>*    = new Node<Int>;
+            string_list : Node<String>* = list_transform<Int, String>(int_list);
+        }
+        """
+
+        let tokens = try! Lexer(code).analyze().tokens
+        let result = parserResult(Parser(tokens).parse)
+
+        printResultCase(code, result, Code([
+
+        ]))
+    }
+
     func testGenericStructUsage() {
         let code = """
         struct Node<Value> { next: Node<Value>*; value: Value; }

@@ -356,16 +356,8 @@ extension Parser {
                 }
             }
         }
-        else if let (genericDecl, genericTypes) = genericDeclarations[name.value] {
-            guard let genericProc = genericDecl as? ProcedureDeclaration else {
-                throw error(ParserMessage.callNotProcedure, range)
-            }
-
-            guard genericTypes.count == solidTypes.count else {
-                throw error(ParserMessage.procShouldBeGeneric(name.value), range)
-            }
-            solidifyProcedure(genericProc, genericTypes: genericTypes, solidTypes: solidTypes)
-            returnType = solidifyType(genericProc.returnType, genericTypes: genericTypes, solidTypes: solidTypes) 
+        else if let ret = try maybeSolidifyProcedure(named: name.value, solidTypes: solidTypes, range: range) {
+            returnType = ret
         }
 
         let call = ProcedureCall(name: name.value, exprType: returnType, arguments: arguments,
@@ -374,6 +366,23 @@ extension Parser {
             appendUnresolved(returnType.typeName, call)
         }
         return call
+    }
+
+    @discardableResult
+    func maybeSolidifyProcedure(named name: String, solidTypes: [Type], range: CursorRange) throws -> Type? {
+        if let (genericDecl, genericTypes) = genericDeclarations[name], !solidTypes.contains(where: { $0 is AliasType }) {
+            guard let genericProc = genericDecl as? ProcedureDeclaration else {
+                throw error(ParserMessage.callNotProcedure, range)
+            }
+
+            guard genericTypes.count == solidTypes.count else {
+                throw error(ParserMessage.procShouldBeGeneric(name), range)
+            }
+
+            solidifyProcedure(genericProc, genericTypes: genericTypes, solidTypes: solidTypes)
+            return solidifyType(genericProc.returnType, genericTypes: genericTypes, solidTypes: solidTypes)
+        }
+        return nil
     }
     
     // MARK: - PROCEDURE DECLARATION -
@@ -960,7 +969,8 @@ final class Parser {
     init(fileName: String? = nil, _ tokens: [Token]) {
         self.fileName = fileName
         self.tokens = tokens
-        self.token = tokens[i]
+        if tokens.count > 0 { self.token = tokens[i] }
+        else { token = Token(EOF()) }
     }
     
     let fileName: String?

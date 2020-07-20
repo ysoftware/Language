@@ -244,8 +244,8 @@ final class ProcedureCall: Expression, Statement, Equatable {
 
     let name: String
     var exprType: Type
-    let arguments: [Expression]
-    let solidTypes: [Type]
+    var arguments: [Expression]
+    var solidTypes: [Type]
     
     internal init(name: String, exprType: Type, arguments: [Expression], solidTypes: [Type] = [],
                   range: CursorRange = CursorRange()) {

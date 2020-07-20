@@ -15,6 +15,8 @@ final class ParserTest {
         let i = ParserTest()
         i.failed = 0
 
+        i.testGenericProcedureUsage()
+        i.testGenericProcedureDecl()
         i.testGenericStructDecl()
         i.testGenericStructUsage()
         i.testBinopLiteralConversion()

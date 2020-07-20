@@ -69,7 +69,9 @@ extension Parser {
         } else if let code = ast as? Code {
             code.statements.forEach(recurse)
         } else if let call = ast as? ProcedureCall {
+            try! maybeSolidifyProcedure(named: call.name, solidTypes: solidTypes, range: call.range) // @Todo: deal with this throw
             call.arguments.forEach(recurse)
+            call.solidTypes = call.solidTypes.map { typeResolvingAliases(from: $0, genericTypes: genericTypes, solidTypes: solidTypes) }
         } else if let sizeof = ast as? SizeOf {
             sizeof.type = solidifyType(sizeof.type, genericTypes: genericTypes, solidTypes: solidTypes)
         }

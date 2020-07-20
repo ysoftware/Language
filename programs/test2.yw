@@ -1,20 +1,24 @@
-func malloc(size: Int) -> Void* #foreign;
-func `free`(pointer: Void*) #foreign;
-func printf(format: String, arguments: Int, ...) #foreign;
-
 struct Node<Value> {
     next: Node<Value>*;
     value: Value;
 }
 
-func has_next<T>(nextable: T) -> Bool { 
-    return nextable.next != nil; 
+func transform<F, T>(value: F) -> T #foreign;
+
+func list_transform<F, T>(head: Node<F>*) -> Node<T>* {
+    new_head := new Node<T>;
+
+    new_current := new_head;
+    current := head;
+    while (current.next != null) {
+        new_current.value = transform<F, T>(current.value);
+
+        current = current.next;
+    }
+    return new_head;
 }
 
-func main(count: Int, arguments: Int8**) -> Int {
-
-    head := new Node<Pair<Int, Float>>;
-    has_next<Node<Pair<Int, Float>>>(head);
-
-    return 0;
+func main() {
+    int_list    : Node<Int>*    = new Node<Int>;
+    string_list : Node<String>* = list_transform<Int, String>(int_list);
 }
