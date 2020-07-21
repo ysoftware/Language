@@ -168,13 +168,21 @@ internal extension IR {
                 code += "; unary operator: cast \n"
 
                 let instruction: String
-                if let argType = op.argument.exprType as? IntType, let resultType = op.exprType as? IntType {
-                    instruction = resultType.size > argType.size ? "zext" : "trunc" // extend/truncate
-                } else if let argType = op.argument.exprType as? FloatType, let resultType = op.exprType as? FloatType {
-                    instruction = resultType.size > argType.size ? "fpext" : "fptrunc" // extend/truncate
-                } else {
+                switch (op.argument.exprType, op.exprType) {
+                case (let l as IntType, let r as IntType):
+                    instruction = l.size > r.size ? "zext" : "trunc" // extend/truncate
+                case (let l as FloatType, let r as FloatType):
+                    instruction = l.size > r.size ? "fpext" : "fptrunc" // extend/truncate
+                case (is FloatType, let r as IntType):
+                    instruction = r.isSigned ? "fptosi" : "fptoui"
+                case (let l as IntType, is FloatType):
+                    instruction = l.isSigned ? "uitofp" : "sitofp"
+                case (is StructureType, _):
                     instruction = "bitcast"
+                default:
+                    report("Unsopported cast operation: \(op.argument.exprType) to \(op.exprType)")
                 }
+
                 code += "\(value) = \(instruction) \(matchType(op.argument.exprType)) \(val) to \(matchType(op.exprType))"
             }
             else {

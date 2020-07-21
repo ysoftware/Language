@@ -68,8 +68,8 @@ func instruction(for operation: String, type: Type) -> String {
     case "/": i = int ? (sgn ? "sdiv" : "udiv") : (flt ? "fdiv" : "")
     case "%": i = int ? (sgn ? "srem" : "urem") : (flt ? "frem" : "")
 
-    case "==": i = int ? "icmp eq" : ""
-    case "!=": i = int ? "icmp ne" : ""
+    case "==": i = int ? "icmp eq" : (flt ? "fcmp oeq" : "")
+    case "!=": i = int ? "icmp ne" : (flt ? "fcmp une" : "")
     
     case ">": i = int ? (sgn ?  "icmp sgt" : "icmp ugt") : ""
     case ">=": i = int ? (sgn ? "icmp sge" : "icmp uge") : ""

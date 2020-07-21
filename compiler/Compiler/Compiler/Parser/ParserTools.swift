@@ -44,8 +44,9 @@ extension Parser {
             recurse(assign.expression)
         } else if let access = ast as? MemberAccess {
             guard !(access.base.exprType is UnresolvedType) else {
+                // @Todo: we probably didn't resolve base.
+                // this should be a user-facing error
                 report("trying to solidify Unresolved \(access)")
-                return // @Todo: refactor to error
             }
             let structType = access.base.exprType.getValueType() as! StructureType
             recurse(access.base)
