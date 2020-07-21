@@ -1,7 +1,6 @@
 func malloc(size: Int) -> Void* #foreign;
 func `free`(pointer: Void*) #foreign;
-func printf(format: String, arg: Int, ...) #foreign;
-func sprintf(format: String, arg: Int, ...) -> String #foreign;
+func printf(format: String, arg: Float, ...) #foreign;
 
 struct Node<Value> {
     next: Node<Value>*;
@@ -9,8 +8,7 @@ struct Node<Value> {
 }
 
 func transform<F, T>(value: F) -> T {
-
-    return cast(T) value + 1;
+    return (cast(T) value);
 }
 
 func list_transform<F, T>(head: Node<F>*) -> Node<T>* {
@@ -31,18 +29,18 @@ func list_transform<F, T>(head: Node<F>*) -> Node<T>* {
     return new_head;
 }
 
-func list_print(head: Node<Int>*) {
+func list_print(head: Node<Float>*) {
     useSeparator := false;
     current := head;
     while (current != null) {
         if (useSeparator) {
-            printf(", ", 0);
+            printf(", ", 0.0);
         }
-        printf("%d", current.value);
+        printf("%1.1f", current.value);
         current = current.next;
         useSeparator = true;
     }
-    printf("\n", 0);
+    printf("\n", 0.0);
 }
 
 func list_append(head: Node<Int>*, value: Int) {
@@ -56,17 +54,46 @@ func list_append(head: Node<Int>*, value: Int) {
     current.next = node;
 }
 
+func list_get_value_at<A>(head: Node<A>*, index: Int) -> A* { // value: nullable
+    if (index == 0) {
+        return &head.value;
+    }
+
+    current := head.next;
+    i := 0;
+
+    while (current != null) {
+        i = i + 1;
+        if (index == i) {
+            break;
+        }
+        current = current.next;
+    }
+
+    if (index > i) {
+        return null;
+    }
+    
+    return &current.value;
+}
+
 func main() -> Int {
-    int_list    : Node<Int>*    = new Node<Int>;
+    int_list : Node<Int>* = new Node<Int>;
     list_append(int_list, 0);
     list_append(int_list, 1);
     list_append(int_list, 2);
     list_append(int_list, 3);
     list_append(int_list, 4);
 
-    list_print(int_list);
-    int_list2 : Node<Int>* = list_transform<Int, Int>(int_list);
-    list_print(int_list2);
+    float_list : Node<Float>* = list_transform<Int, Float>(int_list);
+
+    if (*list_get_value_at<Float>(float_list, 0) != 0) { return 1; }
+    if (*list_get_value_at<Float>(float_list, 1) != 1) { return 2; }
+    if (*list_get_value_at<Float>(float_list, 2) != 2) { return 3; }
+    if (*list_get_value_at<Float>(float_list, 3) != 3) { return 4; }
+    if (*list_get_value_at<Float>(float_list, 4) != 4) { return 5; }
+
+    printf("Transform: OK\n", 0.0);
 
     return 0;
 }

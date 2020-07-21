@@ -1,6 +1,7 @@
 func malloc(size: Int) -> Void* #foreign;
 func `free`(pointer: Void*) #foreign;
 func printf(format: String, arg: Int, arg2: Float64, ...) #foreign;
+func sprintf(format: String, arg: Int, ...) -> String #foreign;
 
 struct Pair<Left, Right> {
     left: Left;
