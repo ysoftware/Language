@@ -130,8 +130,3 @@ extension Lexer {
         characters.map { Character(UnicodeScalar(UInt8(bitPattern: $0))) }.map(String.init).joined()
     }
 }
-
-@inline(__always)
-func _s(_ string: String) -> [CChar] {
-    return string.cString(using: .ascii)!.dropLast()
-}
