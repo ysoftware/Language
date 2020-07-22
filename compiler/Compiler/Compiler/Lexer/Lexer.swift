@@ -8,37 +8,88 @@
 
 // Constants
 
-fileprivate let punctuators: [[Character]] = [
-    "...", ".", ":", "(", ")", "{", "}", "[", "]", "->"
-].map { Array($0) }
+enum C {
+    static let newline: CChar = 10 // \n
+    static let `return`: CChar = 13 // \r
+    static let tab: CChar = 9 // \t
 
-fileprivate let operators: [[Character]] = [
-    ":=", "==", "!=", "<=", ">=", "&&", "||", ">", "<",
-    "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<=",
-    "-", "+", "/", "&", "*", "%", "..", "="
-].map { Array($0) }
+    static let backslash: CChar = 92 // \
+    static let slash: CChar = 47 // /
+    static let dot: CChar = 46 // .
+    static let semicolon: CChar = 59 // ;
+    static let comma: CChar = 44 // ,
+    static let colon: CChar = 58 // :
+    static let quote: CChar = 34 // "
+    static let space: CChar = 32 // ' '
+    static let pound: CChar = 35 // #
+    static let underscore: CChar = 95 // _
+    static let dash: CChar = 45 // -
+    static let accent: CChar = 96 // `
+    static let asterisk: CChar = 42 // `
+    static let zero: CChar = 42 // 0
 
-fileprivate let separators: [[Character]] = [
-    "\n", " ", ";", ","
-].map { Array($0) }
+    static let e: CChar = 101 // e
+    static let n: CChar = 110 // n
+    static let r: CChar = 114 // r
+    static let t: CChar = 116 // t
 
-fileprivate let lowercaseRange = ClosedRange<Character>(uncheckedBounds: ("a", "z"))
-fileprivate let uppercaseRange = ClosedRange<Character>(uncheckedBounds: ("A", "Z"))
-fileprivate let numberRange = ClosedRange<Character>(uncheckedBounds: ("0", "9"))
+
+    static let slashAsterisk: [CChar] = [C.slash, C.asterisk]
+    static let asteriskSlash: [CChar] = [C.asterisk, C.slash]
+
+    static let void: [CChar] = [118, 111, 105, 100]
+    static let null: [CChar] = [110, 117, 108, 108]
+    static let `true`: [CChar] = [116, 114, 117, 101]
+    static let `false`: [CChar] = [102, 97, 108, 115, 101]
+
+    static func string(from value: [CChar]) -> String {
+        var nullTerminated = value
+        nullTerminated.append(0)
+        return String(cString: nullTerminated)
+    }
+}
+
+fileprivate let punctuators: [[CChar]] = [
+//    "...", ".", ":", "(", ")", "{", "}", "[", "]", "->"
+    [46, 46, 46], [46], [58], [40], [41], [123], [125], [91], [93], [45, 62]
+]
+
+fileprivate let operators: [[CChar]] = [
+//    ":=", "==", "!=", "<=", ">=", "&&", "||", ">", "<",
+//    "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<=",
+//    "-", "+", "/", "&", "*", "%", "..", "="
+    [58, 61], [61, 61], [33, 61], [60, 61], [62, 61], [38, 38], [124, 124], [62], [60],
+    [43, 61], [45, 61], [42, 61], [47, 61], [37, 61], [94, 61], [62, 62], [60, 60],
+    [62, 62, 61], [60, 60, 61], [45], [43], [47], [38], [42], [37], [46, 46], [61]
+]
+
+fileprivate let separators: [[CChar]] = [
+    [C.newline], [C.space], [C.semicolon], [C.comma]
+]
+
+fileprivate let lowercaseRange = ClosedRange<CChar>(uncheckedBounds: (97, 122))
+fileprivate let uppercaseRange = ClosedRange<CChar>(uncheckedBounds: (65, 90))
+fileprivate let numberRange = ClosedRange<CChar>(uncheckedBounds: (48, 57))
 
 
 final class Lexer {
     
     internal init(fileName: String? = nil, _ string: String) {
         self.fileName = fileName
-        self.characters = Array(string)
-        self.stringCount = string.count
-        if stringCount > 0 { self.char = string[i] }
-        else { char = " " }
+
+        self.characters = string.cString(using: .ascii) ?? []
+        self.stringCount = characters.count
+
+        // @Todo: bring back this error
+//        if !char.isASCII {
+//            throw error(.nonASCIICharacter, start.withdrawingCharacter(), cursor)
+//        }
+        if stringCount > 0 { self.char = characters[i] }
+        else { char = C.space }
     }
     
     let fileName: String?
-    let characters: [Character]
+    let characters: [CChar]
     let stringCount: Int
 
     // Variables
@@ -46,25 +97,25 @@ final class Lexer {
     var tokens: [Token] = []
     var cursor = Cursor()
     var i = 0
-    var char: Character
+    var char: CChar
     
     func analyze() throws -> LexerOutput {    
         loop: while stringCount > i {
             switch char {
                 
-            case "\"":
+            case C.quote:
                 let start = cursor
                 // STRING LITERAL
                 
                 func isNextThreeQuotes(after n: Int = 0) -> Bool {
                     guard characters.count > i+2+n else { return false }
-                    return characters[i+n] == "\"" && characters[i+1+n] == "\"" && characters[i+2+n] == "\""
+                    return characters[i+n] == C.quote && characters[i+1+n] == C.quote && characters[i+2+n] == C.quote
                 }
                 
                 let isMultiline = isNextThreeQuotes()
                 if isMultiline {
                     nextChar(3)
-                    if !consume("\n") {
+                    if !consume(C.newline) {
                         throw error(.newlineExpectedBeforeMultilineStringLiteral, cursor, cursor)
                     }
                 }
@@ -73,21 +124,21 @@ final class Lexer {
                 }
                 
                 
-                var value = ""
+                var value: [CChar] = []
                 while stringCount > i {
-                    if char == "\n" { /* @Todo: wtf is this? */ }
+                    if char == C.newline { /* @Todo: wtf is this? */ }
                     
-                    if char == "\\" {
+                    if char == C.backslash {
                         guard let next = peekNext()
                             else { throw error(.unexpectedEndOfFile, cursor, cursor) }
                         
                         switch next {
-                        case "0":  value.append(Character(UnicodeScalar(0)))
-                        case "n":  value.append("\n")
-                        case "r":  value.append("\r")
-                        case "\\": value.append("\\")
-                        case "t":  value.append("\t")
-                        case "\"": value.append("\"")
+                        case C.zero:  value.append(0)
+                        case C.n:  value.append(C.newline)
+                        case C.r:  value.append(C.return)
+                        case C.backslash: value.append(C.backslash)
+                        case C.t:  value.append(C.tab)
+                        case C.quote: value.append(C.quote)
                         default: throw error(.unexpectedCharacterToEscape, cursor, cursor)
                         }
                         if !nextChar() || !nextChar() { throw error(.unexpectedEndOfFile, cursor, cursor) }
@@ -99,86 +150,88 @@ final class Lexer {
                         else if isNextThreeQuotes() {
                             throw error(.newlineExpectedAfterMultilineStringLiteral, cursor, cursor)
                         }
-                        else if char == "\n", isNextThreeQuotes(after: 1) {
+                        else if char == C.newline, isNextThreeQuotes(after: 1) {
                             nextChar(4)
-                            if let next = peekNext(), next != "\n", next != ";" {
+                            if let next = peekNext(), next != C.newline, next != C.semicolon {
                                 throw error(.newlineExpectedAfterMultilineStringLiteral, cursor, cursor)
                             }
                             else {
-                                append(TokenLiteral(value: .string(value: value)), start, cursor)
+                                append(TokenLiteral(value: .string(value: C.string(from: value))), start, cursor)
                                 break
                             }
                         }
                     }
                     else {
-                        if consume(string: ["\""]) {
-                            append(TokenLiteral(value: .string(value: value)), start, cursor)
+                        if consume(string: [C.quote]) {
+                            append(TokenLiteral(value: .string(value: C.string(from: value))), start, cursor)
                             break
                         }
-                        else if peekNext() == "\n" { throw error(.newLineInStringLiteral, cursor, cursor) }
+                        else if peekNext() == C.newline { throw error(.newLineInStringLiteral, cursor, cursor) }
                     }
                     
                     value.append(char)
                     if !nextChar() { throw error(.unexpectedEndOfFile, cursor, cursor) }
                 }
                 
-            case ";",  ",":
+            case C.semicolon, C.comma:
                 // SEPARATORS
                 let start = cursor
-                append(Separator(value: String(char)), start, cursor)
+                append(Separator(value: C.string(from: [char])), start, cursor)
                 
-            case lowercaseRange, uppercaseRange, "_", "#", "`":
+            case lowercaseRange, uppercaseRange, C.underscore, C.pound, C.accent:
                 // KEYWORDS / IDENTIFIERS / DIRECTIVES / BOOL LITERALS
                 
                 let start = cursor
-                let isDirective = consume(string: ["#"])
+                let isDirective = consume(string: [C.pound])
                 if isDirective {
                     if !nextChar() { throw error(.emptyDirectiveName, start, cursor) }
-                    else if char == " " { throw error(.emptyDirectiveName, start, cursor) }
+                    else if char == C.space { throw error(.emptyDirectiveName, start, cursor) }
                     else if !lowercaseRange.contains(char)
-                        && !uppercaseRange.contains(char) && char != "_" {
+                        && !uppercaseRange.contains(char) && char != C.underscore {
                         throw error(.unexpectedDirectiveName, start, cursor)
                     }
                 }
                 
-                var value = String(char)
+                var value = [char]
                 while let next = consumeNext(where: {
                     let isMatching = lowercaseRange.contains($0) || uppercaseRange.contains($0)
-                        || numberRange.contains($0) || $0 == "_" || $0 == "*" || $0 == "`"
-                    let isLegal = value.last != "*" || value.last == "*" && $0 == "*" // only allowed trailing asterisks
+                    || numberRange.contains($0) || $0 == C.underscore || $0 == C.asterisk || $0 == C.accent
+                    let isLegal = value.last != C.asterisk || value.last == C.asterisk && $0 == C.asterisk // only allowed trailing asterisks
                     return isMatching && isLegal
                 }) {
                     value.append(next)
                 }
                 
-                let isNotKeyword = value.first == "`" && value.last == "`" && value.count >= 3
+                let isNotKeyword = value.first == C.accent && value.last == C.accent && value.count >= 3
                 if isNotKeyword {
-                    value = String(value[value.startIndex(offsetBy: 1)..<value.endIndex(offsetBy: -1)])
+                    value = Array(value[1..<value.count-1])
                 }
                 
-                if let idx = value.firstIndex(of: "`") {
+                if let idx = value.firstIndex(of: C.accent) {
                     let i = value.distance(from: value.startIndex, to: idx)
                     let c = start.advancingCharacter(by: i-1) // @Todo: weird to do this to get the right cursor
                     
-                    print("Error: \(char)    [@Todo: rework lexer errors]")
+                    print("Error: \(printChar)    [@Todo: rework lexer errors 1]")
                     throw error(.unexpectedCharacter, c, c)
                 }
                 
-                if value == "void" { append(TokenLiteral(value: .void), start, start) }
-                else if value == "null" { append(TokenLiteral(value: .null), start, cursor) }
-                else if value == "true" { append(TokenLiteral(value: .bool(value: true)), start, cursor) }
-                else if value == "false" { append(TokenLiteral(value: .bool(value: false)), start, cursor) }
-                else if !isNotKeyword, let keyword = Keyword(rawValue: value) { append(keyword, start, cursor) }
+                if value == C.void { append(TokenLiteral(value: .void), start, start) }
+                else if value == C.null { append(TokenLiteral(value: .null), start, cursor) }
+                else if value == C.true { append(TokenLiteral(value: .bool(value: true)), start, cursor) }
+                else if value == C.false { append(TokenLiteral(value: .bool(value: false)), start, cursor) }
+                else if !isNotKeyword, let keyword = Keyword(rawValue: C.string(from: value)) {
+                    append(keyword, start, cursor) // @Speed: slow parsing of keywords
+                }
                 else if isDirective {
                     if value.isEmpty { throw error(.emptyDirectiveName, start, cursor) }
-                    append(Directive(value: value), start, cursor)
+                    append(Directive(value: C.string(from: value)), start, cursor)
                 }
                 else {
-                    if value == "_" { throw error(.invalidIdentifierUnderscore, start, cursor) }
-                    append(Identifier(value: value), start, cursor)
+                    if value == [C.underscore] { throw error(.invalidIdentifierUnderscore, start, cursor) }
+                    append(Identifier(value: C.string(from: value)), start, cursor)
                 }
                 
-            case numberRange, ".", "-":
+            case numberRange, C.dot, C.dash:
                 // NUMBER LITERALS
                 
                 let start = cursor
@@ -188,46 +241,47 @@ final class Lexer {
                     fallthrough
                 }
                 
-                var value = String(char)
-                let numLitSymbols = Array("_.e-")
+                var value = [char]
+                let numLitSymbols = [C.underscore, C.dot, C.e, C.dash]
                 while let next = consumeNext(where: { numberRange.contains($0) || numLitSymbols.contains($0) }) {
-                    if value.count >= 1 && next == "-" && value.last != "e" {
+                    if value.count >= 1 && next == C.dash && value.last != C.e {
                         throw error(.unexpectedMinusInNumberLiteral, start, cursor)
                     }
-                    else if next == "." && value.contains(".") || next == "e" && value.contains("e") {
-                        throw error((next == "." ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral), start, cursor)
+                    else if next == C.dot && value.contains(C.dot) || next == C.e && value.contains(C.e) {
+                        throw error((next == C.dot ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral), start, cursor)
                     }
-                    if next == "_" { continue }
+                    if next == C.underscore { continue }
                     value.append(next)
                 }
                 
                 if let next = peekNext() {
                     if !(separators + punctuators + operators).contains([next]) {
+                        print("Error: \(printChar)    [@Todo: rework lexer errors 3]")
                         throw error(.unexpectedCharacterInNumber, cursor, cursor)
                     }
                 }
                 
-                if value == "-" || value.replacingOccurrences(of: ".", with: "").isEmpty {
+                if value == [C.dash] || value.filter({ $0 != C.dot }).isEmpty {
                     fallthrough
                 }
-                else if value.contains("e") || value.contains(".") {
-                    append(TokenLiteral(value: .float(value: Float64(value)!)), start, cursor)
+                else if value.contains(C.e) || value.contains(C.dot) {
+                    append(TokenLiteral(value: .float(value: Float64(C.string(from: value))!)), start, cursor)
                 }
                 else {
-                    append(TokenLiteral(value: .int(value: Int(value)!)), start, cursor)
+                    append(TokenLiteral(value: .int(value: Int(C.string(from: value))!)), start, cursor)
                 }
                 
-            case "/":
+            case C.slash:
                 // COMMENTS
                 
                 // we fallthrough to here from the case above
                 // can expect ".", "e", "-" and number characters
-                var value = ""
-                if consume(string: ["/", "/"]) {
+                var value: [CChar] = []
+                if consume(string: [C.slash, C.slash]) {
                     guard nextChar() else { break }
                     
                     while stringCount > i {
-                        if char == "\n" {
+                        if char == C.newline {
                             break
                         }
                         else {
@@ -235,34 +289,34 @@ final class Lexer {
                             guard nextChar() else { break }
                         }
                     }
-                    _ = Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines))
+                    _ = Comment(value: C.string(from: value).trimmingCharacters(in: .whitespacesAndNewlines))
                 }
-                else if consume(string: ["/", "*"]) {
+                else if consume(string: C.slashAsterisk) {
                     var commentLevel = 1
                     guard nextChar() else { break }
                     
                     while stringCount > i && commentLevel > 0 {
-                        if consume(string: ["/", "*"]) {
+                        if consume(string: C.slashAsterisk) {
                             commentLevel += 1
                             if commentLevel > 0 {
-                                value.append("/*")
+                                value.append(contentsOf: C.slashAsterisk)
                             }
                         }
-                        else if consume(string: ["*", "/"]) {
+                        else if consume(string: C.asteriskSlash) {
                             commentLevel -= 1
                             if commentLevel > 0 {
-                                value.append("*/")
+                                value.append(contentsOf: C.asteriskSlash)
                             }
                         }
-                        else if char ==  "\n" {
-                            value.append("\n")
+                        else if char ==  C.newline {
+                            value.append(C.newline)
                         }
                         else {
                             value.append(char)
                         }
                         guard nextChar() else { break }
                     }
-                    _ = Comment(value: value.trimmingCharacters(in: .whitespacesAndNewlines))
+                    _ = Comment(value: C.string(from: value).trimmingCharacters(in: .whitespacesAndNewlines))
                 }
                 else {
                     fallthrough
@@ -272,27 +326,27 @@ final class Lexer {
                 // PUNCTUATORS, OPERATORS
                 let start = cursor
                 if let value = consume(oneOf: punctuators) {
-                    append(Punctuator(value: String(value)), start, cursor)
+                    append(Punctuator(value: C.string(from: value)), start, cursor)
                 }
                 else if let value = consume(oneOf: operators) {
-                    append(Operator(value: String(value)), start, cursor)
+                    append(Operator(value: C.string(from: value)), start, cursor)
                 }
-                else if char.isWhitespace {
+                else if char == C.space || char == C.newline {
                     break
                 }
+                else if char == 0 {
+                    append(EOF(), cursor, cursor)
+                    break loop
+                }
                 else {
-                    print("Error: \(char)    [@Todo: rework lexer errors]")
-                    
-                    if !char.isASCII {
-                        throw error(.nonASCIICharacter, start.withdrawingCharacter(), cursor)
-                    }
-                    else {
-                        throw error(.unexpectedCharacter, start.withdrawingCharacter(), cursor)
-                    }
+                    print("Error: \(printChar))    [@Todo: rework lexer errors 2]")
+                    throw error(.unexpectedCharacter, start.withdrawingCharacter(), cursor)
                 }
             }
-            guard nextChar() else { append(EOF(), cursor, cursor); break }
+            guard nextChar() else { break }
         }
         return LexerOutput(tokens: tokens, linesProcessed: cursor.lineNumber)
     }
 }
+
+

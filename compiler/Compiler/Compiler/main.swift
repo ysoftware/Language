@@ -13,6 +13,7 @@ var previousTime = startTime
 var loc = 0
 
 let PrintCursors = CommandLine.arguments.contains("-c")
+let NoParse = CommandLine.arguments.contains("--no-parse")
 let PrintTime = CommandLine.arguments.contains("-time")
 let Silent = CommandLine.arguments.contains("-silent")
 let PrintPasses = CommandLine.arguments.contains("--print-passes")
@@ -56,7 +57,11 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
             print(lexerOutput.tokens.map { String(describing: $0) }.joined(separator: "\n"))
             quit(0)
         }
-        
+
+        if NoParse {
+            quit(0)
+        }
+
         let result = try Parser(lexerOutput.tokens).parse()
         reportTimeSpent(on: "Parsing", from: previousTime, print: PrintTime)
         

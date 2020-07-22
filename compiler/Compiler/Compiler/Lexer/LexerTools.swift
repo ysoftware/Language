@@ -33,26 +33,14 @@ extension Lexer {
     func advance(_ count: Int = 1) {
         i += count
         // @Todo: this doesn't check every the character on the way
-        if char.isNewline {
+        if char == C.newline {
             cursor.advanceLine()
         }
         else {
             cursor.advanceCharacter(by: count)
         }
     }
-    
-    @inline(__always) @discardableResult // @Todo test
-    func eatSpaces(eatNewLines: Bool = true) -> Bool {
-        var didEat = false
-        repeat {
-            if char.isWhitespace || (eatNewLines && char.isNewline) {
-                didEat = true
-            }
-            if !nextChar() { break }
-        } while true
-        return didEat
-    }
-    
+
     /// advances the counter and sets `char` to the next character in string
     @discardableResult @inline(__always)
     func nextChar(_ n: Int = 1) -> Bool {
@@ -68,7 +56,7 @@ extension Lexer {
     
     /// Peeks at the `next` character
     @inline(__always)
-    func peekNext(_ n: Int = 1) -> Character? {
+    func peekNext(_ n: Int = 1) -> CChar? {
         let nextIndex = i + n
         guard stringCount > nextIndex else { return nil }
         return characters[nextIndex]
@@ -77,13 +65,13 @@ extension Lexer {
     /// checks if `next char` exists and matches, then eats it if it does
     /// if not, does nothing and returns false
     @inline(__always)
-    func consumeNext(_ character: Character) -> Bool {
+    func consumeNext(_ character: CChar) -> Bool {
         consumeNext(where: { $0 == character }) != nil
     }
     
     /// checks if `next char` exists and matches the predicate, then eats it if it does
     /// if not, does nothing and returns nil
-    func consumeNext(where compare: (Character)->Bool) -> Character? {
+    func consumeNext(where compare: (CChar)->Bool) -> CChar? {
         let nextIndex = i + 1
         guard stringCount > nextIndex else { return nil }
         let char = characters[nextIndex]
@@ -96,7 +84,7 @@ extension Lexer {
     
     /// checks if `char` matches, then eats it if it does
     /// if not, does nothing and returns false
-    func consume(_ character: Character) -> Bool {
+    func consume(_ character: CChar) -> Bool {
         if char == character {
             nextChar()
             return true
@@ -106,7 +94,7 @@ extension Lexer {
     
     /// checks if the string
     /// matches `current and subsequent` characters
-    func consume(string: [Character]) -> Bool {
+    func consume(string: [CChar]) -> Bool {
         let count = string.count
         
         var index = 0
@@ -124,7 +112,8 @@ extension Lexer {
     // @Speed: this is extremely slow
     /// checks if one of the strings in the array
     /// matches `current and subsequent` characters
-    func consume(oneOf array: [[Character]]) -> [Character]? {
+    @inline(__always)
+    func consume(oneOf array: [[CChar]]) -> [CChar]? {
         for s in array {
             if consume(string: s) {
                 return s
@@ -132,4 +121,17 @@ extension Lexer {
         }
         return nil
     }
+    
+    var printChar: Character {
+        Character(UnicodeScalar(UInt8(bitPattern: char)))
+    }
+
+    var printString: String {
+        characters.map { Character(UnicodeScalar(UInt8(bitPattern: $0))) }.map(String.init).joined()
+    }
+}
+
+@inline(__always)
+func _s(_ string: String) -> [CChar] {
+    return string.cString(using: .ascii)!.dropLast()
 }
