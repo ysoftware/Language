@@ -186,3 +186,4 @@ func printParserError(_ pe: ParserError, _ code: String) {
 // no arguments
 LexerTest.run()
 ParserTest.run()
+
