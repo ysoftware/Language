@@ -120,7 +120,7 @@ final class Lexer {
                 let start = cursor
                 let isDirective = consume(string: [C.pound])
                 if isDirective {
-                    if !nextChar() { throw error(.emptyDirectiveName, start, cursor) }
+                    if !nextChar() || char == 0 { throw error(.emptyDirectiveName, start, cursor) }
                     else if char == C.space { throw error(.emptyDirectiveName, start, cursor) }
                     else if !lowercaseRange.contains(char)
                         && !uppercaseRange.contains(char) && char != C.underscore {
@@ -146,8 +146,9 @@ final class Lexer {
                 if let idx = value.firstIndex(of: C.accent) {
                     let i = value.distance(from: value.startIndex, to: idx)
                     let c = start.advancingCharacter(by: i-1) // @Todo: weird to do this to get the right cursor
-                    
+                    #if DEBUG
                     print("Error: \(printChar)    [@Todo: rework lexer errors 1]")
+                    #endif
                     throw error(.unexpectedCharacter, c, c)
                 }
                 
@@ -192,7 +193,9 @@ final class Lexer {
                 
                 if let next = peekNext() {
                     if !(separators + punctuators + operators).contains([next]) {
+                        #if DEBUG
                         print("Error: \(printChar)    [@Todo: rework lexer errors 3]")
+                        #endif
                         throw error(.unexpectedCharacterInNumber, cursor, cursor)
                     }
                 }
@@ -270,15 +273,14 @@ final class Lexer {
                 else if char == C.space || char == C.newline {
                     break
                 }
-                else if char == 0 {
-                    append(EOF(), cursor, cursor)
-                    break loop
-                }
-                else {
+                else if char != 0 {
+                    #if DEBUG
                     print("Error: \(printChar))    [@Todo: rework lexer errors 2]")
+                    #endif
                     throw error(.unexpectedCharacter, start.withdrawingCharacter(), cursor)
                 }
             }
+            guard char != 0 else { append(EOF(), cursor, cursor); break }
             guard nextChar() else { break }
         }
         return LexerOutput(tokens: tokens, linesProcessed: cursor.lineNumber)

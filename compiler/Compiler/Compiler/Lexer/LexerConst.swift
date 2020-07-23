@@ -47,8 +47,9 @@ enum C {
 }
 
 let punctuators: [[CChar]] = [
-//    "...", ".", ":", "(", ")", "{", "}", "[", "]", "->"
-    [46, 46, 46], [46], [58], [40], [41], [123], [125], [91], [93], [45, 62]
+    [C.dot, C.dot, C.dot], [C.dot], [C.colon],
+    // "(", ")", "{", "}", "[", "]", "->"
+    [40], [41], [123], [125], [91], [93], [45, 62]
 ]
 
 let operators: [[CChar]] = [
@@ -61,7 +62,7 @@ let operators: [[CChar]] = [
 ]
 
 let separators: [[CChar]] = [
-    [C.newline], [C.space], [C.semicolon], [C.comma]
+    [C.newline], [C.space], [C.semicolon], [C.comma], [0]
 ]
 
 let lowercaseRange = ClosedRange<CChar>(uncheckedBounds: (97, 122))

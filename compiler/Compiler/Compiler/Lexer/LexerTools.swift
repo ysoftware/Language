@@ -121,7 +121,8 @@ extension Lexer {
         }
         return nil
     }
-    
+
+    #if DEBUG
     var printChar: Character {
         Character(UnicodeScalar(UInt8(bitPattern: char)))
     }
@@ -129,4 +130,5 @@ extension Lexer {
     var printString: String {
         characters.map { Character(UnicodeScalar(UInt8(bitPattern: $0))) }.map(String.init).joined()
     }
+    #endif
 }
