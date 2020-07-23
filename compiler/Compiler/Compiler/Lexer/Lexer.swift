@@ -44,7 +44,7 @@ final class Lexer {
     var i = 0
     var char: CChar
 
-    let value = ConstantSizeArray<CChar>(count: 100, repeating: 0)
+    let value = ConstantSizeArray<CChar>()
     
     func analyze() throws -> LexerOutput {    
         loop: while stringCount > i {

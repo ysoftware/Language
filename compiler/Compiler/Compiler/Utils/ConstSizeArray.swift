@@ -8,11 +8,13 @@
 
 import Foundation
 
+fileprivate let MinLength = 5
+
 final class ConstantSizeArray<T: Equatable>: ExpressibleByArrayLiteral, Equatable {
 
     init(_ slice: Slice<ConstantSizeArray<T>>) {
         count = slice.count
-        memory = UnsafeMutableBufferPointer.allocate(capacity: Swift.max(count, 100) + 1)
+        memory = UnsafeMutableBufferPointer.allocate(capacity: Swift.max(count, MinLength) + 1)
         _ = memory.initialize(from: slice)
     }
 
@@ -27,14 +29,14 @@ final class ConstantSizeArray<T: Equatable>: ExpressibleByArrayLiteral, Equatabl
     typealias ArrayLiteralElement = T
 
     private(set) var count = 0
-    let memory: UnsafeMutableBufferPointer<T>
+    private(set) var memory: UnsafeMutableBufferPointer<T>
 
     var length: Int {
         return memory.count
     }
 
-    private init(_ count: Int) {
-        memory = UnsafeMutableBufferPointer.allocate(capacity: Swift.max(count, 100) + 1)
+    private init(_ count: Int = MinLength) {
+        memory = UnsafeMutableBufferPointer.allocate(capacity: Swift.max(count, MinLength) + 1)
         self.count = count
     }
 
@@ -50,7 +52,7 @@ final class ConstantSizeArray<T: Equatable>: ExpressibleByArrayLiteral, Equatabl
 
     func reset() {
         count = 0
-        memset(memory.baseAddress, 0, 1) // @Robustness: we don't care to clean the whole memory here
+        memset(memory.baseAddress, 0, MemoryLayout<T>.size) // we don't care to clean the whole memory here
     }
 
     var last: T {
@@ -58,6 +60,7 @@ final class ConstantSizeArray<T: Equatable>: ExpressibleByArrayLiteral, Equatabl
     }
 
     func append(contentsOf constArray: ConstantSizeArray<T>) {
+        extendIfNeeded(toFit: constArray.count)
         memcpy(memory.baseAddress?.advanced(by: count * MemoryLayout<T>.stride),
                constArray.memory.baseAddress,
                constArray.count * MemoryLayout<T>.stride)
@@ -66,8 +69,19 @@ final class ConstantSizeArray<T: Equatable>: ExpressibleByArrayLiteral, Equatabl
 
     @inline(__always)
     func append(_ value: T) {
+        extendIfNeeded(toFit: 1)
         memory[count] = value
         count += 1
+    }
+
+    func extendIfNeeded(toFit add: Int) {
+        let newCount = count + add
+        if length <= newCount {
+            let newMemory = UnsafeMutableBufferPointer<T>.allocate(capacity: Swift.max(length + length * 2, newCount))
+            memcpy(newMemory.baseAddress, memory.baseAddress, count)
+            memory.deallocate()
+            memory = newMemory
+        }
     }
 
     deinit {
