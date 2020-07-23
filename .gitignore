@@ -6,3 +6,4 @@ output.s
 yw.app
 output.app.ll
 output.app.o
+programs/speedtest.yw
