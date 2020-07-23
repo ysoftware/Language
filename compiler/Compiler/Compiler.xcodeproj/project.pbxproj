@@ -107,10 +107,10 @@
 			isa = PBXGroup;
 			children = (
 				1F9C96662475736E00BAEC04 /* Lexer.swift */,
+				1FF1735924C82EEE00D54E3B /* LexerConst.swift */,
 				1F0A3BDC247F89A7005C91F0 /* LexerTools.swift */,
 				1F9C9668247574DF00BAEC04 /* Model.swift */,
 				1FB1EB782476E9D40088F63D /* Test */,
-				1FF1735924C82EEE00D54E3B /* LexerConst.swift */,
 			);
 			path = Lexer;
 			sourceTree = "<group>";

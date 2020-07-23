@@ -94,7 +94,7 @@ extension Lexer {
     
     /// checks if the string
     /// matches `current and subsequent` characters
-    func consume(string: [CChar]) -> Bool {
+    func consume(string: ConstantSizeArray<CChar>) -> Bool {
         let count = string.count
         
         var index = 0
@@ -108,12 +108,12 @@ extension Lexer {
         nextChar(count-1)
         return true
     }
-    
+
     // @Speed: this is extremely slow
     /// checks if one of the strings in the array
     /// matches `current and subsequent` characters
     @inline(__always)
-    func consume(oneOf array: [[CChar]]) -> [CChar]? {
+    func consume(oneOf array: [ConstantSizeArray<CChar>]) -> ConstantSizeArray<CChar>? {
         for s in array {
             if consume(string: s) {
                 return s

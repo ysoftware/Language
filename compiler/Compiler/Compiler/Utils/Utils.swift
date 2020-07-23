@@ -165,3 +165,120 @@ func stringToAST(_ string: String) -> Code? {
         return nil
     }
 }
+
+
+
+
+// TEST
+
+class ConstantSizeArray<T: Equatable>: ExpressibleByArrayLiteral, Equatable {
+
+    init(_ slice: Slice<ConstantSizeArray<T>>) {
+        count = slice.count
+        memory = UnsafeMutableBufferPointer.allocate(capacity: Swift.max(count, 100) + 1)
+        _ = memory.initialize(from: slice)
+    }
+
+    static func == (lhs: ConstantSizeArray<T>, rhs: ConstantSizeArray<T>) -> Bool {
+        if lhs.count != rhs.count { return false }
+        for i in 0..<lhs.count {
+            if lhs[i] != rhs[i] { return false }
+        }
+        return true
+    }
+
+    typealias ArrayLiteralElement = T
+
+    private(set) var count = 0
+    let memory: UnsafeMutableBufferPointer<T>
+
+    public var length: Int {
+        return memory.count
+    }
+
+    private init(_ count: Int) {
+        memory = UnsafeMutableBufferPointer.allocate(capacity: Swift.max(count, 100) + 1)
+        self.count = count
+    }
+
+    public convenience init(count: Int, repeating value: T) {
+        self.init(count)
+        memory.initialize(repeating: value)
+    }
+
+    public required convenience init(arrayLiteral: ArrayLiteralElement...) {
+        self.init(arrayLiteral.count)
+        _ = memory.initialize(from: arrayLiteral)
+    }
+
+    public func reset() {
+        count = 0
+        memset(memory.baseAddress, 0, 1) // memset(memory.baseAddress, 0, length)
+    }
+
+    public var last: T {
+        memory[count-1]
+    }
+
+    public func append(contentsOf constArray: ConstantSizeArray<T>) {
+        for s in constArray {
+            append(s)
+        }
+    }
+
+    @inline(__always)
+    public func append(_ value: T) {
+        memory[count] = value
+        count += 1
+    }
+
+    deinit {
+        memory.deallocate()
+    }
+
+    public subscript(index: Int) -> T {
+        set(value) {
+            memory[index] = value
+        }
+        get {
+            return memory[index]
+        }
+    }
+}
+
+extension ConstantSizeArray: MutableCollection {
+
+    public var startIndex: Int {
+        return 0
+    }
+
+    public var endIndex: Int {
+        return count
+    }
+
+    func index(after i: Int) -> Int {
+        return i + 1
+    }
+}
+
+
+extension ConstantSizeArray where ArrayLiteralElement == CChar {
+
+    var print: String {
+        var a: [CChar] = []
+        for i in 0..<count {
+            a.append(self[i])
+        }
+        let string = String(cString: a)
+        return string
+    }
+
+    var printAll: String {
+        var a: [CChar] = []
+        for i in 0..<length {
+            a.append(self[i])
+        }
+        let string = String(cString: a)
+        return string
+    }
+}

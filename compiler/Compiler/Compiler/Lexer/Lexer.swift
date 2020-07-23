@@ -13,19 +13,28 @@ final class Lexer {
     internal init(fileName: String? = nil, _ string: String) {
         self.fileName = fileName
 
-        self.characters = string.cString(using: .ascii) ?? []
-        self.stringCount = characters.count
+        if let ascii = string.cString(using: .ascii) {
+            self.stringCount = ascii.count
+            self.characters = ConstantSizeArray(count: stringCount, repeating: 0)
+            for i in 0..<stringCount { self.characters[i] = ascii[i] }
 
-        // @Todo: bring back this error
-//        if !char.isASCII {
-//            throw error(.nonASCIICharacter, start.withdrawingCharacter(), cursor)
-//        }
-        if stringCount > 0 { self.char = characters[i] }
-        else { char = C.space }
+            if string.count > 0 {
+                // @Todo: bring back this error
+                //            throw error(.nonASCIICharacter, start.withdrawingCharacter(), cursor)
+            }
+
+            if stringCount > 0 { self.char = characters[i] }
+            else { char = C.space }
+        }
+        else {
+            characters = ConstantSizeArray(count: 0, repeating: 0)
+            stringCount = 0
+            char = 0
+        }
     }
     
     let fileName: String?
-    let characters: [CChar]
+    let characters: ConstantSizeArray<CChar>
     let stringCount: Int
 
     // Variables
@@ -34,6 +43,8 @@ final class Lexer {
     var cursor = Cursor()
     var i = 0
     var char: CChar
+
+    let value = ConstantSizeArray<CChar>(count: 100, repeating: 0)
     
     func analyze() throws -> LexerOutput {    
         loop: while stringCount > i {
@@ -60,7 +71,7 @@ final class Lexer {
                 }
                 
                 
-                var value: [CChar] = []
+                value.reset()
                 while stringCount > i {
                     if char == C.newline { /* @Todo: wtf is this? */ }
                     
@@ -128,7 +139,8 @@ final class Lexer {
                     }
                 }
                 
-                var value = [char]
+                value.reset()
+                value.append(char)
                 while let next = consumeNext(where: {
                     let isMatching = lowercaseRange.contains($0) || uppercaseRange.contains($0)
                     || numberRange.contains($0) || $0 == C.underscore || $0 == C.asterisk || $0 == C.accent
@@ -140,14 +152,16 @@ final class Lexer {
                 
                 let isNotKeyword = value.first == C.accent && value.last == C.accent && value.count >= 3
                 if isNotKeyword {
-                    value = Array(value[1..<value.count-1])
+                    let copy = ConstantSizeArray(value[1..<value.count-1])
+                    value.reset()
+                    value.append(contentsOf: copy)
                 }
                 
                 if let idx = value.firstIndex(of: C.accent) {
                     let i = value.distance(from: value.startIndex, to: idx)
                     let c = start.advancingCharacter(by: i-1) // @Todo: weird to do this to get the right cursor
                     #if DEBUG
-                    print("Error: \(printChar)    [@Todo: rework lexer errors 1]")
+                    print("Unexpected char: '\(printChar)'    [@Todo: rework lexer errors 1]")
                     #endif
                     throw error(.unexpectedCharacter, c, c)
                 }
@@ -178,7 +192,8 @@ final class Lexer {
                     fallthrough
                 }
                 
-                var value = [char]
+                value.reset()
+                value.append(char)
                 let numLitSymbols = [C.underscore, C.dot, C.e, C.dash]
                 while let next = consumeNext(where: { numberRange.contains($0) || numLitSymbols.contains($0) }) {
                     if value.count >= 1 && next == C.dash && value.last != C.e {
@@ -194,7 +209,7 @@ final class Lexer {
                 if let next = peekNext() {
                     if !(separators + punctuators + operators).contains([next]) {
                         #if DEBUG
-                        print("Error: \(printChar)    [@Todo: rework lexer errors 3]")
+                        print("Unexpected char: '\(printChar)'    [@Todo: rework lexer errors 3]")
                         #endif
                         throw error(.unexpectedCharacterInNumber, cursor, cursor)
                     }
@@ -215,7 +230,7 @@ final class Lexer {
                 
                 // we fallthrough to here from the case above
                 // can expect ".", "e", "-" and number characters
-                var value: [CChar] = []
+                value.reset()
                 if consume(string: [C.slash, C.slash]) {
                     guard nextChar() else { break }
                     
@@ -275,7 +290,7 @@ final class Lexer {
                 }
                 else if char != 0 {
                     #if DEBUG
-                    print("Error: \(printChar))    [@Todo: rework lexer errors 2]")
+                    print("Unexpected char: '\(printChar)'    [@Todo: rework lexer errors 2]")
                     #endif
                     throw error(.unexpectedCharacter, start.withdrawingCharacter(), cursor)
                 }
@@ -286,5 +301,3 @@ final class Lexer {
         return LexerOutput(tokens: tokens, linesProcessed: cursor.lineNumber)
     }
 }
-
-
