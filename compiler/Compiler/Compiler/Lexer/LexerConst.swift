@@ -43,28 +43,28 @@ enum C {
         value[value.count] = 0
         return String(cString: value.memory.baseAddress!)
     }
+
+    static let punctuators: [ConstantSizeArray<CChar>] = [
+        [C.dot, C.dot, C.dot], [C.dot], [C.colon],
+        // "(", ")", "{", "}", "[", "]", "->"
+        [40], [41], [123], [125], [91], [93], [45, 62]
+    ]
+    
+    static let operators: [ConstantSizeArray<CChar>] = [
+        //    ":=", "==", "!=", "<=", ">=", "&&", "||", ">", "<",
+        //    "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<=",
+        //    "-", "+", "/", "&", "*", "%", "..", "="
+        [58, 61], [61, 61], [33, 61], [60, 61], [62, 61], [38, 38], [124, 124], [62], [60],
+        [43, 61], [45, 61], [42, 61], [47, 61], [37, 61], [94, 61], [62, 62], [60, 60],
+        [62, 62, 61], [60, 60, 61], [45], [43], [47], [38], [42], [37], [46, 46], [61]
+    ]
+    
+    static let separators: [ConstantSizeArray<CChar>] = [
+        [C.newline], [C.space], [C.semicolon], [C.comma], [0]
+    ]
+    
+    static let lowercaseRange = ClosedRange<CChar>(uncheckedBounds: (97, 122))
+    static let uppercaseRange = ClosedRange<CChar>(uncheckedBounds: (65, 90))
+    static let numberRange = ClosedRange<CChar>(uncheckedBounds: (48, 57))
+    
 }
-
-let punctuators: [ConstantSizeArray<CChar>] = [
-    [C.dot, C.dot, C.dot], [C.dot], [C.colon],
-    // "(", ")", "{", "}", "[", "]", "->"
-    [40], [41], [123], [125], [91], [93], [45, 62]
-]
-
-let operators: [ConstantSizeArray<CChar>] = [
-//    ":=", "==", "!=", "<=", ">=", "&&", "||", ">", "<",
-//    "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<=",
-//    "-", "+", "/", "&", "*", "%", "..", "="
-    [58, 61], [61, 61], [33, 61], [60, 61], [62, 61], [38, 38], [124, 124], [62], [60],
-    [43, 61], [45, 61], [42, 61], [47, 61], [37, 61], [94, 61], [62, 62], [60, 60],
-    [62, 62, 61], [60, 60, 61], [45], [43], [47], [38], [42], [37], [46, 46], [61]
-]
-
-let separators: [ConstantSizeArray<CChar>] = [
-    [C.newline], [C.space], [C.semicolon], [C.comma], [0]
-]
-
-let lowercaseRange = ClosedRange<CChar>(uncheckedBounds: (97, 122))
-let uppercaseRange = ClosedRange<CChar>(uncheckedBounds: (65, 90))
-let numberRange = ClosedRange<CChar>(uncheckedBounds: (48, 57))
-

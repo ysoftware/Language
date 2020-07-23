@@ -125,7 +125,7 @@ final class Lexer {
                 let start = cursor
                 append(Separator(value: C.string(from: [char])), start, cursor)
                 
-            case lowercaseRange, uppercaseRange, C.underscore, C.pound, C.accent:
+            case C.lowercaseRange, C.uppercaseRange, C.underscore, C.pound, C.accent:
                 // KEYWORDS / IDENTIFIERS / DIRECTIVES / BOOL LITERALS
                 
                 let start = cursor
@@ -133,8 +133,8 @@ final class Lexer {
                 if isDirective {
                     if !nextChar() || char == 0 { throw error(.emptyDirectiveName, start, cursor) }
                     else if char == C.space { throw error(.emptyDirectiveName, start, cursor) }
-                    else if !lowercaseRange.contains(char)
-                        && !uppercaseRange.contains(char) && char != C.underscore {
+                    else if !C.lowercaseRange.contains(char)
+                        && !C.uppercaseRange.contains(char) && char != C.underscore {
                         throw error(.unexpectedDirectiveName, start, cursor)
                     }
                 }
@@ -142,8 +142,8 @@ final class Lexer {
                 value.reset()
                 value.append(char)
                 while let next = consumeNext(where: {
-                    let isMatching = lowercaseRange.contains($0) || uppercaseRange.contains($0)
-                    || numberRange.contains($0) || $0 == C.underscore || $0 == C.asterisk || $0 == C.accent
+                    let isMatching = C.lowercaseRange.contains($0) || C.uppercaseRange.contains($0)
+                    || C.numberRange.contains($0) || $0 == C.underscore || $0 == C.asterisk || $0 == C.accent
                     let isLegal = value.last != C.asterisk || value.last == C.asterisk && $0 == C.asterisk // only allowed trailing asterisks
                     return isMatching && isLegal
                 }) {
@@ -182,20 +182,20 @@ final class Lexer {
                     append(Identifier(value: C.string(from: value)), start, cursor)
                 }
                 
-            case numberRange, C.dot, C.dash:
+            case C.numberRange, C.dot, C.dash:
                 // NUMBER LITERALS
                 
                 let start = cursor
                 
                 // if this and the next characters are both not numbers
-                if !numberRange.contains(char), let next = peekNext(), !numberRange.contains(next) {
+                if !C.numberRange.contains(char), let next = peekNext(), !C.numberRange.contains(next) {
                     fallthrough
                 }
                 
                 value.reset()
                 value.append(char)
                 let numLitSymbols = [C.underscore, C.dot, C.e, C.dash]
-                while let next = consumeNext(where: { numberRange.contains($0) || numLitSymbols.contains($0) }) {
+                while let next = consumeNext(where: { C.numberRange.contains($0) || numLitSymbols.contains($0) }) {
                     if value.count >= 1 && next == C.dash && value.last != C.e {
                         throw error(.unexpectedMinusInNumberLiteral, start, cursor)
                     }
@@ -207,7 +207,7 @@ final class Lexer {
                 }
                 
                 if let next = peekNext() {
-                    if !(separators + punctuators + operators).contains([next]) {
+                    if !(C.separators + C.punctuators + C.operators).contains([next]) {
                         #if DEBUG
                         print("Unexpected char: '\(printChar)'    [@Todo: rework lexer errors 3]")
                         #endif
@@ -279,10 +279,10 @@ final class Lexer {
             default:
                 // PUNCTUATORS, OPERATORS
                 let start = cursor
-                if let value = consume(oneOf: punctuators) {
+                if let value = consume(oneOf: C.punctuators) {
                     append(Punctuator(value: C.string(from: value)), start, cursor)
                 }
-                else if let value = consume(oneOf: operators) {
+                else if let value = consume(oneOf: C.operators) {
                     append(Operator(value: C.string(from: value)), start, cursor)
                 }
                 else if char == C.space || char == C.newline {
