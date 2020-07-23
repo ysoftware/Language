@@ -31,7 +31,7 @@ extension ParserTest {
     func testGenericProcedureDecl() {
         let code = """
         func transform<F, T>(value: F) -> T #foreign;
-        func list_transform<F, T>(head: Node<F>*) -> Node<T>*;
+        func list_transform<F, T>(head: Node<F>*) -> Node<T>* #foreign;
         func main() {
             int_list    : Node<Int>*    = new Node<Int>;
             string_list : Node<String>* = list_transform<Int, String>(int_list);
