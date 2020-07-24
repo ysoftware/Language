@@ -32,25 +32,25 @@ enum C {
     static let r: CChar = 114 // r
     static let t: CChar = 116 // t
 
-    static let slashAsterisk: ConstantSizeArray<CChar> = [C.slash, C.asterisk]
-    static let asteriskSlash: ConstantSizeArray<CChar> = [C.asterisk, C.slash]
-    static let void: ConstantSizeArray<CChar> = [118, 111, 105, 100]
-    static let null: ConstantSizeArray<CChar> = [110, 117, 108, 108]
-    static let `true`: ConstantSizeArray<CChar> = [116, 114, 117, 101]
-    static let `false`: ConstantSizeArray<CChar> = [102, 97, 108, 115, 101]
+    static let slashAsterisk: Buffer<CChar> = [C.slash, C.asterisk]
+    static let asteriskSlash: Buffer<CChar> = [C.asterisk, C.slash]
+    static let void: Buffer<CChar> = [118, 111, 105, 100]
+    static let null: Buffer<CChar> = [110, 117, 108, 108]
+    static let `true`: Buffer<CChar> = [116, 114, 117, 101]
+    static let `false`: Buffer<CChar> = [102, 97, 108, 115, 101]
 
-    static func string(from value: ConstantSizeArray<CChar>) -> String {
+    static func string(from value: Buffer<CChar>) -> String {
         value[value.count] = 0
         return String(cString: value.memory.baseAddress!)
     }
 
-    static let punctuators: [ConstantSizeArray<CChar>] = [
+    static let punctuators: [Buffer<CChar>] = [
         [C.dot, C.dot, C.dot], [C.dot], [C.colon],
         // "(", ")", "{", "}", "[", "]", "->"
         [40], [41], [123], [125], [91], [93], [45, 62]
     ]
     
-    static let operators: [ConstantSizeArray<CChar>] = [
+    static let operators: [Buffer<CChar>] = [
         //    ":=", "==", "!=", "<=", ">=", "&&", "||", ">", "<",
         //    "+=", "-=", "*=", "/=", "%=","^=", ">>", "<<", ">>=", "<<=",
         //    "-", "+", "/", "&", "*", "%", "..", "="
@@ -59,7 +59,7 @@ enum C {
         [62, 62, 61], [60, 60, 61], [45], [43], [47], [38], [42], [37], [46, 46], [61]
     ]
     
-    static let separators: [ConstantSizeArray<CChar>] = [
+    static let separators: [Buffer<CChar>] = [
         [C.newline], [C.space], [C.semicolon], [C.comma], [0]
     ]
     

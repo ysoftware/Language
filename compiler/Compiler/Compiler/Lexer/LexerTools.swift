@@ -31,13 +31,14 @@ extension Lexer {
     /// advances the counter
     @inline(__always)
     func advance(_ count: Int = 1) {
-        i += count
-        // @Todo: this doesn't check every the character on the way
-        if char == C.newline {
-            cursor.advanceLine()
-        }
-        else {
-            cursor.advanceCharacter(by: count)
+        for _ in 0..<count {
+            i += 1
+            if char == C.newline {
+                cursor.advanceLine()
+            }
+            else {
+                cursor.advanceCharacter(by: count)
+            }
         }
     }
 
@@ -94,7 +95,7 @@ extension Lexer {
     
     /// checks if the string
     /// matches `current and subsequent` characters
-    func consume(string: ConstantSizeArray<CChar>) -> Bool {
+    func consume(string: Buffer<CChar>) -> Bool {
         let count = string.count
         
         var index = 0
@@ -113,7 +114,7 @@ extension Lexer {
     /// checks if one of the strings in the array
     /// matches `current and subsequent` characters
     @inline(__always)
-    func consume(oneOf array: [ConstantSizeArray<CChar>]) -> ConstantSizeArray<CChar>? {
+    func consume(oneOf array: [Buffer<CChar>]) -> Buffer<CChar>? {
         for s in array {
             if consume(string: s) {
                 return s

@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+// @Todo: align bytes of these structs
+
 enum TokenType {
     IDENTIFIER, PUNCTUATOR, DIRECTIVE, OPERATOR, COMMENT, SEPARATOR,
     NULLLITERAL, VOIDLITERAL, INTLITERAL, FLOATLITERAL, STRINGLITERAL, KEYWORD, ENDOFFILE
@@ -44,18 +46,17 @@ typedef struct Cursor Cursor;
 
 struct Output {
     int linesProcessed;
-    Token *tokens;
+    Token *tokens; // turn into a buffer
 };
 typedef struct Output Output;
 
 struct Lexer2 {
-    char *fileName;
-    char *characters;
+    char *fileName; // managed by the caller
+    char *characters; // managed by the caller
 
     Output *output;
     Cursor cursor;
     int i;
-    char c;
 };
 typedef struct Lexer2 Lexer2;
 

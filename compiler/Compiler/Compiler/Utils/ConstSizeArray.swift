@@ -8,17 +8,17 @@
 
 import Foundation
 
-fileprivate let MinLength = 5
+fileprivate let MinLength = 10
 
-final class ConstantSizeArray<T: Equatable>: ExpressibleByArrayLiteral, Equatable {
+final class Buffer<T: Equatable>: ExpressibleByArrayLiteral, Equatable {
 
-    init(_ slice: Slice<ConstantSizeArray<T>>) {
+    init(_ slice: Slice<Buffer<T>>) {
         count = slice.count
         memory = UnsafeMutableBufferPointer.allocate(capacity: Swift.max(count, MinLength) + 1)
         _ = memory.initialize(from: slice)
     }
 
-    static func == (lhs: ConstantSizeArray<T>, rhs: ConstantSizeArray<T>) -> Bool {
+    static func == (lhs: Buffer<T>, rhs: Buffer<T>) -> Bool {
         if lhs.count != rhs.count { return false }
         for i in 0..<lhs.count {
             if lhs[i] != rhs[i] { return false }
@@ -59,7 +59,7 @@ final class ConstantSizeArray<T: Equatable>: ExpressibleByArrayLiteral, Equatabl
         memory[count-1]
     }
 
-    func append(contentsOf constArray: ConstantSizeArray<T>) {
+    func append(contentsOf constArray: Buffer<T>) {
         extendIfNeeded(toFit: constArray.count)
         memcpy(memory.baseAddress?.advanced(by: count * MemoryLayout<T>.stride),
                constArray.memory.baseAddress,
@@ -98,7 +98,7 @@ final class ConstantSizeArray<T: Equatable>: ExpressibleByArrayLiteral, Equatabl
     }
 }
 
-extension ConstantSizeArray: MutableCollection {
+extension Buffer: MutableCollection {
 
     var startIndex: Int {
         return 0
@@ -113,7 +113,7 @@ extension ConstantSizeArray: MutableCollection {
     }
 }
 
-extension ConstantSizeArray where ArrayLiteralElement == CChar {
+extension Buffer where ArrayLiteralElement == CChar {
 
     var print: String {
         var a: [CChar] = []

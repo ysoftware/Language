@@ -9,13 +9,13 @@
 // Constants
 
 final class Lexer {
-    
+
     internal init(fileName: String? = nil, _ string: String) {
         self.fileName = fileName
 
         if let ascii = string.cString(using: .ascii) {
             self.stringCount = ascii.count
-            self.characters = ConstantSizeArray(count: stringCount, repeating: 0)
+            self.characters = Buffer(count: stringCount, repeating: 0)
             for i in 0..<stringCount { self.characters[i] = ascii[i] }
 
             if string.count > 0 {
@@ -27,14 +27,14 @@ final class Lexer {
             else { char = C.space }
         }
         else {
-            characters = ConstantSizeArray(count: 0, repeating: 0)
+            characters = Buffer(count: 0, repeating: 0)
             stringCount = 0
             char = 0
         }
     }
     
     let fileName: String?
-    let characters: ConstantSizeArray<CChar>
+    let characters: Buffer<CChar>
     let stringCount: Int
 
     // Variables
@@ -44,7 +44,7 @@ final class Lexer {
     var i = 0
     var char: CChar
 
-    let value = ConstantSizeArray<CChar>()
+    let value = Buffer<CChar>()
     
     func analyze() throws -> LexerOutput {    
         loop: while stringCount > i {
@@ -152,7 +152,7 @@ final class Lexer {
                 
                 let isNotKeyword = value.first == C.accent && value.last == C.accent && value.count >= 3
                 if isNotKeyword {
-                    let copy = ConstantSizeArray(value[1..<value.count-1])
+                    let copy = Buffer(value[1..<value.count-1])
                     value.reset()
                     value.append(contentsOf: copy)
                 }
