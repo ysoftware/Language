@@ -15,6 +15,7 @@ final class ParserTest {
         let i = ParserTest()
         i.failed = 0
 
+        i.testTypeParsing()
         i.testGenericProcedureUsage()
         i.testGenericProcedureDecl()
         i.testGenericStructDecl()

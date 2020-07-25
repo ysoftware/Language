@@ -78,6 +78,7 @@
 		1FF1737124C9FABC00D54E3B /* Compiler-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Compiler-Bridging-Header.h"; sourceTree = "<group>"; };
 		1FF1737224C9FABC00D54E3B /* Lexer2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Lexer2.cpp; sourceTree = "<group>"; };
 		1FF1737324C9FABC00D54E3B /* Lexer2.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Lexer2.hpp; sourceTree = "<group>"; };
+		1FF1737524CC287B00D54E3B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../README.md; sourceTree = "<group>"; };
 		1FFF349024711E3100389B0C /* Compiler */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Compiler; sourceTree = BUILT_PRODUCTS_DIR; };
 		1FFF349324711E3100389B0C /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		1FFF34A42471216000389B0C /* Expression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Expression.swift; sourceTree = "<group>"; };
@@ -175,6 +176,7 @@
 		1FFF348724711E3100389B0C = {
 			isa = PBXGroup;
 			children = (
+				1FF1737524CC287B00D54E3B /* README.md */,
 				1FFF349224711E3100389B0C /* Compiler */,
 				1FFF349124711E3100389B0C /* Products */,
 			);

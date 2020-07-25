@@ -2,6 +2,17 @@ WORKING ON
 
 TODO
 - generic procedure parsing tests
+- array and subscript access
+    - LLVM Array for static length array (all literal is global const)
+    - alloca for all arrays with runtime length
+
+
+[Int] = Int[12] / Int[x]
+
+READ
+- https://habr.com/ru/company/otus/blog/442554/
+
+FEATURE
 - @method() procedure attribute
     func list_append<Value>(head: Node<Value, Value) -> Node<Value> #method(Node<T>.append) { ... } 
         head: new Node<Int>;  head = head.adding(1).adding(2);
@@ -9,14 +20,9 @@ TODO
     func integer_sum(lhs: Int, rhs: Int) -> Int #method(Int.adding) { ... }
         val := 1.adding(1).adding(2).adding(5);
         parsed to: vDecl val = [call integer_sum([call integer_sum([call integer_sum(1), 1)], 2)], 5)]
-
-READ
-- https://habr.com/ru/company/otus/blog/442554/
-
-FEATURE
-- array and subscript access
 - proper variadic procedures [different types of arguments / empty variadic arguments]
 - defer
+- static casting at parse time -- x : Float = cast(1.0) 1;
 
 PROBABLY NEVER
 - warnings (for unused structs and procedures)

@@ -67,7 +67,7 @@ internal extension IR {
                         
                         let argValue = "%\(count())"
                         let length = literal.value.count + 1
-                        let type = ArrayType(elementType: int8, size: length)
+                        let type = ArrayType(elementType: int8, size: IntLiteral(value: length))
                         code += doGEP(of: "@\(arg.id)", into: argValue, valueType: type, indices: [0, 0])
                         arguments.append("i8* \(argValue)")
                     }

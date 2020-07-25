@@ -8,14 +8,17 @@
 
 import Foundation
 
-func solidId(forName name: String, solidTypes: [Type]) -> String {
-    let solidTypesString = solidTypes.map {
-        if let genericType = $0 as? StructureType, genericType.isGeneric {
-            return solidId(forName: genericType.name, solidTypes: genericType.solidTypes)
-        }
-        return $0.typeName
-    }.joined(separator: "_").replacingOccurrences(of: "*", with: "ptr")
-    return "\(name)_\(solidTypesString)"
+func solidId(for name: String, solidTypes: [Type]) -> String {
+    func solidId(name: String, solidTypes: [Type]) -> String {
+        let solidTypesString = solidTypes.map {
+            if let genericType = $0 as? StructureType, genericType.isGeneric {
+                return solidId(name: genericType.name, solidTypes: genericType.solidTypes)
+            }
+            return $0.typeName
+        }.joined(separator: "_").replacingOccurrences(of: "*", with: "ptr")
+        return "\(name)_\(solidTypesString)"
+    }
+    return solidId(name: name, solidTypes: solidTypes) + "__solidified"
 }
 
 extension Parser {
@@ -91,7 +94,7 @@ extension Parser {
     }
 
     func solidifyProcedure(_ genericProcedure: ProcedureDeclaration, genericTypes: [String], solidTypes: [Type]) {
-        let procId = solidId(forName: genericProcedure.name, solidTypes: solidTypes) + "__solidified"
+        let procId = solidId(for: genericProcedure.name, solidTypes: solidTypes)
         guard procedureDeclarations[procId] == nil else { return }
 
         // arguments
@@ -129,7 +132,7 @@ extension Parser {
     func solidifyStructure(_ genericStruct: StructDeclaration, genericTypes: [String], solidTypes: [Type]) throws {
         guard !solidTypes.map(\.isAlias).contains(true) else { return }
 
-        let structId = solidId(forName: genericStruct.name, solidTypes: solidTypes) + "__solidified"
+        let structId = solidId(for: genericStruct.name, solidTypes: solidTypes)
         guard structureDeclarations[structId] == nil else { return }
 
         let solidMembers: [VariableDeclaration] = genericStruct.members.makeCopy().map {

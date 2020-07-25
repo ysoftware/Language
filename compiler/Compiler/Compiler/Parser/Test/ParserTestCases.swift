@@ -69,25 +69,29 @@ extension ParserTest {
         let tokens = try! Lexer(code).analyze().tokens
         let result = parserResult(Parser(tokens).parse)
 
+        let node_int = structure("Node", [int])
+        let pair_int_float = structure("Pair", [int, float])
+
         printResultCase(code, result, Code([
-            StructDeclaration(name: "Node", id: "Node_Int32__solidified", members: [
+
+            StructDeclaration(name: "Node", id: solidId(for: "Node", solidTypes: [int]), members: [
                 vDecl("next", pointer(structure("Node", [int]))),
                 vDecl("value", int),
             ]),
 
-            StructDeclaration(name: "Node", id: "Node_Node_Int32__solidified", members: [
-                vDecl("next", pointer(structure("Node", [structure("Node", [int])]))),
+            StructDeclaration(name: "Node", id: solidId(for: "Node", solidTypes: [node_int]), members: [
+                vDecl("next", pointer(structure("Node", [node_int]))),
                 vDecl("value", structure("Node", [int])),
             ]),
 
-            StructDeclaration(name: "Node", id: "Node_Pair_Int32_Float32__solidified", members: [
-                vDecl("next", pointer(structure("Node", [structure("Pair", [int, float])]))),
-                vDecl("value", structure("Pair", [int, float])),
-            ]),
-
-            StructDeclaration(name: "Pair", id: "Pair_Int32_Float32__solidified", members: [
+            StructDeclaration(name: "Pair", id: solidId(for: "Pair", solidTypes: [int, float]), members: [
                 vDecl("left", int),
                 vDecl("right", float),
+            ]),
+
+            StructDeclaration(name: "Node", id: solidId(for: "Node", solidTypes: [pair_int_float]), members: [
+                vDecl("next", pointer(structure("Node", [pair_int_float]))),
+                vDecl("value", pair_int_float),
             ]),
 
             main([
@@ -125,7 +129,7 @@ extension ParserTest {
         let result = parserResult(Parser(tokens).parse)
 
         func solidStruct(_ type: Type) -> StructDeclaration {
-            StructDeclaration(name: "A", id: solidId(forName: "A", solidTypes: [type]) + "__solidified", members: [
+            StructDeclaration(name: "A", id: solidId(for: "A", solidTypes: [type]), members: [
                 vDecl("a", structure("A", [int])),
                 vDecl("b", pointer(structure("A", [int]))),
                 vDecl("c", type),
@@ -269,6 +273,38 @@ extension ParserTest {
                 vDecl("b", float, ProcedureCall(name: "getFloat", exprType: float, arguments: []))
             ])
         ]))
+    }
+
+    func testTypeParsing() {
+        let code = """
+        struct Node<Value> { next: Node<Value>*; value: Value; }
+
+        func main() {
+            x : Int[900];
+            leny := 10; y: Float[leny];
+            n : Node<Int*>*[10];
+        }
+        """
+
+        let tokens = try! Lexer(code).analyze().tokens
+        let result = parserResult(Parser(tokens).parse)
+
+        printResultCase(
+            code, result, Code([
+                StructDeclaration(name: "Node", id: solidId(for: "Node", solidTypes: [pointer(int)]), members: [
+                    vDecl("next", pointer(structure("Node", [pointer(int)]))),
+                    vDecl("value", pointer(int)),
+                ]),
+
+                main([
+                    vDecl("x", array(int, size: 900)),
+                    vDecl("leny", int, i(10)),
+                    vDecl("y", array(float, val("leny", int))),
+                    vDecl("n", array(pointer(structure("Node", [pointer(int)])), size: 10)),
+
+                    ret(VoidLiteral())
+                ])
+            ]))
     }
     
     func testTypeInference() {

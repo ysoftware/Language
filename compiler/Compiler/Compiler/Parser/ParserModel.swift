@@ -80,6 +80,12 @@ final class ParserMessage {
         "Return type is expected to be '\(e)', but expression provided evaluates to '\(g)'."
     }
 
+    // array parsing
+    static let arrayClosingBracket = "Closing square bracket is expected after array length expression."
+    static func arrayLengthType(_ t: Type) -> String {
+        "Expected expression of type 'Int' for array's length. \(t.typeName) was given."
+    }
+
     // other
     static func conditionTypeMismatch(_ t: Type) -> String { "Condition is expected to be of type 'Bool', '\(t.typeName)' was given." }
     static let sizeofExpectedType = "Type name is expected after 'sizeof'."

@@ -34,7 +34,7 @@ extension Parser {
             if let alias = scope.declarations[noPointerIdent] as? TypealiasDeclaration { // generic type
                 type = AliasType(name: alias.name)
 
-                var p = "*"
+                var p = "*" // @Todo: this is weird, look for a better solution
                 while (baseIdent.value.value.hasSuffix(p)) {
                     type = pointer(type)
                     p += "*"
@@ -61,10 +61,26 @@ extension Parser {
             }
         }
         else { // GENERIC TYPE
-            type = StructureType(name: noPointerIdent, solidTypes: solidTypes)
+            let structType = StructureType(name: noPointerIdent, solidTypes: solidTypes)
+            try solidifyStructure(type: structType)
+            type = structType
             while consumeOp("*") {
                 type = pointer(type)
             }
+        }
+
+        // ARRAY TYPE
+        if consumePunct("[") {
+            let expr = try doExpression(in: scope, expectSemicolon: false)
+            guard expr.exprType is IntType else { // @OnePass
+                throw error(ParserMessage.arrayLengthType(expr.exprType), expr.range)
+            }
+
+            guard consumePunct("]") else {
+                throw error(ParserMessage.arrayClosingBracket, token.range)
+            }
+
+            type = ArrayType(elementType: type, size: expr)
         }
 
         let range = CursorRange(baseIdent.token.startCursor, lastToken.endCursor)

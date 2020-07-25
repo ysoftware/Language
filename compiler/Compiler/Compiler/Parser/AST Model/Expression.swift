@@ -238,7 +238,7 @@ final class ProcedureCall: Expression, Statement, Equatable {
         if solidTypes.isEmpty {
             return name
         } else {
-            return solidId(forName: name, solidTypes: solidTypes) + "__solidified"
+            return solidId(for: name, solidTypes: solidTypes)
         }
     }
 

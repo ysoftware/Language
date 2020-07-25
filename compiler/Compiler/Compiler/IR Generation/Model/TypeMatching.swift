@@ -45,8 +45,6 @@ func matchType(_ type: Type) -> String {
     switch type {
     case let a as IntType:
         return "i\(a.size)"
-    case let a as ArrayType:
-        return "[\(a.size) x \(matchType(a.elementType))]"
     case let a as PointerType:
         return a.pointeeType.equals(to: void) ? "i8*" :"\(matchType(a.pointeeType))*"
     case let a as FloatType:
@@ -56,6 +54,12 @@ func matchType(_ type: Type) -> String {
         case 64: return "double"
         case 128: return "fp128"
         default: report("Unsupported floating point with \(a.size) bits")
+        }
+    case let a as ArrayType:
+        if let size = a.size as? IntLiteral {
+            return "[\(size.value) x \(matchType(a.elementType))]"
+        } else {
+            return matchType(pointer(a.elementType))
         }
     case is VoidType:
         return "void"

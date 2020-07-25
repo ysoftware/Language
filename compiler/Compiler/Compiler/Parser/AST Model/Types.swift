@@ -117,15 +117,15 @@ struct PointerType: Type, Equatable {
 struct ArrayType: Type, Equatable {
     
     var elementType: Type
-    let size: Int
+    let size: Expression
     
-    internal init(elementType: Type, size: Int) {
+    internal init(elementType: Type, size: Expression) {
         self.elementType = elementType
         self.size = size
     }
     
     static func == (lhs: ArrayType, rhs: ArrayType) -> Bool {
-        lhs.elementType.equals(to: rhs.elementType) && lhs.size == rhs.size
+        lhs.elementType.equals(to: rhs.elementType) && lhs.size.equals(to: rhs.size)
     }
 }
 
@@ -142,7 +142,7 @@ struct StructureType: Type, Equatable {
         if solidTypes.isEmpty {
             return name
         } else {
-            return solidId(forName: name, solidTypes: solidTypes) + "__solidified"
+            return solidId(for: name, solidTypes: solidTypes)
         }
     }
 
@@ -208,7 +208,12 @@ extension Type {
         case let a as IntType: return "Int\(a.size)"
         case let a as FloatType: return "Float\(a.size)"
         case let a as PointerType: return "\(a.pointeeType.typeName)*"
-        case let a as ArrayType: return "[\(a.elementType.typeName)]"
+        case let a as ArrayType:
+            if let size = a.size as? IntLiteral {
+                return "\(a.elementType.typeName)[\(size.value)]"
+            } else {
+                return pointer(a.elementType).typeName
+            }
         case is VoidType: return "Void"
         case let a as StructureType:
             var string = "\(a.name)"
@@ -287,6 +292,14 @@ let string: Type = PointerType(pointeeType: int8)
 let void: Type = VoidType()
 let any: Type = AnyType()
 let unresolved = UnresolvedType()
+
+func array(_ elementType: Type, size: Int) -> ArrayType {
+    ArrayType(elementType: elementType, size: IntLiteral(value: size))
+}
+
+func array(_ elementType: Type, _ expr: Expression) -> ArrayType {
+    ArrayType(elementType: elementType, size: expr)
+}
 
 func structure(_ name: String, _ solid: [Type] = []) -> StructureType {
     StructureType(name: name, solidTypes: solid)

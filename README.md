@@ -49,7 +49,6 @@ func entry_point() -> Int32 #main { ... }
  b : Float[3] = [0, 1, 2]
  c := [0, 1, 2]              // Int[3] 
  d := [0.1, 1, 2]            // Float[3]
- f := (Float[3])[1, 2, 3]
  ```
 
  
