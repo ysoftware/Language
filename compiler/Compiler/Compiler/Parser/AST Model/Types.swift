@@ -293,11 +293,11 @@ let void: Type = VoidType()
 let any: Type = AnyType()
 let unresolved = UnresolvedType()
 
-func array(_ elementType: Type, size: Int) -> ArrayType {
+func array(_ elementType: Type, _ size: Int) -> ArrayType {
     ArrayType(elementType: elementType, size: IntLiteral(value: size))
 }
 
-func array(_ elementType: Type, _ expr: Expression) -> ArrayType {
+func array(_ elementType: Type, expr: Expression) -> ArrayType {
     ArrayType(elementType: elementType, size: expr)
 }
 

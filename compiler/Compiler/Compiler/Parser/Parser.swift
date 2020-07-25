@@ -70,17 +70,19 @@ extension Parser {
         }
 
         // ARRAY TYPE
-        if consumePunct("[") {
+        var arrayDimensions: [Expression] = []
+        while consumePunct("[") {
             let expr = try doExpression(in: scope, expectSemicolon: false)
             guard expr.exprType is IntType else { // @OnePass
                 throw error(ParserMessage.arrayLengthType(expr.exprType), expr.range)
             }
-
             guard consumePunct("]") else {
                 throw error(ParserMessage.arrayClosingBracket, token.range)
             }
-
-            type = ArrayType(elementType: type, size: expr)
+            arrayDimensions.append(expr)
+        }
+        for size in arrayDimensions.reversed() {
+            type = ArrayType(elementType: type, size: size)
         }
 
         let range = CursorRange(baseIdent.token.startCursor, lastToken.endCursor)

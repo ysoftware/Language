@@ -14,6 +14,54 @@ func parserResult<T>(_ block: () throws -> T) -> Result<T, ParserError> {
 
 extension ParserTest {
 
+    func testArrayDecl() {
+        return
+        let code = """
+        func main() { x : Int[18]; }
+        """
+
+        let tokens = try! Lexer(code).analyze().tokens
+        let result = parserResult(Parser(tokens).parse)
+
+        printResultCase(code, result, Code([
+
+        ]))
+    }
+
+    func testArrayTypeParsing() {
+        let code = """
+        struct Node<Value> { next: Node<Value>*; value: Value; }
+
+        func main() {
+            x : Int[900];
+            leny := 10; y: Float[leny];
+            n : Node<Int*>*[10];
+            d : Int[1024][768]; // Array with 1024 elements of Int[768]
+        }
+        """
+
+        let tokens = try! Lexer(code).analyze().tokens
+        let result = parserResult(Parser(tokens).parse)
+
+        printResultCase(
+            code, result, Code([
+                StructDeclaration(name: "Node", id: solidId(for: "Node", solidTypes: [pointer(int)]), members: [
+                    vDecl("next", pointer(structure("Node", [pointer(int)]))),
+                    vDecl("value", pointer(int)),
+                ]),
+
+                main([
+                    vDecl("x", array(int, 900)),
+                    vDecl("leny", int, i(10)),
+                    vDecl("y", array(float, expr: val("leny", int))),
+                    vDecl("n", array(pointer(structure("Node", [pointer(int)])), 10)),
+                    vDecl("d", array(array(int, 768), 1024)),
+
+                    ret(VoidLiteral())
+                ])
+            ]))
+    }
+
     func testGenericProcedureUsage() {
         return
         
@@ -275,38 +323,6 @@ extension ParserTest {
         ]))
     }
 
-    func testTypeParsing() {
-        let code = """
-        struct Node<Value> { next: Node<Value>*; value: Value; }
-
-        func main() {
-            x : Int[900];
-            leny := 10; y: Float[leny];
-            n : Node<Int*>*[10];
-        }
-        """
-
-        let tokens = try! Lexer(code).analyze().tokens
-        let result = parserResult(Parser(tokens).parse)
-
-        printResultCase(
-            code, result, Code([
-                StructDeclaration(name: "Node", id: solidId(for: "Node", solidTypes: [pointer(int)]), members: [
-                    vDecl("next", pointer(structure("Node", [pointer(int)]))),
-                    vDecl("value", pointer(int)),
-                ]),
-
-                main([
-                    vDecl("x", array(int, size: 900)),
-                    vDecl("leny", int, i(10)),
-                    vDecl("y", array(float, val("leny", int))),
-                    vDecl("n", array(pointer(structure("Node", [pointer(int)])), size: 10)),
-
-                    ret(VoidLiteral())
-                ])
-            ]))
-    }
-    
     func testTypeInference() {
         let code = "c:= 1; func main() { a := c; b := a; }"
         let tokens = try! Lexer(code).analyze().tokens
