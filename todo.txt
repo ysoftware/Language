@@ -2,12 +2,9 @@ WORKING ON
 
 TODO
 - generic procedure parsing tests
-- array and subscript access
-    - LLVM Array for static length array (all literal is global const)
-    - alloca for all arrays with runtime length
-
-
-[Int] = Int[12] / Int[x]
+- recursive expression parsing: "x := getNode().value;"
+- subscript expression
+- subscript rValue
 
 READ
 - https://habr.com/ru/company/otus/blog/442554/
