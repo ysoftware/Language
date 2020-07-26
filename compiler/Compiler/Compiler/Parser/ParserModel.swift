@@ -81,7 +81,12 @@ final class ParserMessage {
     }
 
     // array parsing
+    static let subscriptExpectedIndexExpression = "Expression of type 'Int' is expected for an array subscript index."
+    static let subscriptClosingBracket = "Closing square bracket is expected after subscript index expression."
     static let arrayClosingBracket = "Closing square bracket is expected after array length expression."
+    static func subscriptNotArray(_ t: Type) -> String {
+        "Subscript is only applicable to an array type. \(t.typeName) is given."
+    }
     static func arrayLengthType(_ t: Type) -> String {
         "Expected expression of type 'Int' for array's length. \(t.typeName) was given."
     }

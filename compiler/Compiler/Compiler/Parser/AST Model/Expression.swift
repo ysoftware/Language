@@ -97,6 +97,38 @@ final class SizeOf: Expression, Equatable {
     }
 }
 
+final class Subscript: Expression, Equatable {
+
+    var isRValue: Bool { true }
+    var range: CursorRange
+
+    static func == (lhs: Subscript, rhs: Subscript) -> Bool {
+        lhs.base.equals(to: rhs.base)
+            && lhs.index.equals(to: rhs.index)
+            && lhs.exprType.equals(to: rhs.exprType)
+    }
+
+    var debugDescription: String {
+        let c = PrintCursors ? " \(range)" : ""
+        return "\(base) subscript \(index)\(c)"
+    }
+
+    var index: Expression
+    var base: Expression
+    var exprType: Type
+
+    internal init(base: Expression, exprType: Type, index: Expression, range: CursorRange) {
+        self.range = range
+        self.index = index
+        self.base = base
+        self.exprType = exprType
+    }
+
+    func makeCopy() -> Subscript {
+        Subscript(base: base, exprType: exprType, index: index, range: range)
+    }
+}
+
 final class MemberAccess: Expression, Equatable {
     
     var isRValue: Bool { true }

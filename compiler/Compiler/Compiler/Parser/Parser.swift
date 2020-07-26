@@ -89,13 +89,42 @@ extension Parser {
         return (type, range)
     }
 
+    // MARK: - SUBSCRIPT -
+
+    func matchSubscript() -> Bool {
+        (token.value as? Punctuator)?.value == "["
+    }
+
+    func doSubscript(of base: Expression, in scope: Scope) throws -> Subscript {
+        guard consumePunct("[") else { report("call matchSubscript required before calling this", token.range) }
+
+        if let value = base as? Value, value.exprType.equals(to: UnresolvedType()) {
+            if let decl = scope.declarations[value.name] as? VariableDeclaration {
+                base.exprType = decl.exprType
+            }
+        }
+        guard let arrayType = base.exprType as? ArrayType else {
+            throw error(ParserMessage.subscriptNotArray(base.exprType), base.range)
+        }
+        let indexExpr = try doExpr(in: scope)
+        guard indexExpr.exprType.equals(to: int) else {
+            throw error(ParserMessage.subscriptExpectedIndexExpression, token.range)
+        }
+        guard consumePunct("]") else {
+            throw error(ParserMessage.subscriptClosingBracket, token.range)
+        }
+        let sub = Subscript(base: base, exprType: arrayType.elementType, index: indexExpr,
+                            range: CursorRange(base.range.start, lastToken.range.end))
+        return sub
+    }
+
     // MARK: - MEMBER ACCESS -
     
     func matchMemberAccess() -> Bool {
         (token.value as? Punctuator)?.value == "." && peekNext()?.value is Identifier
     }
     
-    func doMemberAccess(of base: Expression, in scope: Scope) throws -> Expression {
+    func doMemberAccess(of base: Expression, in scope: Scope) throws -> MemberAccess {
         guard consumePunct(".") else { report("call matchMemberAccess required before calling this", token.range) }
         
         if let value = base as? Value, value.exprType.equals(to: UnresolvedType()) {
@@ -134,8 +163,14 @@ extension Parser {
             var base: Expression = Value(name: identifier.value, id: id, exprType: exprType,
                                          range: token.range)
             if !nextToken() { throw error(ParserMessage.unexpectedEndOfFile) }
-            while matchMemberAccess() {
-                base = try doMemberAccess(of: base, in: scope)
+            while true {
+                if matchMemberAccess() {
+                    base = try doMemberAccess(of: base, in: scope)
+                } else if matchSubscript() {
+                    base = try doSubscript(of: base, in: scope)
+                } else {
+                    break
+                }
             }
             // @Todo: check root member access base existence
             
@@ -692,7 +727,7 @@ extension Parser {
             let type = returnType(ofBinaryOperation: op.value, arg: left.exprType)
             left = BinaryOperator(name: op.value, exprType: type, arguments: (left, right), range: range)
         }
-        
+
         if expectSemicolon, !consumeSep(";") { throw error(ParserMessage.expectedSemicolon) }
         return left
     }
@@ -716,7 +751,7 @@ extension Parser {
             return op
         }
         
-        let expression: Expression
+        var expression: Expression
         switch token.value {
             
         case let keyword as Keyword:
@@ -790,11 +825,17 @@ extension Parser {
             
             if matchMemberAccess() {
                 var base: Expression = Value(name: identifier.value, id: id, exprType: exprType, range: tok.range)
-                
+
                 // @Todo: else add to global dependencies
-                
+
                 while matchMemberAccess() {
                     base = try doMemberAccess(of: base, in: scope)
+                }
+                expression = base
+            } else if matchSubscript() {
+                var base: Expression = Value(name: identifier.value, id: id, exprType: exprType, range: tok.range)
+                while matchSubscript() {
+                    base = try doSubscript(of: base, in: scope)
                 }
                 expression = base
             }
@@ -818,6 +859,17 @@ extension Parser {
             throw error(ParserMessage.notImplemented(token), token.range)
         }
         expression.range = CursorRange(start, lastToken.endCursor)
+
+        while true {
+            if matchMemberAccess() {
+                expression = try doMemberAccess(of: expression, in: scope)
+            } else if matchSubscript() {
+                expression = try doSubscript(of: expression, in: scope)
+            } else {
+                break
+            }
+        }
+
         return expression
     }
     
