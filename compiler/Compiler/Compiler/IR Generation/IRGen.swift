@@ -209,6 +209,20 @@ extension IR {
                     emitLocal(intermediateCode)
                     receiver = memberPointerValue
                 }
+                else if let sub = assign.receiver as? Subscript {
+
+                    let (baseLoad, baseVal) = getExpressionResult(sub.base, valueResult: false)
+                    emitLocal(baseLoad)
+
+                    if let intLiteral = sub.index as? IntLiteral {
+                        let ptr = "%\(count())"
+                        code += doGEP(of: baseVal, into: ptr, valueType: sub.base.exprType, indices: [0, intLiteral.value])
+                        receiver = ptr
+                    } else {
+                        // @Todo: dynamic array subscript
+                        fatalError()
+                    }
+                }
                 else { report("Unsupported rValue.") }
                 
                 let (expCode, expVal) = getExpressionResult(assign.expression)
