@@ -24,7 +24,9 @@ internal extension IR {
     /// for an expression of `variable "a" of Int32`
     ///   the return value will be: `code = "%1 = load i32, i32* %a", value = "%1"`
     ///
-    func getExpressionResult(_ expression: Expression, indentLevel: Int = 0) -> (code: String?, value: String) {
+    func getExpressionResult(_ expression: Expression,
+                             indentLevel: Int = 0,
+                             valueResult: Bool = true) -> (code: String?, value: String) {
         var code = ""
 
         // All expressions go here
@@ -37,9 +39,14 @@ internal extension IR {
             return (nil, "\(literal.value)")
 
         case let variable as Value:
-            let argValue = "%\(count())"
-            code += doLoad(from: "%\(variable.id)", into: argValue, valueType: variable.exprType)
-            return (code, argValue)
+            let variableId = "%\(variable.id)"
+            if valueResult {
+                let argValue = "%\(count())"
+                code += doLoad(from: variableId, into: argValue, valueType: variable.exprType)
+                return (code, argValue)
+            } else {
+                return (nil, variableId)
+            }
             
         case let sizeof as SizeOf:
             let ptr = "%\(count())"
@@ -121,6 +128,22 @@ internal extension IR {
             code += "\(value) = bitcast \(matchType(pointer(int8))) \(mallocVal) to \(matchType(new.exprType))\n"
             code += doStore(from: "zeroinitializer", into: value, valueType: new.type)
             
+            return (code, value)
+
+        case let sub as Subscript:
+
+            let (load, val) = getExpressionResult(sub.base, valueResult: false)
+            load.map { code += "\($0)\n" }
+
+            let ptr = "%\(count())"
+            let value = "%\(count())"
+            if let intLiteral = sub.index as? IntLiteral {
+                code += doGEP(of: val, into: ptr, valueType: sub.base.exprType, indices: [0, intLiteral.value])
+                code += doLoad(from: ptr, into: value, valueType: sub.exprType)
+            } else {
+                // @Todo: dynamic array subscript
+                fatalError()
+            }
             return (code, value)
             
         case let access as MemberAccess:

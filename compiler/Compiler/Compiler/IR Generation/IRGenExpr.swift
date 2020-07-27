@@ -31,7 +31,7 @@ extension IR {
     }
     
     func doGEP(of: String, into: String, valueType: Type, indices: [Int]) -> String {
-        let indicesStr = indices.map { "i32 \($0)" }.joined(separator: ", ")
+        let indicesStr = indices.map { "i64 \($0)" }.joined(separator: ", ")
         return "\(into) = getelementptr \(matchType(valueType)), \(matchType(valueType))* \(of), \(indicesStr)\n"
     }
 }
