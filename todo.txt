@@ -1,10 +1,10 @@
 WORKING ON
 
 TODO
+- runtime size array subscript expression
+- runtime size array subscript rValue
 - generic procedure parsing tests
-- recursive expression parsing: "x := getNode().value;"
-- subscript expression
-- subscript rValue
+- array parsing tests
 
 READ
 - https://habr.com/ru/company/otus/blog/442554/

@@ -1,18 +1,19 @@
-func malloc(size: Int) -> Void* #foreign;
-func `free`(pointer: Void*) #foreign;
 func printf(format: String, arg: Int, ...) #foreign;
-func sprintf(format: String, arg: Int, ...) -> String #foreign;
 
 func main(count: Int, arguments: Int8**) -> Int {
 
+    printf("Array: ", 0);
+
     array : Int[9];
     array[0] = 1;
-    array[1] = 2;
-    array[2] = 3;
+    array[3] = 2;
+    array[5] = 3;
 
-    printf("hello %d\n", array[0]);
-    printf("hello %d\n", array[1]);
-    printf("hello %d\n", array[2]);
+    if (array[0] != 1) { return 1; }
+    if (array[3] != 2) { return 2; }
+    if (array[5] != 3) { return 3; }
+
+    printf("OK\n", 0);
 
     return 0;
 }
