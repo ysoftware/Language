@@ -93,7 +93,7 @@ func main() -> Int {
     if (*list_get_value_at<Float>(float_list, 3) != 3) { return 4; }
     if (*list_get_value_at<Float>(float_list, 4) != 4) { return 5; }
 
-    printf("Transform: OK\n", 0.0);
+    printf("Generic Transform: OK\n", 0.0);
 
     return 0;
 }
