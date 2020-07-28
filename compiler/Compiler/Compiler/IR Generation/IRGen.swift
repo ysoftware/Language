@@ -181,47 +181,60 @@ extension IR {
                     emitGlobal("@\(variable.id) = \(flags) [\(literal.value.count + 1) x i8] c\"\(value)\"")
                 }
                 else {
+                    var count: String? = nil
+                    if let arrayType = variable.exprType as? ArrayType, !arrayType.isStaticallySized {
+                        let (idxLoad, idxVal) = getExpressionResult(arrayType.size)
+                        emitLocal(idxLoad)
+                        count = idxVal
+                    }
+
                     emitLocal("; declaration of \(variable.id)")
-                    emitLocal(doAlloca("%\(variable.id)", variable.exprType))
+                    emitLocal(doAlloca("%\(variable.id)", variable.exprType, countValue: count))
                     
                     if let expression = variable.expression {
                         let (expCode, expVal) = getExpressionResult(expression)
                         emitLocal(expCode)
                         emitLocal(doStore(from: expVal, into: "%\(variable.id)", valueType: variable.exprType))
                     }
-                    else {
+                    else if count == nil { // do not try to zeroinitialize arrays like this
                         emitLocal(doStore(from: "zeroinitializer", into: "%\(variable.id)", valueType: variable.exprType))
+                    } else {
+                        // @Todo: zero init the array with memset
                     }
                 }
                 
             case let assign as Assignment:
                 emitLocal()
-                emitLocal("; assignment")
                 
                 var receiver = ""
                 if let value = assign.receiver as? Value {
+                    emitLocal("; assignment")
                     receiver = "%\(value.id)"
                 }
                 else if let access = assign.receiver as? MemberAccess {
                     // this is rValue member access, IRGen for member value as expression is in another place
-                    
+                    emitLocal("; assignment member access")
                     let (intermediateCode, memberPointerValue) = getMemberPointerAddress(of: access)
                     emitLocal(intermediateCode)
                     receiver = memberPointerValue
                 }
                 else if let sub = assign.receiver as? Subscript {
+                    emitLocal("; assignment subscript")
+
+                    guard let arrayType = sub.base.exprType as? ArrayType else {
+                        report("We don't support subscripting not arrays. @Todo: make subscript to array pointer.")
+                    }
 
                     let (baseLoad, baseVal) = getExpressionResult(sub.base, valueResult: false)
                     emitLocal(baseLoad)
+                    let (idxLoad, idxVal) = getExpressionResult(sub.index)
+                    emitLocal(idxLoad)
 
-                    if let intLiteral = sub.index as? IntLiteral {
-                        let ptr = "%\(count())"
-                        code += doGEP(of: baseVal, into: ptr, valueType: sub.base.exprType, indices: [0, intLiteral.value])
-                        receiver = ptr
-                    } else {
-                        // @Todo: dynamic array subscript
-                        fatalError()
-                    }
+                    let ptr = "%\(count())"
+
+                    let idxValues = arrayType.isStaticallySized ? ["0", idxVal] : [idxVal]
+                    emitLocal(doGEP(of: baseVal, into: ptr, valueType: sub.base.exprType, indexValues: idxValues))
+                    receiver = ptr
                 }
                 else { report("Unsupported rValue.") }
                 

@@ -118,7 +118,11 @@ struct ArrayType: Type, Equatable {
     
     var elementType: Type
     let size: Expression
-    
+
+    var isStaticallySized: Bool {
+        size is IntLiteral
+    }
+
     internal init(elementType: Type, size: Expression) {
         self.elementType = elementType
         self.size = size

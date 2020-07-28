@@ -1,6 +1,7 @@
 WORKING ON
 
 TODO
+- alloc array on the stack (stacksave, stackrestore)
 - runtime size array subscript expression
 - runtime size array subscript rValue
 - generic procedure parsing tests
@@ -10,7 +11,7 @@ READ
 - https://habr.com/ru/company/otus/blog/442554/
 
 FEATURE
-- @method() procedure attribute
+- #method() procedure directive
     func list_append<Value>(head: Node<Value, Value) -> Node<Value> #method(Node<T>.append) { ... } 
         head: new Node<Int>;  head = head.adding(1).adding(2);
         parsed to: assign head = [call list_append([call list_append(head, 1)], 2)]
@@ -19,13 +20,10 @@ FEATURE
         parsed to: vDecl val = [call integer_sum([call integer_sum([call integer_sum(1), 1)], 2)], 5)]
 - proper variadic procedures [different types of arguments / empty variadic arguments]
 - defer
-- static casting at parse time -- x : Float = cast(1.0) 1;
-
-PROBABLY NEVER
-- warnings (for unused structs and procedures)
-- generic type member access resolution at the point of solidifying // func has_next<T>(nextable: T) -> Bool { return nextable.next != nil; }
+- static casting at parse time -- iConst :: 1; float : Float = cast(Float) iConst;
 
 IRGEN
+- convert GEP indexes and alloca count to i64
 - implement #main (with zeroinitialized arguments)
 - autoinclude malloc/free (make imports?)
 - move sizeof to a global value
@@ -38,12 +36,13 @@ PARSER
 - unit tests scope ids (comparison)
 - unit test error cursors
 - verify all paths of a procedure return a value
+- proc call doesn't fail without semicolon at the end
 - write tests for equality methods?
 
 LEXER
+- write a new lexer in C++, but think about the cases below first
 - rework error messages and cursors
 - properly eat whitespaces
-- proc call doesn't fail without semicolon at the end
 
 BUGS
 - while (i < 100000) { // do we not have a less than?
@@ -58,3 +57,7 @@ OPTIMIZATION
 - don't load the same value argument if passed twice in call expr, like a = add(a, a)
 - dereference all arguments passed by value in call expr (for now, doing that manually) 
 - struct A<T> { a: A<A>; } // should fail as A is not supplied with a generic argument @SecondPass
+
+PROBABLY NEVER
+- warnings (for unused structs and procedures)
+- generic type member access resolution at the point of solidifying // func has_next<T>(nextable: T) -> Bool { return nextable.next != nil; }

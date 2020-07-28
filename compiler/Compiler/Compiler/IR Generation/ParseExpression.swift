@@ -132,19 +132,31 @@ internal extension IR {
 
         case let sub as Subscript:
 
+            guard let arrayType = sub.base.exprType as? ArrayType else {
+                report("We don't support subscripting not arrays. @Todo: make subscript to array pointer.")
+            }
+
             let (load, val) = getExpressionResult(sub.base, valueResult: false)
             load.map { code += "\($0)\n" }
 
+            let (idxLoad, idxVal) = getExpressionResult(sub.index)
+            idxLoad.map { code += "\($0)\n" }
+            
             let ptr = "%\(count())"
-            let value = "%\(count())"
-            if let intLiteral = sub.index as? IntLiteral {
-                code += doGEP(of: val, into: ptr, valueType: sub.base.exprType, indices: [0, intLiteral.value])
+
+            if arrayType.isStaticallySized {
+                let value = "%\(count())"
+                code += doGEP(of: val, into: ptr, valueType: sub.base.exprType, indexValues: ["0", idxVal])
                 code += doLoad(from: ptr, into: value, valueType: sub.exprType)
+                return (code, value)
             } else {
-                // @Todo: dynamic array subscript
-                fatalError()
+                let elementPtr = "%\(count())"
+                let value = "%\(count())"
+                code += doGEP(of: val, into: ptr, valueType: sub.base.exprType, indexValues: [idxVal])
+                code += doLoad(from: ptr, into: elementPtr, valueType: pointer(sub.exprType))
+                code += doLoad(from: elementPtr, into: value, valueType: sub.exprType)
+                return (code, value)
             }
-            return (code, value)
             
         case let access as MemberAccess:
             // this is member access as expression, IRGen for the rValue member access is in another place

@@ -64,12 +64,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-file"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/yerokhin/Documents/GitHub/Language/programs/transform_g.yw"
-            isEnabled = "NO">
+            argument = "-file /Users/yerokhin/Documents/GitHub/Language/programs/array.yw"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-run"

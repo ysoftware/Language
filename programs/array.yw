@@ -1,17 +1,47 @@
 func printf(format: String, arg: Int, ...) #foreign;
 
+func testStaticallySizedArray() -> Int {
+    x1 :: 3;
+    x2 :: 5;
+
+    array : Int[6];
+    array[0] = 1;
+    array[x1] = 2;
+    array[x2] = 3;
+
+    if (array[0]  != 1) { return 1; }
+    if (array[x1] != 2) { return 2; }
+    if (array[x2] != 3) { return 3; }
+
+    return 0;
+}
+
+func testDynamicallySizedArray() -> Int {
+    x1 :: 3;
+    x2 :: 5;
+    n :: 6;
+
+    array : Int[n];
+    // array[0] = 1;
+    // array[x1] = 2;
+    // array[x2] = 3;
+
+    // if (array[0] != 1) { return 4; }
+    if (array[x1] != 2) { return 5; }
+    // if (array[x2] != 3) { return 6; }
+
+    return 0;
+}
+
 func main(count: Int, arguments: Int8**) -> Int {
 
     printf("Array: ", 0);
 
-    array : Int[9];
-    array[0] = 1;
-    array[3] = 2;
-    array[5] = 3;
+    result1 :: testStaticallySizedArray();
+    if (result1 != 0) { return result1; }
 
-    if (array[0] != 1) { return 1; }
-    if (array[3] != 2) { return 2; }
-    if (array[5] != 3) { return 3; }
+    result2 :: testDynamicallySizedArray();
+    if (result2 != 0) { return result2; }
 
     printf("OK\n", 0);
 

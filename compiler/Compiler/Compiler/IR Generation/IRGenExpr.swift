@@ -18,8 +18,9 @@ extension IR {
         "br label \(label)\n"
     }
     
-    func doAlloca(_ value: String, _ type: Type) -> String {
-        "\(value) = alloca \(matchType(type))\n"
+    func doAlloca(_ value: String, _ type: Type, countValue: String? = nil) -> String {
+        let countString = countValue.map { ", i32 \($0)" } ?? ""
+        return "\(value) = alloca \(matchType(type))\(countString)\n"
     }
     
     func doStore(from: String, into: String, valueType: Type) -> String {
@@ -29,7 +30,12 @@ extension IR {
     func doLoad(from: String, into: String, valueType: Type) -> String {
         "\(into) = load \(matchType(valueType)), \(matchType(valueType))* \(from)\n"
     }
-    
+
+    func doGEP(of: String, into: String, valueType: Type, indexValues: [String]) -> String {
+        let indicesStr = indexValues.map { "i32 \($0)" }.joined(separator: ", ")
+        return "\(into) = getelementptr \(matchType(valueType)), \(matchType(valueType))* \(of), \(indicesStr)\n"
+    }
+
     func doGEP(of: String, into: String, valueType: Type, indices: [Int]) -> String {
         let indicesStr = indices.map { "i32 \($0)" }.joined(separator: ", ")
         return "\(into) = getelementptr \(matchType(valueType)), \(matchType(valueType))* \(of), \(indicesStr)\n"
