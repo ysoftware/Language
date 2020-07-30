@@ -1,7 +1,6 @@
 WORKING ON
 
 TODO
-- alloc array on the stack (stacksave, stackrestore)
 - runtime size array subscript expression
 - runtime size array subscript rValue
 - generic procedure parsing tests
