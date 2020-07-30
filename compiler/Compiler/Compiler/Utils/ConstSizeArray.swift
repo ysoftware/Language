@@ -78,17 +78,8 @@ final class Buffer<T: Equatable>: ExpressibleByArrayLiteral, Equatable {
         let newCount = count + add
         if length <= newCount {
             let newLength = Swift.max(length * 2, newCount)
-
             let ptr = realloc(memory.baseAddress, newLength)!.assumingMemoryBound(to: T.self)
             let newMemory = UnsafeMutableBufferPointer<T>(start: ptr, count: newLength)
-
-            // @Todo: this code seemed to work, even under a stress test
-            // but I don't think it should work in the case where a pointer is moved after realloc
-
-//            if newMemory.baseAddress == memory.baseAddress {
-//                memcpy(newMemory.baseAddress, memory.baseAddress, count)
-//                memory.deallocate()
-//            }
             memory = newMemory
         }
     }
