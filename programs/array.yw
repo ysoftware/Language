@@ -27,8 +27,27 @@ func testDynamicallySizedArray() -> Int {
     // array[x2] = 3;
 
     // if (array[0] != 1) { return 4; }
-    if (array[x1] != 2) { return 5; }
+    // if (array[x1] != 2) { return 5; }
     // if (array[x2] != 3) { return 6; }
+
+    return 0;
+}
+
+// func createArray<T>(n: Int, setIndex: Int, value: T) -> T[..] {
+//     array := new T[n];
+//     if (n > setIndex) {
+//         array[setIndex] = first;
+//     }
+//     return array;
+// }
+
+func  testHeapAllocatedArrays() -> Int {
+    // x1 = 1;
+    // array := createArray<Int>(5, x1, 2);
+    // array[0] = 1;
+
+    // if (array[0] != 1) { return 7; }
+    // if (array[1] != 2) { return 8; }
 
     return 0;
 }
@@ -42,6 +61,9 @@ func main(count: Int, arguments: Int8**) -> Int {
 
     result2 :: testDynamicallySizedArray();
     if (result2 != 0) { return result2; }
+
+    result3 :: testHeapAllocatedArrays();
+    if (result3 != 0) { return result3; }
 
     printf("OK\n", 0);
 
