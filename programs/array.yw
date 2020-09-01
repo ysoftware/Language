@@ -22,7 +22,7 @@ func testDynamicallySizedArray() -> Int {
     n :: 6;
 
     array : Int[n];
-    // array[0] = 1;
+    array[0] = 1;
     // array[x1] = 2;
     // array[x2] = 3;
 

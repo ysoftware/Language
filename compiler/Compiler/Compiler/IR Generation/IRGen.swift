@@ -225,15 +225,22 @@ extension IR {
                         report("We don't support subscripting not arrays. @Todo: make subscript to array pointer.")
                     }
 
-                    let (baseLoad, baseVal) = getExpressionResult(sub.base, valueResult: false)
+                    // @Todo: dynamic or/and heap-allocated arrays need to be properly loaded first
+                    // value result: true
+
+                    // @Todo: LEARN ABOUT gep's "inbounds" keyword
+
+                    let (baseLoad, baseVal) = getExpressionResult(sub.base, valueResult: !arrayType.isStaticallySized)
                     emitLocal(baseLoad)
                     let (idxLoad, idxVal) = getExpressionResult(sub.index)
                     emitLocal(idxLoad)
 
                     let ptr = "%\(count())"
 
+                    let valueType = arrayType.isStaticallySized ? arrayType : arrayType.elementType
                     let idxValues = arrayType.isStaticallySized ? ["0", idxVal] : [idxVal]
-                    emitLocal(doGEP(of: baseVal, into: ptr, valueType: sub.base.exprType, indexValues: idxValues))
+                    emitLocal(doGEP(of: baseVal, into: ptr, valueType: valueType,
+                                    inbounds: true, indexValues: idxValues))
                     receiver = ptr
                 }
                 else { report("Unsupported rValue.") }

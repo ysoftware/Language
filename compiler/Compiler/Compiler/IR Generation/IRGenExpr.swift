@@ -31,9 +31,10 @@ extension IR {
         "\(into) = load \(matchType(valueType)), \(matchType(valueType))* \(from)\n"
     }
 
-    func doGEP(of: String, into: String, valueType: Type, indexValues: [String]) -> String {
+    func doGEP(of: String, into: String, valueType: Type, inbounds: Bool = false, indexValues: [String]) -> String {
         let indicesStr = indexValues.map { "i32 \($0)" }.joined(separator: ", ")
-        return "\(into) = getelementptr \(matchType(valueType)), \(matchType(valueType))* \(of), \(indicesStr)\n"
+        let inboundsString = inbounds ? "inbounds " : ""
+        return "\(into) = getelementptr \(inboundsString)\(matchType(valueType)), \(matchType(valueType))* \(of), \(indicesStr)\n"
     }
 
     func doGEP(of: String, into: String, valueType: Type, indices: [Int]) -> String {
