@@ -1,5 +1,8 @@
 # Language
+---
+*This project has been put on hold. The work ended at implementing different kinds of arrays.*
 
+---
 ## Excercise in developing a programming language
 
 
