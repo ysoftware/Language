@@ -47,7 +47,7 @@ final class Lexer {
     let value = Buffer<CChar>()
     
     func analyze() throws -> LexerOutput {    
-        loop: while stringCount > i {
+        while stringCount > i {
             switch char {
                 
             case C.quote:

@@ -36,8 +36,6 @@ struct Token {
 };
 typedef struct Token Token;
 
-bool token_equals(Token *lhs, Token *rhs);
-
 struct Cursor {
     int lineNumber;
     int character;
@@ -59,4 +57,3 @@ struct Lexer2 {
     int i;
 };
 typedef struct Lexer2 Lexer2;
-

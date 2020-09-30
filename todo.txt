@@ -8,10 +8,11 @@ TODO
 
 READ
 - https://habr.com/ru/company/otus/blog/442554/
+- properly learn GEP
 
 FEATURE
 - #method() procedure directive
-    func list_append<Value>(head: Node<Value, Value) -> Node<Value> #method(Node<T>.append) { ... } 
+    func list_append<Value>(head: Node<Value, Value) -> Node<Value> #method(Node<T>.adding) { ... } 
         head: new Node<Int>;  head = head.adding(1).adding(2);
         parsed to: assign head = [call list_append([call list_append(head, 1)], 2)]
     func integer_sum(lhs: Int, rhs: Int) -> Int #method(Int.adding) { ... }
@@ -45,8 +46,8 @@ LEXER
 
 BUGS
 - while (i < 100000) { // do we not have a less than?
-- A<Void>; should be an error?
-- this should work: obj := new Int; &obj = 1; 
+- A<Void>; should be error?
+- this should work: obj := new Int; &obj = 1;
 - code with just "1" outputs 0 statements and isn't failing
 - func main() { a := (1 + 3) * (1 + 7 / -(5 + 3)) % 100 - 0.5; } // should resolve to float (because of 0.5)
 - head := new Node<Pair<Int, Int>>; list_append_pair<Int, Float>(head, 3, 134); // type checking doesn't catch this

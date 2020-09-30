@@ -1,3 +1,0 @@
-internal naming
-
-1. global scope: "g_"
