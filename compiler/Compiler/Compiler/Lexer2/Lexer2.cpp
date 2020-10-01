@@ -7,19 +7,56 @@
 //
 
 #include <stdlib.h>
+#include <string.h>
 #include "Lexer2.hpp"
 #include "Lexer2Const.hpp"
 
+Cursor *cursor;
+int tokens_count;
 Token *tokens;
 int i = 0;
 char character;
 
-bool token_equals(Token *lhs, Token *rhs) {
+char* code;
+unsigned long stringCount;
+
+void advance(int count) {
+    for (int w = 0; w < count; w++) {
+        i += 1;
+        if (character == TOKEN_NEWLINE) {
+            advance_cursor_line(cursor);
+        } else {
+            advance_cursor_characters(cursor, count);
+        }
+    }
+}
+
+bool next_char_count(int n) {
+    for (int w = 0; w < n; w++) {
+        advance(1);
+        if (stringCount > i) {
+            return false;
+        }
+        character = code[i];
+    }
     return false;
 }
 
-void token_append(Token *token, Cursor start, Cursor end) {
+bool next_char() {
+    return next_char_count(1);
+}
 
+char* peekNext(int n) {
+    auto nextIndex = i + n;
+    if (stringCount <= nextIndex) { return NULL; }
+    return &code[nextIndex];
+}
+
+void token_append(Token *token, Cursor *start, Cursor *end) {
+    token->start = *start;
+    token->end = *end;
+    tokens[tokens_count] = *token;
+    tokens_count += 1;
 }
 
 Token* make_token(TokenType type) {
@@ -35,10 +72,10 @@ Token* make_token_separator(char* string) {
 }
 
 void lexer_analyze(char* string) {
+    cursor->lineNumber = 1;
 
-    Cursor cursor;
-    cursor.lineNumber = 1;
-
+    code = string;
+    stringCount = strlen(string);
 
     while (true) {
         switch (string[i]) {

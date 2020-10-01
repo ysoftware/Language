@@ -23,8 +23,16 @@ enum Keyword {
 };
 typedef enum Keyword Keyword;
 
+struct Cursor {
+    int lineNumber;
+    int character;
+};
+typedef struct Cursor Cursor;
+
 struct Token {
     TokenType type;
+    Cursor start;
+    Cursor end;
 
     union {
         char *stringValue;
@@ -35,12 +43,6 @@ struct Token {
     };
 };
 typedef struct Token Token;
-
-struct Cursor {
-    int lineNumber;
-    int character;
-};
-typedef struct Cursor Cursor;
 
 struct Output {
     int linesProcessed;
@@ -57,3 +59,18 @@ struct Lexer2 {
     int i;
 };
 typedef struct Lexer2 Lexer2;
+
+
+
+void advance_cursor_line(Cursor *cursor) {
+    cursor->character = 0;
+    cursor->lineNumber += 1;
+}
+
+void advance_cursor_characters(Cursor *cursor, int count) {
+    cursor->character += count;
+}
+
+bool token_equals(Token *lhs, Token *rhs) {
+    return false;
+}

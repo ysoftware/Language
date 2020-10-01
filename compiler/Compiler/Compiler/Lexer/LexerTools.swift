@@ -9,7 +9,6 @@
 import Foundation
 
 struct LexerOutput {
-    
     let tokens: [Token]
     let linesProcessed: Int
 }
