@@ -46,6 +46,59 @@ bool next_char() {
     return next_char_count(1);
 }
 
+bool consume(char query) {
+    if (character == query) {
+        next_char();
+        return true;
+    }
+    return false;
+}
+
+template <typename T>
+char* consume_next(T compare) {
+    int nextIndex = i + 1;
+    if (stringCount <= nextIndex) {
+        return NULL;
+    }
+    auto character = &code[nextIndex];
+    if (compare(*character)) { // @Todo: test
+        advance(1);
+        return character;
+    }
+    return NULL;
+}
+
+bool consume_next_char(char query) {
+    return consume_next([query](auto character) {
+        return character == query;
+    }) != NULL;
+}
+
+bool consume_string(char *string) { // @Todo: test
+    int index = 0;
+    while (string[index] != 0 && stringCount > i + index) {
+        if (code[i + index] == string[index]) {
+            index += 1;
+        } else {
+            return false;
+        }
+    }
+    next_char_count(index); // @Todo: test: nextChar(count-1)
+    return true;
+}
+
+char* consume_one_of(char **array) { // @Todo: test
+    int index = 0;
+    while (array[index] != 0 && stringCount > i + index) {
+        auto s = array[index];
+        if (consume_string(s)) {
+            return s;
+        }
+        index += 1;
+    }
+    return NULL;
+}
+
 char* peekNext(int n) {
     auto nextIndex = i + n;
     if (stringCount <= nextIndex) { return NULL; }
