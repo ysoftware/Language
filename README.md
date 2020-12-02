@@ -81,7 +81,7 @@ else {
 ```
 
 #### Not-really-objective
-Use dot syntax for calling procedures where first argument is (pointer to) an instance of this class.
+Use dot syntax for calling procedures where first argument is (pointer to) an instance of this structure.
 Sort of like namespacing, but it will require procedure overloading to resolve collisions.
 ```
 func append(list: List*, value: Int) -> Node*;
