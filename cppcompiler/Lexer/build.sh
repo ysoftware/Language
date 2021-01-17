@@ -1,0 +1,1 @@
+g++ main.cpp -o compiler.app -std=c++17

@@ -12,6 +12,7 @@ let startTime = CFAbsoluteTimeGetCurrent()
 var previousTime = startTime
 var loc = 0
 
+let CppLexer = CommandLine.arguments.contains("-cpp")
 let PrintCursors = CommandLine.arguments.contains("-c")
 let NoParse = CommandLine.arguments.contains("--no-parse")
 let PrintTime = CommandLine.arguments.contains("-time")
@@ -49,6 +50,14 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
     }
     
     do {
+        if (CppLexer) {
+            var string = "awdawf".cString(using: .ascii)!.first!
+            _ = withUnsafeMutablePointer(to: &string) { ptr in
+//                wrapped_lexer_analyze(ptr)
+            }
+            quit(0);
+        }
+
         let lexerOutput = try Lexer(code).analyze()
         loc = lexerOutput.linesProcessed
         reportTimeSpent(on: "Lexing", from: previousTime, print: PrintTime)

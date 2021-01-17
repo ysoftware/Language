@@ -9,20 +9,20 @@
 // Constants
 
 final class Lexer {
-
+    
     internal init(fileName: String? = nil, _ string: String) {
         self.fileName = fileName
-
+        
         if let ascii = string.cString(using: .ascii) {
             self.stringCount = ascii.count
             self.characters = Buffer(count: stringCount, repeating: 0)
             for i in 0..<stringCount { self.characters[i] = ascii[i] }
-
+            
             if string.count > 0 {
                 // @Todo: bring back this error
                 //            throw error(.nonASCIICharacter, start.withdrawingCharacter(), cursor)
             }
-
+            
             if stringCount > 0 { self.char = characters[i] }
             else { char = C.space }
         }
@@ -36,26 +36,26 @@ final class Lexer {
     let fileName: String?
     let characters: Buffer<CChar>
     let stringCount: Int
-
+    
     // Variables
     
     var tokens: [Token] = []
     var cursor = Cursor()
     var i = 0
     var char: CChar
-
+    
     let value = Buffer<CChar>()
     
     func analyze() throws -> LexerOutput {    
         while stringCount > i {
             switch char {
-                
+            
             case C.quote:
                 let start = cursor
                 // STRING LITERAL
                 
                 func isNextThreeQuotes(after n: Int = 0) -> Bool {
-                    guard characters.count > i+2+n else { return false }
+                    guard stringCount > i+2+n else { return false }
                     return characters[i+n] == C.quote && characters[i+1+n] == C.quote && characters[i+2+n] == C.quote
                 }
                 
@@ -70,14 +70,13 @@ final class Lexer {
                     if !nextChar() { throw error(.unexpectedEndOfFile, cursor, cursor) }
                 }
                 
-                
                 value.reset()
                 while stringCount > i {
                     if char == C.newline { /* @Todo: wtf is this? */ }
                     
                     if char == C.backslash {
                         guard let next = peekNext()
-                            else { throw error(.unexpectedEndOfFile, cursor, cursor) }
+                        else { throw error(.unexpectedEndOfFile, cursor, cursor) }
                         
                         switch next {
                         case C.zero:  value.append(0)
@@ -134,7 +133,7 @@ final class Lexer {
                     if !nextChar() || char == 0 { throw error(.emptyDirectiveName, start, cursor) }
                     else if char == C.space { throw error(.emptyDirectiveName, start, cursor) }
                     else if !C.lowercaseRange.contains(char)
-                        && !C.uppercaseRange.contains(char) && char != C.underscore {
+                                && !C.uppercaseRange.contains(char) && char != C.underscore {
                         throw error(.unexpectedDirectiveName, start, cursor)
                     }
                 }
@@ -143,7 +142,7 @@ final class Lexer {
                 value.append(char)
                 while let next = consumeNext(where: {
                     let isMatching = C.lowercaseRange.contains($0) || C.uppercaseRange.contains($0)
-                    || C.numberRange.contains($0) || $0 == C.underscore || $0 == C.asterisk || $0 == C.accent
+                        || C.numberRange.contains($0) || $0 == C.underscore || $0 == C.asterisk || $0 == C.accent
                     let isLegal = value.last != C.asterisk || value.last == C.asterisk && $0 == C.asterisk // only allowed trailing asterisks
                     return isMatching && isLegal
                 }) {

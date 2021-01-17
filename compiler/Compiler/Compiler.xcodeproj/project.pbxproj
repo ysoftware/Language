@@ -31,7 +31,6 @@
 		1FEB7CAB247A9E950018B9B4 /* ParserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FEB7CAA247A9E950018B9B4 /* ParserModel.swift */; };
 		1FF1735A24C82EEE00D54E3B /* LexerConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FF1735924C82EEE00D54E3B /* LexerConst.swift */; };
 		1FF1736F24C9B2DC00D54E3B /* ConstSizeArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FF1736E24C9B2DC00D54E3B /* ConstSizeArray.swift */; };
-		1FF1737424C9FABC00D54E3B /* Lexer2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1FF1737224C9FABC00D54E3B /* Lexer2.cpp */; };
 		1FFF349424711E3100389B0C /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF349324711E3100389B0C /* main.swift */; };
 		1FFF34A52471216000389B0C /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF34A42471216000389B0C /* Expression.swift */; };
 		1FFF34AB2471260400389B0C /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF34AA2471260400389B0C /* Types.swift */; };
@@ -60,7 +59,6 @@
 		1F0A77E5248B73B50028A96D /* Operations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operations.swift; sourceTree = "<group>"; };
 		1F286DA0247450510072120C /* StatementContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementContext.swift; sourceTree = "<group>"; };
 		1F513E2A24A62C8700805C0F /* IRGenExpr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IRGenExpr.swift; sourceTree = "<group>"; };
-		1F7FB3A42524FFD800EFE7B4 /* Lexer2Const.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Lexer2Const.hpp; sourceTree = "<group>"; };
 		1F9C96662475736E00BAEC04 /* Lexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lexer.swift; sourceTree = "<group>"; };
 		1F9C9668247574DF00BAEC04 /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		1F9C966B2475AD0300BAEC04 /* Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
@@ -77,8 +75,6 @@
 		1FF1735924C82EEE00D54E3B /* LexerConst.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LexerConst.swift; sourceTree = "<group>"; };
 		1FF1736E24C9B2DC00D54E3B /* ConstSizeArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstSizeArray.swift; sourceTree = "<group>"; };
 		1FF1737124C9FABC00D54E3B /* Compiler-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Compiler-Bridging-Header.h"; sourceTree = "<group>"; };
-		1FF1737224C9FABC00D54E3B /* Lexer2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Lexer2.cpp; sourceTree = "<group>"; };
-		1FF1737324C9FABC00D54E3B /* Lexer2.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Lexer2.hpp; sourceTree = "<group>"; };
 		1FF1737524CC287B00D54E3B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../README.md; sourceTree = "<group>"; };
 		1FFF349024711E3100389B0C /* Compiler */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Compiler; sourceTree = BUILT_PRODUCTS_DIR; };
 		1FFF349324711E3100389B0C /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -165,16 +161,6 @@
 			path = Test;
 			sourceTree = "<group>";
 		};
-		1FF1737024C9FA9100D54E3B /* Lexer2 */ = {
-			isa = PBXGroup;
-			children = (
-				1FF1737224C9FABC00D54E3B /* Lexer2.cpp */,
-				1F7FB3A42524FFD800EFE7B4 /* Lexer2Const.hpp */,
-				1FF1737324C9FABC00D54E3B /* Lexer2.hpp */,
-			);
-			path = Lexer2;
-			sourceTree = "<group>";
-		};
 		1FFF348724711E3100389B0C = {
 			isa = PBXGroup;
 			children = (
@@ -195,7 +181,6 @@
 		1FFF349224711E3100389B0C /* Compiler */ = {
 			isa = PBXGroup;
 			children = (
-				1FF1737024C9FA9100D54E3B /* Lexer2 */,
 				1F9C96652475736100BAEC04 /* Lexer */,
 				1F9C966A2475ACF900BAEC04 /* Parser */,
 				1FFF34B124714A4900389B0C /* IR Generation */,
@@ -328,7 +313,6 @@
 				1FF1736F24C9B2DC00D54E3B /* ConstSizeArray.swift in Sources */,
 				1FFF34B324714AB900389B0C /* BaseAST.swift in Sources */,
 				1FFF34AB2471260400389B0C /* Types.swift in Sources */,
-				1FF1737424C9FABC00D54E3B /* Lexer2.cpp in Sources */,
 				1FFF34A52471216000389B0C /* Expression.swift in Sources */,
 				1F9C966C2475AD0300BAEC04 /* Parser.swift in Sources */,
 				1F286DA1247450510072120C /* StatementContext.swift in Sources */,

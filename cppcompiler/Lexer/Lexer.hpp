@@ -1,13 +1,18 @@
 //
-//  Lexer2.hpp
+//  Lexer.hpp
 //  Compiler
 //
 //  Created by Ерохин Ярослав Игоревич on 23.07.2020.
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 
+#include "LexerConst.hpp"
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
+#include <iostream>
 
 // @Todo: align bytes of these structs
 
@@ -50,7 +55,7 @@ struct Output {
 };
 typedef struct Output Output;
 
-struct Lexer2 {
+struct Lexer {
     char *fileName; // managed by the caller
     char *characters; // managed by the caller
 
@@ -58,7 +63,7 @@ struct Lexer2 {
     Cursor cursor;
     int i;
 };
-typedef struct Lexer2 Lexer2;
+typedef struct Lexer Lexer;
 
 
 
@@ -74,3 +79,5 @@ void advance_cursor_characters(Cursor *cursor, int count) {
 bool token_equals(Token *lhs, Token *rhs) {
     return false;
 }
+
+Output lexer_analyze(char* string);
