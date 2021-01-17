@@ -14,6 +14,8 @@
 #include <string.h>
 #include <iostream>
 
+using namespace std;
+
 // @Todo: align bytes of these structs
 
 enum TokenType {
@@ -50,8 +52,9 @@ struct Token {
 typedef struct Token Token;
 
 struct Output {
-    int linesProcessed;
-    Token *tokens; // turn into a buffer
+    int lines_processed;
+    int tokens_count;
+    Token *tokens;
 };
 typedef struct Output Output;
 
@@ -80,4 +83,15 @@ bool token_equals(Token *lhs, Token *rhs) {
     return false;
 }
 
-Output lexer_analyze(char* string);
+void print_token(Token token) {
+    switch (token.type) {
+        case STRINGLITERAL: {
+            cout << "Token: String Literal: \"" << token.stringValue << "\"" << endl;
+        }
+
+        // IDENTIFIER, PUNCTUATOR, DIRECTIVE, OPERATOR, COMMENT, SEPARATOR, NULLLITERAL, VOIDLITERAL, INTLITERAL, FLOATLITERAL, , KEYWORD, ENDOFFILE
+        default: break;
+    }
+}
+
+Output* lexer_analyze(char* string);

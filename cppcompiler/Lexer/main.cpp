@@ -2,6 +2,10 @@
 
 int main() {
 
-    const char* data = "Testing String";
-    lexer_analyze((char*) data);
+    char* data = (char*) "\"aawdwad\"\0";
+    auto *output = lexer_analyze(data);
+
+    cout << "compiler tokens: " << output->tokens_count << endl;
+
+    print_token(output->tokens[0]);
 }

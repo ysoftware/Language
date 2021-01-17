@@ -8,9 +8,6 @@
 
 #include "Lexer.hpp"
 
-using namespace std;
-
-
 Cursor *cursor;
 int tokens_count;
 Token *tokens;
@@ -20,8 +17,12 @@ char* code;
 unsigned long stringCount;
 
 int vi = 0;
-char value[50]; // @Note: Buffer<CChar>
-void value_reset() { vi = 0; }
+char* value;
+void value_reset() {
+    // @Todo: free previous, if not null
+    value = new char[100]; // @Todo: dynamic buffer for long strings
+    vi = 0; 
+}
 void value_append(char character) {
     value[vi] = character;
     vi += 1;
@@ -41,12 +42,13 @@ void advance(int count) {
 bool next_char_count(int n) {
     for (int w = 0; w < n; w++) {
         advance(1);
-        if (stringCount > i) {
+
+        if (stringCount <= i) {
             return false;
         }
         character = code[i];
     }
-    return false;
+    return true;
 }
 
 bool next_char() {
@@ -142,37 +144,42 @@ bool is_next_three_quotes_after(int n) {
     return code[i+n] == CHAR_QUOTE && code[i+1+n] == CHAR_QUOTE && code[i+2+n] == CHAR_QUOTE;
 }
 
-void error(const char* message, Cursor start, Cursor end) {
+void error(const char* message, Cursor start, Cursor end, int lineNumber) {
+    cout << "error occured: " << message << "\n(context: L" << lineNumber << ") " << endl;
     exit(1);
 }
 
-Output lexer_analyze(char* string) {
-    cursor = new Cursor();
-    cursor->lineNumber = 1;
+Output* lexer_analyze(char* string) {
 
+    // initialization
+    cursor = new Cursor();
+    tokens = new Token[1024];
+
+
+    cursor->lineNumber = 1;
 
     code = string;
     stringCount = strlen(string);
 
-    while (true) {
+    while (stringCount > i) {
 
         switch (string[i]) {
             case CHAR_QUOTE:
             {
-                cout << "char quote" << endl;
-
+                cout << "starting quote" << endl;
                 auto start = cursor;
+
                 // STRING LITERAL
 
                 auto is_multiline = is_next_three_quotes_after(0);
                 if (is_multiline) {
                     next_char_count(3);
                     if (!consume(CHAR_NEWLINE)) {
-                        error("newlineExpectedBeforeMultilineStringLiteral", *cursor, *cursor);
+                        error("newlineExpectedBeforeMultilineStringLiteral", *cursor, *cursor, __LINE__);
                     }
                 } else {
                     if (!next_char()) {
-                        error("unexpectedEndOfFile", *cursor, *cursor);
+                        error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
                     }
                 }
 
@@ -183,7 +190,7 @@ Output lexer_analyze(char* string) {
                     if (character == CHAR_BACKSLASH) {
                         auto next = peek_next();
                         if (next == NULL) {
-                            error("unexpectedEndOfFile", *cursor, *cursor);
+                            error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
                         }
 
                         switch (*next) {
@@ -194,27 +201,27 @@ Output lexer_analyze(char* string) {
                             case CHAR_BACKSLASH: value_append(CHAR_BACKSLASH); break;
                             case CHAR_QUOTE: value_append(CHAR_QUOTE); break;
                             default:
-                                error("unexpectedCharacterToEscape", *cursor, *cursor);
+                                error("unexpectedCharacterToEscape", *cursor, *cursor, __LINE__);
                                 break;
                         }
 
                         if (!next_char() || !next_char()) {
-                            error("unexpectedEndOfFile", *cursor, *cursor);
+                            error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
                         }
                         continue;
                     }
 
                     if (is_multiline) {
                         if (peek_next() == NULL) {
-                            error("unexpectedEndOfFile", *cursor, *cursor);
+                            error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
                         } else if (is_next_three_quotes_after(0)) {
-                            error("newlineExpectedAfterMultilineStringLiteral", *cursor, *cursor);
+                            error("newlineExpectedAfterMultilineStringLiteral", *cursor, *cursor, __LINE__);
                         } else if (character == CHAR_NEWLINE && is_next_three_quotes_after(1)) {
                             next_char_count(4);
 
                             auto next = peek_next();
                             if (*next != CHAR_NEWLINE && *next != CHAR_SEMICOLON) {
-                                error("newlineExpectedAfterMultilineStringLiteral", *cursor, *cursor);
+                                error("newlineExpectedAfterMultilineStringLiteral", *cursor, *cursor, __LINE__);
                             } else {
                                 auto token = make_token(STRINGLITERAL);
                                 token->stringValue = value; // @Todo: copy string from buffer
@@ -226,33 +233,39 @@ Output lexer_analyze(char* string) {
                             auto token = make_token(STRINGLITERAL);
                             token->stringValue = value; // @Todo: copy string from buffer
                             token_append(token, start, cursor);
-
                             break;
                         } else if (*peek_next() == CHAR_NEWLINE) {
-                            error("newLineInStringLiteral", *cursor, *cursor);
+                            error("newLineInStringLiteral", *cursor, *cursor, __LINE__);
                         }
                     }
-                }
-                value_append(character);
-                if (!next_char()) {
-                    error("unexpectedEndOfFile", *cursor, *cursor);
-                }
 
+                    value_append(character);
+                    if (!next_char()) {
+                        error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+                    }
+                }
                 break;
             }
             case CHAR_SEMICOLON: {
-                cout << "char semi" << endl;
+                cout << "starting separator" << endl;
+                break;
             }
-            case CHAR_COMMA:
-            {
-                cout << "char comma" << endl;
+            case CHAR_COMMA: {
+                cout << "starting comma" << endl;
                 token_append(make_token_separator(&character), cursor, cursor);
                 break;
             }
             default: {
-                cout << "break" << endl;
+                cout << "break:" << string[i] << " " << (int)string[i] << endl;
+                i += 1;
                 break;
             }
         }
     }
+
+    Output *output = new Output(); 
+    output->tokens = tokens;
+    output->tokens_count = tokens_count;
+    output->lines_processed = cursor->lineNumber;
+    return output;
 }
