@@ -3,18 +3,24 @@
 int main(int argc, char **argv) {
     auto *arguments = parse_arguments(argc, argv);
 
-    if (arguments != NULL) {
-        bool hasFile = arguments->flags | HasFile;
-        cout << "HasFile: " << (int) (hasFile) << endl;
-        if (hasFile && arguments->file_path != NULL) {
-            cout << arguments->file_path << endl;
-        }
+    if (arguments == NULL || arguments->file_path == NULL) {
+        cout << "Could not parse arguments" << endl;
+        exit(1);
+    }
+
+    // read program file
+    char* file_buffer = load_file_into_buffer(arguments->file_path);
+    if (file_buffer == NULL) {
+        cout << "Could not load file" << endl;
+        exit(1);
     }
 
     cout << "\n----\n";
 
-    char* data = (char*) "\"aawdwad\"\0";
-    auto *output = lexer_analyze(data);
+    // run lexer
+    auto *output = lexer_analyze(file_buffer);
     cout << "compiler tokens: " << output->tokens_count << endl;
     print_token(output->tokens[0]);
+
+    free(file_buffer);
 }

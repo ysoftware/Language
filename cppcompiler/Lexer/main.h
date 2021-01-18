@@ -1,7 +1,8 @@
 #include "Lexer.cpp"
 
+// ARGUMENT PARSING
+
 enum RunArgumentsFlags {
-    HasFile = 1
 };
 
 struct RunArguments {
@@ -20,16 +21,11 @@ RunArguments* parse_arguments(int argc, char *argv[]) {
     for (int i = 1; i < argc; ++i) {
         char *argument = argv[i];
 
-        if (strcmp(argument, "-file")) {
-            cout << "found -file" << endl;
-            isLookingForFile = true;
-        }
-        
         if (isLookingForFile) {
-            cout << "found file name" << endl;
             arguments->file_path = argument;
-            arguments->flags = arguments->flags | HasFile;
             isLookingForFile = false;
+        } else if (strcmp(argument, "-file") == 0) {
+            isLookingForFile = true;
         }
     }
 
@@ -38,4 +34,27 @@ RunArguments* parse_arguments(int argc, char *argv[]) {
     } else {
         return arguments;
     }
+}
+
+// FILE LOADING
+
+char* load_file_into_buffer(char const* path) {
+    char* buffer = 0;
+    long length;
+    FILE * f = fopen (path, "rb"); //was "rb"
+
+    if (f)
+    {
+      fseek (f, 0, SEEK_END);
+      length = ftell (f);
+      fseek (f, 0, SEEK_SET);
+      buffer = (char*)malloc ((length+1)*sizeof(char));
+      if (buffer)
+      {
+        fread (buffer, sizeof(char), length, f);
+      }
+      fclose (f);
+    }
+    buffer[length] = '\0';
+    return buffer;
 }
