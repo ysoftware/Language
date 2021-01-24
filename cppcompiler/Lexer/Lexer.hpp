@@ -6,6 +6,7 @@
 //  Copyright © 2020 Yaroslav Erokhin. All rights reserved.
 //
 
+#pragma once
 #include "LexerConst.hpp"
 
 #include <stdio.h>
@@ -68,7 +69,12 @@ struct Lexer {
 };
 typedef struct Lexer Lexer;
 
-
+Cursor* copy_cursor(Cursor cursor) {
+    Cursor *copy = new Cursor();
+    copy->line_number = cursor.line_number;
+    copy->character = cursor.character;
+    return copy;
+}
 
 void advance_cursor_line(Cursor *cursor) {
     cursor->character = 0;
@@ -84,7 +90,7 @@ bool token_equals(Token *lhs, Token *rhs) {
 }
 
 char* cursor_string(Cursor cursor) {
-    char *output; 
+    char *output = (char*) malloc(10);
     sprintf(output, "%d:%d", cursor.line_number, cursor.character);
     return output;
 }
@@ -92,8 +98,8 @@ char* cursor_string(Cursor cursor) {
 void print_token(Token token) {
     switch (token.type) {
         case STRINGLITERAL: {
-            cout << "Token: String Literal: \"" << token.stringValue << "\"" 
-                << cursor_string(token.start) << " - " << cursor_string(token.end) << endl;
+            cout << "Token: String Literal: \"" << token.stringValue << "\" (" 
+                << cursor_string(token.start) << " - " << cursor_string(token.end) << ")" << endl;
         }
 
         // IDENTIFIER, PUNCTUATOR, DIRECTIVE, OPERATOR, COMMENT, SEPARATOR, NULLLITERAL, VOIDLITERAL, INTLITERAL, FLOATLITERAL, , KEYWORD, ENDOFFILE

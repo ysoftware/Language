@@ -1,5 +1,5 @@
 //
-//  Lexer.cpp
+//  Lexer.cppc
 //  Compiler
 //
 //  Created by Ерохин Ярослав Игоревич on 23.07.2020.
@@ -159,11 +159,12 @@ Output* lexer_analyze(char* string) {
 
     code = string;
     stringCount = strlen(string);
+    character = string[0];
 
     while (stringCount > i) {
 
         if (character == CHAR_QUOTE) {
-            auto start = cursor;
+            Cursor *start = copy_cursor(*cursor);
 
             // STRING LITERAL
 

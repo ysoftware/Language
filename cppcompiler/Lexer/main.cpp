@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     // read program file
     char* file_buffer = load_file_into_buffer(arguments->file_path);
     if (file_buffer == NULL) {
-        cout << "Could not load file" << endl;
+        cout << "Could not load file: " << arguments->file_path << endl;
         exit(1);
     }
 
