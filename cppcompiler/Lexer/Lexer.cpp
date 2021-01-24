@@ -144,8 +144,8 @@ bool is_next_three_quotes_after(int n) {
     return code[i+n] == CHAR_QUOTE && code[i+1+n] == CHAR_QUOTE && code[i+2+n] == CHAR_QUOTE;
 }
 
-void error(const char* message, Cursor start, Cursor end, int lineNumber) {
-    cout << "error occured: " << message << "\n(context: L" << lineNumber << ") " << endl;
+void fail_with_error(const char* message, Cursor start, Cursor end, int line_number) {
+    cout << "error occured: " << message << "\n(context: L" << line_number << ")" << endl;
     exit(1);
 }
 
@@ -155,117 +155,133 @@ Output* lexer_analyze(char* string) {
     cursor = new Cursor();
     tokens = new Token[1024];
 
-
-    cursor->lineNumber = 1;
+    cursor->line_number = 1;
 
     code = string;
     stringCount = strlen(string);
 
     while (stringCount > i) {
 
-        switch (string[i]) {
-            case CHAR_QUOTE:
-            {
-                cout << "starting quote" << endl;
-                auto start = cursor;
+        if (character == CHAR_QUOTE) {
+            auto start = cursor;
 
-                // STRING LITERAL
+            // STRING LITERAL
 
-                auto is_multiline = is_next_three_quotes_after(0);
-                if (is_multiline) {
-                    next_char_count(3);
-                    if (!consume(CHAR_NEWLINE)) {
-                        error("newlineExpectedBeforeMultilineStringLiteral", *cursor, *cursor, __LINE__);
+            auto is_multiline = is_next_three_quotes_after(0);
+            if (is_multiline) {
+                next_char_count(3);
+                if (!consume(CHAR_NEWLINE)) {
+                    fail_with_error("newlineExpectedBeforeMultilineStringLiteral", *cursor, *cursor, __LINE__);
+                }
+            } else {
+                if (!next_char()) {
+                    fail_with_error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+                }
+            }
+
+            value_reset();
+            while (stringCount > i) {
+                // if char == C.newline { /* @Todo: wtf is this? */ }
+
+                if (character == CHAR_BACKSLASH) {
+                    auto next = peek_next();
+                    if (next == NULL) {
+                        fail_with_error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
                     }
-                } else {
-                    if (!next_char()) {
-                        error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+
+                    switch (*next) {
+                    case CHAR_ZERO: {
+                        value_append(0); 
+                        break;
                     }
+                    case CHAR_N: {
+                        value_append(CHAR_NEWLINE);     
+                        break;
+                    }
+                    case CHAR_R: {
+                        value_append(CHAR_RETURN); 
+                        break;
+                    }
+                    case CHAR_T: {
+                        value_append(CHAR_TAB); 
+                        break;
+                    }
+                    case CHAR_BACKSLASH: {
+                        value_append(CHAR_BACKSLASH); 
+                        break;
+                    }
+                    case CHAR_QUOTE: {
+                        value_append(CHAR_QUOTE); 
+                        break;
+                    }
+                    default: {
+                        fail_with_error("unexpectedCharacterToEscape", *cursor, *cursor, __LINE__);
+                        break;
+                    }
+                    }
+
+                    if (!next_char() || !next_char()) {
+                        fail_with_error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+                    }
+                    continue;
                 }
 
-                value_reset();
-                while (stringCount > i) {
-                    // if char == C.newline { /* @Todo: wtf is this? */ }
+                if (is_multiline) {
+                    if (peek_next() == NULL) {
+                        fail_with_error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+                    } else if (is_next_three_quotes_after(0)) {
+                        fail_with_error("newlineExpectedAfterMultilineStringLiteral", *cursor, *cursor, __LINE__);
+                    } else if (character == CHAR_NEWLINE && is_next_three_quotes_after(1)) {
+                        next_char_count(4);
 
-                    if (character == CHAR_BACKSLASH) {
                         auto next = peek_next();
-                        if (next == NULL) {
-                            error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
-                        }
-
-                        switch (*next) {
-                            case CHAR_ZERO: value_append(0); break;
-                            case CHAR_N: value_append(CHAR_NEWLINE); break;
-                            case CHAR_R: value_append(CHAR_RETURN); break;
-                            case CHAR_T: value_append(CHAR_TAB); break;
-                            case CHAR_BACKSLASH: value_append(CHAR_BACKSLASH); break;
-                            case CHAR_QUOTE: value_append(CHAR_QUOTE); break;
-                            default:
-                                error("unexpectedCharacterToEscape", *cursor, *cursor, __LINE__);
-                                break;
-                        }
-
-                        if (!next_char() || !next_char()) {
-                            error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
-                        }
-                        continue;
-                    }
-
-                    if (is_multiline) {
-                        if (peek_next() == NULL) {
-                            error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
-                        } else if (is_next_three_quotes_after(0)) {
-                            error("newlineExpectedAfterMultilineStringLiteral", *cursor, *cursor, __LINE__);
-                        } else if (character == CHAR_NEWLINE && is_next_three_quotes_after(1)) {
-                            next_char_count(4);
-
-                            auto next = peek_next();
-                            if (*next != CHAR_NEWLINE && *next != CHAR_SEMICOLON) {
-                                error("newlineExpectedAfterMultilineStringLiteral", *cursor, *cursor, __LINE__);
-                            } else {
-                                auto token = make_token(STRINGLITERAL);
-                                token->stringValue = value; // @Todo: copy string from buffer
-                                token_append(token, start, cursor);
-                            }
-                        }
-                    } else {
-                        if (consume(CHAR_QUOTE)) { // @Note: if consume(string: [C.quote]) {
+                        if (*next != CHAR_NEWLINE && *next != CHAR_SEMICOLON) {
+                            fail_with_error("newlineExpectedAfterMultilineStringLiteral", *cursor, *cursor, __LINE__);
+                        } else {
                             auto token = make_token(STRINGLITERAL);
                             token->stringValue = value; // @Todo: copy string from buffer
                             token_append(token, start, cursor);
-                            break;
-                        } else if (*peek_next() == CHAR_NEWLINE) {
-                            error("newLineInStringLiteral", *cursor, *cursor, __LINE__);
                         }
                     }
-
-                    value_append(character);
-                    if (!next_char()) {
-                        error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+                } else {
+                    if (consume(CHAR_QUOTE)) { // @Note: if consume(string: [C.quote]) {
+                        auto token = make_token(STRINGLITERAL);
+                        token->stringValue = value; // @Todo: copy string from buffer
+                        token_append(token, start, cursor);
+                        break;
+                    } else if (*peek_next() == CHAR_NEWLINE) {
+                        fail_with_error("newLineInStringLiteral", *cursor, *cursor, __LINE__);
                     }
                 }
-                break;
+
+                value_append(character);
+                if (!next_char()) {
+                    fail_with_error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+                }
             }
-            case CHAR_SEMICOLON: {
-                cout << "starting separator" << endl;
-                break;
-            }
-            case CHAR_COMMA: {
-                cout << "starting comma" << endl;
-                token_append(make_token_separator(&character), cursor, cursor);
-                break;
-            }
-            default: {
-                cout << "break:" << string[i] << " " << (int)string[i] << endl;
-                i += 1;
-                break;
-            }
+        }
+        else if (character == CHAR_SEMICOLON || character == CHAR_COMMA) {
+            cout << character;
+            token_append(make_token_separator(&character), cursor, cursor);
+        }
+        else if (character == CHAR_NEWLINE || character == CHAR_SPACE) {
+            // skip
+        }
+        else {
+            cout << "main switch defaulted at:" << string[i] << " " << (int)string[i] << endl;
+        }
+
+        cout << "switch done" << endl;
+
+        if (character == 0 || !next_char()) {
+            // token_append_eof
+            break;
         }
     }
 
-    Output *output = new Output(); 
+    Output *output = new Output();
     output->tokens = tokens;
     output->tokens_count = tokens_count;
-    output->lines_processed = cursor->lineNumber;
+    output->lines_processed = cursor->line_number;
     return output;
 }

@@ -31,7 +31,7 @@ enum Keyword {
 typedef enum Keyword Keyword;
 
 struct Cursor {
-    int lineNumber;
+    int line_number;
     int character;
 };
 typedef struct Cursor Cursor;
@@ -72,7 +72,7 @@ typedef struct Lexer Lexer;
 
 void advance_cursor_line(Cursor *cursor) {
     cursor->character = 0;
-    cursor->lineNumber += 1;
+    cursor->line_number += 1;
 }
 
 void advance_cursor_characters(Cursor *cursor, int count) {
@@ -83,10 +83,17 @@ bool token_equals(Token *lhs, Token *rhs) {
     return false;
 }
 
+char* cursor_string(Cursor cursor) {
+    char *output; 
+    sprintf(output, "%d:%d", cursor.line_number, cursor.character);
+    return output;
+}
+
 void print_token(Token token) {
     switch (token.type) {
         case STRINGLITERAL: {
-            cout << "Token: String Literal: \"" << token.stringValue << "\"" << endl;
+            cout << "Token: String Literal: \"" << token.stringValue << "\"" 
+                << cursor_string(token.start) << " - " << cursor_string(token.end) << endl;
         }
 
         // IDENTIFIER, PUNCTUATOR, DIRECTIVE, OPERATOR, COMMENT, SEPARATOR, NULLLITERAL, VOIDLITERAL, INTLITERAL, FLOATLITERAL, , KEYWORD, ENDOFFILE

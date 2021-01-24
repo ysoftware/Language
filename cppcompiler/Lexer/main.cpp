@@ -19,8 +19,12 @@ int main(int argc, char **argv) {
 
     // run lexer
     auto *output = lexer_analyze(file_buffer);
-    cout << "compiler tokens: " << output->tokens_count << endl;
-    print_token(output->tokens[0]);
+    cout << "lexer output tokens: " << output->tokens_count << endl;
 
+    for (int i = 0; i < output->tokens_count; i++) {
+        print_token(output->tokens[i]);
+    }
+
+    // clean up
     free(file_buffer);
 }
