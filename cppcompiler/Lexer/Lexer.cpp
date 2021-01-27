@@ -16,16 +16,23 @@ char character;
 char* code;
 unsigned long stringCount;
 
-int vi = 0;
-char* value;
-void value_reset() {
-    // @Todo: free previous, if not null
-    value = new char[100]; // @Todo: dynamic buffer for long strings
-    vi = 0; 
+int value_length = 0; // value length
+char* value = (char*) malloc(1000); // @Todo: dynamic buffer for longer strings
+
+char* get_value() {
+    auto copy = new char[value_length];
+    strcpy(copy, value);
+    return (char*) copy;
 }
+
+void value_reset() {
+    memset(value, 0, value_length);
+    value_length = 0;
+}
+
 void value_append(char character) {
-    value[vi] = character;
-    vi += 1;
+    value[value_length] = character;
+    value_length += 1;
 }
 
 void advance(int count) {
@@ -57,7 +64,7 @@ bool next_char() {
 
 bool consume(char query) {
     if (character == query) {
-        next_char();
+        next_char_count(0);
         return true;
     }
     return false;
@@ -131,9 +138,9 @@ Token* make_token(TokenType type) {
     return token;
 }
 
-Token* make_token_separator(char* string) {
+Token* make_token_separator() {
     Token *token = make_token(SEPARATOR);
-    token->stringValue = string;
+    token->stringValue = get_value();
     return token;
 }
 
@@ -191,34 +198,13 @@ Output* lexer_analyze(char* string) {
                     }
 
                     switch (*next) {
-                    case CHAR_ZERO: {
-                        value_append(0); 
-                        break;
-                    }
-                    case CHAR_N: {
-                        value_append(CHAR_NEWLINE);     
-                        break;
-                    }
-                    case CHAR_R: {
-                        value_append(CHAR_RETURN); 
-                        break;
-                    }
-                    case CHAR_T: {
-                        value_append(CHAR_TAB); 
-                        break;
-                    }
-                    case CHAR_BACKSLASH: {
-                        value_append(CHAR_BACKSLASH); 
-                        break;
-                    }
-                    case CHAR_QUOTE: {
-                        value_append(CHAR_QUOTE); 
-                        break;
-                    }
-                    default: {
-                        fail_with_error("unexpectedCharacterToEscape", *cursor, *cursor, __LINE__);
-                        break;
-                    }
+                    case CHAR_ZERO: { value_append(0); break; }
+                    case CHAR_N: { value_append(CHAR_NEWLINE); break; }
+                    case CHAR_R: { value_append(CHAR_RETURN); break; }
+                    case CHAR_T: { value_append(CHAR_TAB); break; }
+                    case CHAR_BACKSLASH: { value_append(CHAR_BACKSLASH); break; }
+                    case CHAR_QUOTE: { value_append(CHAR_QUOTE); break; }
+                    default: { fail_with_error("unexpectedCharacterToEscape", *cursor, *cursor, __LINE__); }
                     }
 
                     if (!next_char() || !next_char()) {
@@ -240,14 +226,15 @@ Output* lexer_analyze(char* string) {
                             fail_with_error("newlineExpectedAfterMultilineStringLiteral", *cursor, *cursor, __LINE__);
                         } else {
                             auto token = make_token(STRINGLITERAL);
-                            token->stringValue = value; // @Todo: copy string from buffer
+                            token->stringValue = get_value();
                             token_append(token, start, cursor);
+                            break;
                         }
                     }
                 } else {
                     if (consume(CHAR_QUOTE)) { // @Note: if consume(string: [C.quote]) {
                         auto token = make_token(STRINGLITERAL);
-                        token->stringValue = value; // @Todo: copy string from buffer
+                        token->stringValue = get_value();
                         token_append(token, start, cursor);
                         break;
                     } else if (*peek_next() == CHAR_NEWLINE) {
@@ -260,19 +247,17 @@ Output* lexer_analyze(char* string) {
                     fail_with_error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
                 }
             }
-        }
-        else if (character == CHAR_SEMICOLON || character == CHAR_COMMA) {
+        } else if (character == CHAR_SEMICOLON || character == CHAR_COMMA) {
             cout << character;
-            token_append(make_token_separator(&character), cursor, cursor);
-        }
-        else if (character == CHAR_NEWLINE || character == CHAR_SPACE) {
+            value_reset();
+            value_append(character);
+            auto separator_token = make_token_separator();
+            token_append(separator_token, cursor, cursor);
+        } else if (character == CHAR_NEWLINE || character == CHAR_SPACE) {
             // skip
-        }
-        else {
+        } else {
             cout << "main switch defaulted at:" << string[i] << " " << (int)string[i] << endl;
         }
-
-        cout << "switch done" << endl;
 
         if (character == 0 || !next_char()) {
             // token_append_eof

@@ -100,6 +100,11 @@ void print_token(Token token) {
         case STRINGLITERAL: {
             cout << "Token: String Literal: \"" << token.stringValue << "\" (" 
                 << cursor_string(token.start) << " - " << cursor_string(token.end) << ")" << endl;
+            break;
+        }
+        case SEPARATOR: {
+            cout << "Token: Separator: " << token.stringValue << endl;
+            break;
         }
 
         // IDENTIFIER, PUNCTUATOR, DIRECTIVE, OPERATOR, COMMENT, SEPARATOR, NULLLITERAL, VOIDLITERAL, INTLITERAL, FLOATLITERAL, , KEYWORD, ENDOFFILE
