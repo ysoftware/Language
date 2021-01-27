@@ -1,1 +1,1 @@
-"hello world";"hello again"
+void hello #thread_safe;

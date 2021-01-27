@@ -21,7 +21,7 @@ using namespace std;
 
 enum TokenType {
     IDENTIFIER, PUNCTUATOR, DIRECTIVE, OPERATOR, COMMENT, SEPARATOR,
-    NULLLITERAL, VOIDLITERAL, INTLITERAL, FLOATLITERAL, STRINGLITERAL, KEYWORD, ENDOFFILE
+    NULLLITERAL, VOIDLITERAL, INTLITERAL, FLOATLITERAL, BOOLLITERAL, STRINGLITERAL, KEYWORD, ENDOFFILE
 };
 typedef enum TokenType TokenType;
 
@@ -98,18 +98,36 @@ char* cursor_string(Cursor cursor) {
 void print_token(Token token) {
     switch (token.type) {
         case STRINGLITERAL: {
-            cout << "Token: String Literal: \"" << token.stringValue << "\" (" 
-                << cursor_string(token.start) << " - " << cursor_string(token.end) << ")" << endl;
+            cout << "Token String Literal: \"" << token.stringValue;
             break;
         }
         case SEPARATOR: {
-            cout << "Token: Separator: " << token.stringValue << endl;
+            cout << "Token Separator: " << token.stringValue;
+            break;
+        }
+        case IDENTIFIER: {
+            cout << "Token Identifier: " << token.stringValue;
+            break;
+        } 
+        case DIRECTIVE: {
+            cout << "Token Directive: #" << token.stringValue;
+            break;
+        }
+        case VOIDLITERAL: {
+            cout << "Token Void Literal";
             break;
         }
 
+        // PUNCTUATOR, OPERATOR, COMMENT,
+        // NULLLITERAL, VOIDLITERAL, INTLITERAL, FLOATLITERAL, BOOLLITERAL, STRINGLITERAL, 
+        // KEYWORD, ENDOFFILE
+
         // IDENTIFIER, PUNCTUATOR, DIRECTIVE, OPERATOR, COMMENT, SEPARATOR, NULLLITERAL, VOIDLITERAL, INTLITERAL, FLOATLITERAL, , KEYWORD, ENDOFFILE
-        default: break;
+        default:
+            cout << "Token print not implemented: Type: " << token.type;
+        break;
     }
+    cout << "\" (" << cursor_string(token.start) << " - " << cursor_string(token.end) << ")" << endl;
 }
 
 Output* lexer_analyze(char* string);

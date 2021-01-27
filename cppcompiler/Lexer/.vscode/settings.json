@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "*.pbxproj": "xml",
+        "__bit_reference": "cpp",
+        "__string": "cpp",
+        "algorithm": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "__locale": "cpp",
+        "functional": "cpp",
+        "iostream": "cpp"
+    }
+}

@@ -19,10 +19,17 @@ unsigned long stringCount;
 int value_length = 0; // value length
 char* value = (char*) malloc(1000); // @Todo: dynamic buffer for longer strings
 
+char* get_value_in_range(int min, int max) {
+    char* copy = new char[max-min];
+    auto pointer = (char*) &value + min;
+    strcpy(copy, pointer);
+    return copy;
+}
+
 char* get_value() {
-    auto copy = new char[value_length];
+    char* copy = new char[value_length];
     strcpy(copy, value);
-    return (char*) copy;
+    return copy;
 }
 
 void value_reset() {
@@ -33,6 +40,31 @@ void value_reset() {
 void value_append(char character) {
     value[value_length] = character;
     value_length += 1;
+}
+
+int index_in_value_of(char character) {
+    for (int i = 0; i < value_length; i++) {  
+        if (value[i] == character) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void value_append_string(char* string) {
+    int length = strlen(string);
+    for (int i = 0; i < length; i++) {
+        value_append(string[i]);
+    }
+}
+
+bool is_in_range(char value, char min, char max) {
+    return value > min && value < max;
+}
+
+char last_char_of(char *string) {
+    int length = strlen(string);
+    return string[length-1];
 }
 
 void advance(int count) {
@@ -70,8 +102,7 @@ bool consume(char query) {
     return false;
 }
 
-template <typename T>
-char* consume_next(T compare) {
+char* consume_next(function <int (char)> compare) {
     int nextIndex = i + 1;
     if (stringCount <= nextIndex) {
         return NULL;
@@ -151,7 +182,7 @@ bool is_next_three_quotes_after(int n) {
     return code[i+n] == CHAR_QUOTE && code[i+1+n] == CHAR_QUOTE && code[i+2+n] == CHAR_QUOTE;
 }
 
-void fail_with_error(const char* message, Cursor start, Cursor end, int line_number) {
+void fail_with_error(const char* message, Cursor *start, Cursor *end, int line_number) {
     cout << "error occured: " << message << "\n(context: L" << line_number << ")" << endl;
     exit(1);
 }
@@ -171,19 +202,18 @@ Output* lexer_analyze(char* string) {
     while (stringCount > i) {
 
         if (character == CHAR_QUOTE) {
-            Cursor *start = copy_cursor(*cursor);
-
             // STRING LITERAL
+            Cursor *start = copy_cursor(*cursor);
 
             auto is_multiline = is_next_three_quotes_after(0);
             if (is_multiline) {
                 next_char_count(3);
                 if (!consume(CHAR_NEWLINE)) {
-                    fail_with_error("newlineExpectedBeforeMultilineStringLiteral", *cursor, *cursor, __LINE__);
+                    fail_with_error("newlineExpectedBeforeMultilineStringLiteral", cursor, cursor, __LINE__);
                 }
             } else {
                 if (!next_char()) {
-                    fail_with_error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+                    fail_with_error("unexpectedEndOfFile", cursor, cursor, __LINE__);
                 }
             }
 
@@ -194,7 +224,7 @@ Output* lexer_analyze(char* string) {
                 if (character == CHAR_BACKSLASH) {
                     auto next = peek_next();
                     if (next == NULL) {
-                        fail_with_error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+                        fail_with_error("unexpectedEndOfFile", cursor, cursor, __LINE__);
                     }
 
                     switch (*next) {
@@ -204,26 +234,26 @@ Output* lexer_analyze(char* string) {
                     case CHAR_T: { value_append(CHAR_TAB); break; }
                     case CHAR_BACKSLASH: { value_append(CHAR_BACKSLASH); break; }
                     case CHAR_QUOTE: { value_append(CHAR_QUOTE); break; }
-                    default: { fail_with_error("unexpectedCharacterToEscape", *cursor, *cursor, __LINE__); }
+                    default: { fail_with_error("unexpectedCharacterToEscape", cursor, cursor, __LINE__); }
                     }
 
                     if (!next_char() || !next_char()) {
-                        fail_with_error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+                        fail_with_error("unexpectedEndOfFile", cursor, cursor, __LINE__);
                     }
                     continue;
                 }
 
                 if (is_multiline) {
                     if (peek_next() == NULL) {
-                        fail_with_error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+                        fail_with_error("unexpectedEndOfFile", cursor, cursor, __LINE__);
                     } else if (is_next_three_quotes_after(0)) {
-                        fail_with_error("newlineExpectedAfterMultilineStringLiteral", *cursor, *cursor, __LINE__);
+                        fail_with_error("newlineExpectedAfterMultilineStringLiteral", cursor, cursor, __LINE__);
                     } else if (character == CHAR_NEWLINE && is_next_three_quotes_after(1)) {
                         next_char_count(4);
 
                         auto next = peek_next();
                         if (*next != CHAR_NEWLINE && *next != CHAR_SEMICOLON) {
-                            fail_with_error("newlineExpectedAfterMultilineStringLiteral", *cursor, *cursor, __LINE__);
+                            fail_with_error("newlineExpectedAfterMultilineStringLiteral", cursor, cursor, __LINE__);
                         } else {
                             auto token = make_token(STRINGLITERAL);
                             token->stringValue = get_value();
@@ -238,24 +268,119 @@ Output* lexer_analyze(char* string) {
                         token_append(token, start, cursor);
                         break;
                     } else if (*peek_next() == CHAR_NEWLINE) {
-                        fail_with_error("newLineInStringLiteral", *cursor, *cursor, __LINE__);
+                        fail_with_error("newLineInStringLiteral", cursor, cursor, __LINE__);
                     }
                 }
 
                 value_append(character);
                 if (!next_char()) {
-                    fail_with_error("unexpectedEndOfFile", *cursor, *cursor, __LINE__);
+                    fail_with_error("unexpectedEndOfFile", cursor, cursor, __LINE__);
                 }
             }
-        } else if (character == CHAR_SEMICOLON || character == CHAR_COMMA) {
+        } 
+        else if (character == CHAR_SEMICOLON || character == CHAR_COMMA) {
+            // SEPARATORS
             cout << character;
             value_reset();
             value_append(character);
             auto separator_token = make_token_separator();
             token_append(separator_token, cursor, cursor);
-        } else if (character == CHAR_NEWLINE || character == CHAR_SPACE) {
+        } 
+        else if (character == CHAR_NEWLINE || character == CHAR_SPACE) {
             // skip
-        } else {
+        } 
+        else if (
+               is_in_range(character, TOKENRANGE_LOWERCASE_MIN, TOKENRANGE_LOWERCASE_MAX)
+            || is_in_range(character, TOKENRANGE_UPPERCASE_MIN, TOKENRANGE_UPPERCASE_MAX)
+            || character == CHAR_UNDERSCORE
+            || character == CHAR_POUND 
+            || character == CHAR_ACCENT
+        ) {
+            // KEYWORDS / IDENTIFIERS / DIRECTIVES / BOOL LITERALS
+            Cursor *start = copy_cursor(*cursor);
+
+            bool is_directive = consume(CHAR_POUND);
+            if (is_directive) {
+                if (!next_char() || character == 0 || character == CHAR_SPACE) {
+                    fail_with_error("emptyDirectiveName", start, cursor, __LINE__);
+                } else if (
+                       !is_in_range(character, TOKENRANGE_LOWERCASE_MIN, TOKENRANGE_LOWERCASE_MAX)
+                    && !is_in_range(character, TOKENRANGE_UPPERCASE_MIN, TOKENRANGE_UPPERCASE_MAX)
+                    && character != CHAR_UNDERSCORE
+                    )  {
+                        fail_with_error("unexpectedDirectiveName", start, cursor, __LINE__);
+                    }
+            }
+
+            value_reset();
+            value_append(character);
+
+            function<bool (char)> comparator = [](char c) {
+                bool is_matching = is_in_range(c, TOKENRANGE_LOWERCASE_MIN, TOKENRANGE_LOWERCASE_MAX)
+                    || is_in_range(c, TOKENRANGE_UPPERCASE_MIN, TOKENRANGE_UPPERCASE_MAX)
+                    || is_in_range(c, TOKENRANGE_NUMBER_MIN, TOKENRANGE_NUMBER_MAX)
+                    || strcmp(&c, &CHAR_UNDERSCORE)
+                    || strcmp(&c, &CHAR_ASTERISK)
+                    || strcmp(&c, &CHAR_ACCENT);
+                bool is_legal = last_char_of(value) != CHAR_ASTERISK 
+                    || last_char_of(value) == CHAR_ASTERISK && strcmp(&c, &CHAR_ASTERISK);
+                return is_matching && is_legal;
+            };
+                
+            while (true) {
+                char* next = consume_next(comparator);
+                if (next == NULL) {
+                    break;
+                }
+                value_append(*next);
+            }
+
+            bool is_not_keyword = value[0] == CHAR_ACCENT 
+                && last_char_of(value) == CHAR_ACCENT
+                && value_length >= 3;
+            if (is_not_keyword) {
+                char *copy = get_value_in_range(1, value_length-1);
+                value_reset();
+                value_append_string(copy);
+            }
+
+            int idx = index_in_value_of(CHAR_ACCENT);
+            if (idx != -1) {
+                // @Todo: add idx to cursor to 'start' to calculate the position of the unexpected symbol
+                fail_with_error("unexpectedCharacter", start, start, __LINE__);
+            }
+
+            if (strcmp(value, "void")) {
+                Token *token = make_token(VOIDLITERAL);
+                token_append(token, start, cursor); // @Todo: looks wrong
+            } else if (strcmp(value, "null")) {
+                Token *token = make_token(NULLLITERAL);
+                token_append(token, start, cursor);
+            } else if (strcmp(value, "true")) {
+                Token *token = make_token(BOOLLITERAL);
+                token->boolValue = true;
+                token_append(token, start, cursor);
+            } else if (strcmp(value, "false")) {
+                Token *token = make_token(BOOLLITERAL);
+                token->boolValue = false;
+                token_append(token, start, cursor);
+            } else if (is_directive) {
+                if (value == 0) {
+                    fail_with_error("emptyDirectiveName", start, cursor, __LINE__);
+                }
+                Token *token = make_token(DIRECTIVE);
+                token->stringValue = get_value();
+                token_append(token, start, cursor);
+            } else if (strcmp(value, &CHAR_UNDERSCORE)) {
+                fail_with_error("invalidIdentifierUnderscore", start, cursor, __LINE__);
+            } else {
+                Token *token = make_token(IDENTIFIER);
+                token->stringValue = get_value();
+                token_append(token, start, cursor);
+            }
+
+        }
+        else {
             cout << "main switch defaulted at:" << string[i] << " " << (int)string[i] << endl;
         }
 

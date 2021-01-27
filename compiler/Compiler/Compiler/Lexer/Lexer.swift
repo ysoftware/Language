@@ -130,10 +130,8 @@ final class Lexer {
                 let start = cursor
                 let isDirective = consume(string: [C.pound])
                 if isDirective {
-                    if !nextChar() || char == 0 { throw error(.emptyDirectiveName, start, cursor) }
-                    else if char == C.space { throw error(.emptyDirectiveName, start, cursor) }
-                    else if !C.lowercaseRange.contains(char)
-                                && !C.uppercaseRange.contains(char) && char != C.underscore {
+                    if !nextChar() || char == 0 || char == C.space { throw error(.emptyDirectiveName, start, cursor) }
+                    else if !C.lowercaseRange.contains(char) && !C.uppercaseRange.contains(char) && char != C.underscore {
                         throw error(.unexpectedDirectiveName, start, cursor)
                     }
                 }
@@ -141,15 +139,22 @@ final class Lexer {
                 value.reset()
                 value.append(char)
                 while let next = consumeNext(where: {
-                    let isMatching = C.lowercaseRange.contains($0) || C.uppercaseRange.contains($0)
-                        || C.numberRange.contains($0) || $0 == C.underscore || $0 == C.asterisk || $0 == C.accent
-                    let isLegal = value.last != C.asterisk || value.last == C.asterisk && $0 == C.asterisk // only allowed trailing asterisks
+                    let isMatching = C.lowercaseRange.contains($0)
+                        || C.uppercaseRange.contains($0)
+                        || C.numberRange.contains($0)
+                        || $0 == C.underscore
+                        || $0 == C.asterisk
+                        || $0 == C.accent
+                    let isLegal = value.last != C.asterisk
+                        || value.last == C.asterisk && $0 == C.asterisk // only allowed trailing asterisks
                     return isMatching && isLegal
                 }) {
                     value.append(next)
                 }
                 
-                let isNotKeyword = value.first == C.accent && value.last == C.accent && value.count >= 3
+                let isNotKeyword = value.first == C.accent
+                    && value.last == C.accent
+                    && value.count >= 3
                 if isNotKeyword {
                     let copy = Buffer(value[1..<value.count-1])
                     value.reset()
@@ -165,19 +170,22 @@ final class Lexer {
                     throw error(.unexpectedCharacter, c, c)
                 }
                 
-                if value == C.void { append(TokenLiteral(value: .void), start, start) }
-                else if value == C.null { append(TokenLiteral(value: .null), start, cursor) }
-                else if value == C.true { append(TokenLiteral(value: .bool(value: true)), start, cursor) }
-                else if value == C.false { append(TokenLiteral(value: .bool(value: false)), start, cursor) }
-                else if !isNotKeyword, let keyword = Keyword(rawValue: C.string(from: value)) {
+                if value == C.void {
+                    append(TokenLiteral(value: .void), start, cursor)
+                } else if value == C.null {
+                    append(TokenLiteral(value: .null), start, cursor)
+                } else if value == C.true {
+                    append(TokenLiteral(value: .bool(value: true)), start, cursor)
+                } else if value == C.false {
+                    append(TokenLiteral(value: .bool(value: false)), start, cursor)
+                } else if !isNotKeyword, let keyword = Keyword(rawValue: C.string(from: value)) {
                     append(keyword, start, cursor) // @Speed: slow parsing of keywords
-                }
-                else if isDirective {
+                } else if isDirective {
                     if value.isEmpty { throw error(.emptyDirectiveName, start, cursor) }
                     append(Directive(value: C.string(from: value)), start, cursor)
-                }
-                else {
-                    if value == [C.underscore] { throw error(.invalidIdentifierUnderscore, start, cursor) }
+                } else if value == [C.underscore] {
+                    throw error(.invalidIdentifierUnderscore, start, cursor)
+                } else {
                     append(Identifier(value: C.string(from: value)), start, cursor)
                 }
                 
