@@ -69,6 +69,40 @@ struct Lexer {
 };
 typedef struct Lexer Lexer;
 
+bool only_contains_character(char* string, char character) {
+    int i = 0;
+    while (string[i] != 0) {
+        if (string[i] != character) {
+            return false;
+        }
+        i += 1;
+    }
+    return true;
+}
+
+bool is_in_range(char character, char min, char max) {
+    return character >= min && character <= max;
+}
+
+char last_char_of(char *string) {
+    int length = strlen(string);
+    return string[length-1];
+}
+
+bool string_contains(char* string, char character) {
+    int i = 0;
+    while(true) {
+        if (string[i] == character) {
+            return true;
+        }
+        if (string[i] == 0) {
+            break;
+        }
+        i += 1;
+    }
+    return false;
+}
+
 bool string_compare(char* first, char* second) {
     int i = 0;
     while(first[i] == second[i]) {
@@ -129,16 +163,23 @@ void print_token(Token token) {
             break;
         }
         case BOOLLITERAL: {
-            cout << "[Bool Literal ";
-            if (token.boolValue) {
-                cout << "true";
-            } else {
-                cout << "false";
-            }
+            cout << "[Bool ";
+            if (token.boolValue) { cout << "true"; } 
+            else { cout << "false"; }
             break;
         }
         case ENDOFFILE: {
             cout << "[Token EOF";
+            break;
+        }
+        case INTLITERAL: {
+            cout << "[Literal " << token.intValue;
+            break;
+        }
+        case FLOATLITERAL: {
+            typedef std::numeric_limits< double > dbl;
+            cout.precision(dbl::max_digits10);
+            cout << "[Literal " << token.doubleValue;
             break;
         }
 

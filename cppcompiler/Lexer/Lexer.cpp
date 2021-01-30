@@ -58,14 +58,25 @@ void value_append_string(char* string) {
     }
 }
 
-bool is_in_range(char value, char min, char max) {
-    return value >= min && value <= max;
-}
+function<bool (char)> identifier_comparator = [](char c) {
+    bool is_matching = is_in_range(c, TOKENRANGE_LOWERCASE_MIN, TOKENRANGE_LOWERCASE_MAX)
+        || is_in_range(c, TOKENRANGE_UPPERCASE_MIN, TOKENRANGE_UPPERCASE_MAX)
+        || is_in_range(c, TOKENRANGE_NUMBER_MIN, TOKENRANGE_NUMBER_MAX)
+        || c == CHAR_UNDERSCORE
+        || c == CHAR_ASTERISK
+        || c == CHAR_ACCENT;
+    bool is_legal = last_char_of(value) != CHAR_ASTERISK 
+        || last_char_of(value) == CHAR_ASTERISK && c == CHAR_ASTERISK;
+    return is_matching && is_legal;
+};
 
-char last_char_of(char *string) {
-    int length = strlen(string);
-    return string[length-1];
-}
+function<bool (char)> number_comparator = [](char c) {
+    return is_in_range(c, TOKENRANGE_NUMBER_MIN, TOKENRANGE_NUMBER_MAX)
+           || c == CHAR_UNDERSCORE
+           || c == CHAR_DOT
+           || c == CHAR_E 
+           || c == CHAR_DASH;
+};
 
 void advance(int count) {
     for (int w = 0; w < count; w++) {
@@ -183,7 +194,7 @@ bool is_next_three_quotes_after(int n) {
 }
 
 void fail_with_error(const char* message, Cursor *start, Cursor *end, int line_number) {
-    cout << "error occured: " << message << "\n(context: L" << line_number << ")" << endl;
+    std::cout << "error occured: " << message << "\n(context: L" << line_number << ")" << endl;
     exit(1);
 }
 
@@ -277,19 +288,16 @@ Output* lexer_analyze(char* string) {
                     fail_with_error("unexpectedEndOfFile", cursor, cursor, __LINE__);
                 }
             }
-        } 
-        else if (character == CHAR_SEMICOLON || character == CHAR_COMMA) {
+        }  else if (character == CHAR_SEMICOLON || character == CHAR_COMMA) {
             // SEPARATORS
             cout << character;
             value_reset();
             value_append(character);
             auto separator_token = make_token_separator();
             token_append(separator_token, cursor, cursor);
-        } 
-        else if (character == CHAR_NEWLINE || character == CHAR_SPACE) {
+        }  else if (character == CHAR_NEWLINE || character == CHAR_SPACE) {
             // skip
-        } 
-        else if (
+        }  else if (
                is_in_range(character, TOKENRANGE_LOWERCASE_MIN, TOKENRANGE_LOWERCASE_MAX)
             || is_in_range(character, TOKENRANGE_UPPERCASE_MIN, TOKENRANGE_UPPERCASE_MAX)
             || character == CHAR_UNDERSCORE
@@ -315,20 +323,8 @@ Output* lexer_analyze(char* string) {
             value_reset();
             value_append(character);
 
-            function<bool (char)> comparator = [](char c) {
-                bool is_matching = is_in_range(c, TOKENRANGE_LOWERCASE_MIN, TOKENRANGE_LOWERCASE_MAX)
-                    || is_in_range(c, TOKENRANGE_UPPERCASE_MIN, TOKENRANGE_UPPERCASE_MAX)
-                    || is_in_range(c, TOKENRANGE_NUMBER_MIN, TOKENRANGE_NUMBER_MAX)
-                    || c == CHAR_UNDERSCORE
-                    || c == CHAR_ASTERISK
-                    || c == CHAR_ACCENT;
-                bool is_legal = last_char_of(value) != CHAR_ASTERISK 
-                    || last_char_of(value) == CHAR_ASTERISK && c == CHAR_ASTERISK;
-                return is_matching && is_legal;
-            };
-            
             while (true) {
-                char* next = consume_next(comparator);
+                char* next = consume_next(identifier_comparator);
                 if (next == NULL) {
                     break;
                 }
@@ -378,8 +374,75 @@ Output* lexer_analyze(char* string) {
                 token->stringValue = get_value();
                 token_append(token, start, cursor);
             }
-        }
-        else {
+
+        } else if (
+            is_in_range(character, TOKENRANGE_NUMBER_MIN, TOKENRANGE_NUMBER_MAX)
+            || character == CHAR_DOT
+            || character == CHAR_DASH
+        ) {
+            // NUMBER LITERALS
+            Cursor *start = copy_cursor(*cursor);
+
+            bool should_fallthrough = false;
+            if (!is_in_range(character, TOKENRANGE_NUMBER_MIN, TOKENRANGE_NUMBER_MAX)) {
+                char* next = peek_next();
+                if (next == NULL || !is_in_range(*next, TOKENRANGE_NUMBER_MIN, TOKENRANGE_NUMBER_MAX)) {
+                    should_fallthrough = true;
+                }
+            }
+
+            if (!should_fallthrough) {
+                value_reset();
+                value_append(character);
+
+                while (true) {
+                    char* next = consume_next(number_comparator);
+                    if (next == NULL) {
+                        break;
+                    }
+                    if (value_length >= 1 && *next == CHAR_DASH && last_char_of(value) != CHAR_E) {
+                        fail_with_error("unexpectedMinusInNumberLiteral", start, cursor, __LINE__);
+                    }
+                    if (*next == CHAR_DOT && string_contains(value, CHAR_DOT)
+                        || *next == CHAR_E && string_contains(value, CHAR_E)) {
+                        if (*next == CHAR_DOT) {
+                            fail_with_error("unexpectedDotInFloatLiteral", start, cursor, __LINE__);
+                        } else {
+                            fail_with_error("unexpectedEInFloatLiteral", start, cursor, __LINE__);
+                        }
+                    }
+                    if (*next == CHAR_UNDERSCORE) {
+                        continue;
+                    }
+                    value_append(*next);
+                }
+
+                char *next = peek_next();
+                if (next != NULL) {
+                    // @Todo: this probably doesn't work out because 
+                    // punctuators and operators are multidimentional arrays
+                    if (!( string_contains((char*) separators, *next)
+                        || string_contains((char*) punctuators, *next)
+                        || string_contains((char*) operators, *next))
+                    ) {
+                        fail_with_error("unexpectedCharacterInNumber", cursor, cursor, __LINE__);
+                    }
+                }
+
+                if (string_compare(value, (char*) &CHAR_DASH) || only_contains_character(value, CHAR_DOT)) {
+
+                } else if (string_contains(value, CHAR_E) || string_contains(value, CHAR_DOT)) {
+                    Token *token = make_token(FLOATLITERAL);
+                    token->doubleValue = atof(value);
+                    token_append(token, start, cursor);
+                } else {
+                    Token *token = make_token(INTLITERAL);
+                    token->intValue = atoi(value);
+                    token_append(token, start, cursor);
+                }
+            }
+            
+        } else {
             cout << "main switch defaulted at:" << string[i] << " " << (int)string[i] << endl;
         }
 

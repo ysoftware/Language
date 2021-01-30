@@ -102,7 +102,7 @@ final class Token: Equatable, CustomDebugStringConvertible {
     var debugDescription: String {
         let c = PrintCursors ? " \(startCursor)-\(endCursor)" : ""
         if let string = value as? StringValueToken {
-            return "[\(tokenType) \"\(string.value)\"\(c)]"
+            return "[\(tokenType) \(string.value)\(c)]"
         }
         else if let literal = value as? TokenLiteral {
             switch literal.value {

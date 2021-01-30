@@ -191,23 +191,27 @@ final class Lexer {
                 
             case C.numberRange, C.dot, C.dash:
                 // NUMBER LITERALS
-                
                 let start = cursor
                 
                 // if this and the next characters are both not numbers
-                if !C.numberRange.contains(char), let next = peekNext(), !C.numberRange.contains(next) {
-                    fallthrough
-                }
+                if !C.numberRange.contains(char),
+                   let next = peekNext(),
+                   !C.numberRange.contains(next) { fallthrough }
                 
                 value.reset()
                 value.append(char)
                 let numLitSymbols = [C.underscore, C.dot, C.e, C.dash]
-                while let next = consumeNext(where: { C.numberRange.contains($0) || numLitSymbols.contains($0) }) {
+                while let next = consumeNext(
+                    where: { C.numberRange.contains($0) || numLitSymbols.contains($0) }
+                ) {
                     if value.count >= 1 && next == C.dash && value.last != C.e {
                         throw error(.unexpectedMinusInNumberLiteral, start, cursor)
                     }
-                    else if next == C.dot && value.contains(C.dot) || next == C.e && value.contains(C.e) {
-                        throw error((next == C.dot ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral), start, cursor)
+                    if next == C.dot && value.contains(C.dot) || next == C.e && value.contains(C.e) {
+                        throw error(
+                            (next == C.dot ? .unexpectedDotInFloatLiteral : .unexpectedEInFloatLiteral),
+                            start, cursor
+                        )
                     }
                     if next == C.underscore { continue }
                     value.append(next)
