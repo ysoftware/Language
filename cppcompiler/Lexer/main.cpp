@@ -1,4 +1,7 @@
+#include <chrono> 
 #include "main.h"
+
+using namespace std::chrono; 
 
 int main(int argc, char **argv) {
     auto *arguments = parse_arguments(argc, argv);
@@ -15,6 +18,8 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
+    auto start = high_resolution_clock::now();
+    
     // run lexer
     auto *output = lexer_analyze(file_buffer);
     cout << "Token count: " << output->tokens_count << endl;
@@ -22,6 +27,12 @@ int main(int argc, char **argv) {
     for (int i = 0; i < output->tokens_count; i++) {
         print_token(output->tokens[i]);
     }
+    
+    auto stop = high_resolution_clock::now();
+    auto micros = (double) duration_cast<microseconds>(stop - start).count();
+    auto seconds = micros / 1000000;
+    cout.precision(2);
+    cout << "Everything took " << seconds << " sec." << endl;
 
     // clean up
     free(file_buffer);

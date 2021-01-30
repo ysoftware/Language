@@ -290,7 +290,6 @@ Output* lexer_analyze(char* string) {
             }
         }  else if (character == CHAR_SEMICOLON || character == CHAR_COMMA) {
             // SEPARATORS
-            cout << character;
             value_reset();
             value_append(character);
             auto separator_token = make_token_separator();

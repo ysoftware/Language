@@ -141,6 +141,10 @@ char* cursor_string(Cursor cursor) {
 }
 
 void print_token(Token token) {
+
+    // @Todo: check runtime arguments
+    return;
+
     switch (token.type) {
         case STRINGLITERAL: {
             cout << "[String Literal \"" << token.stringValue << "\"";

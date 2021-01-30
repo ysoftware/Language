@@ -8,7 +8,7 @@
 
 import Foundation
 
-let startTime = CFAbsoluteTimeGetCurrent()
+var startTime = CFAbsoluteTimeGetCurrent()
 var previousTime = startTime
 var loc = 0
 
@@ -48,6 +48,8 @@ if let i = CommandLine.arguments.firstIndex(of: "-file") {
         quit(1)
     }
     
+    startTime = CFAbsoluteTimeGetCurrent()
+
     do {
         let lexerOutput = try Lexer(code).analyze()
         loc = lexerOutput.linesProcessed

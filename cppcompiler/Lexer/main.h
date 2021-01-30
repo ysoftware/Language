@@ -12,6 +12,7 @@ using namespace std;
 // ARGUMENT PARSING
 
 enum RunArgumentsFlags {
+    ShouldPrintTokens
 };
 
 struct RunArguments {
@@ -35,6 +36,8 @@ RunArguments* parse_arguments(int argc, char *argv[]) {
             isLookingForFile = false;
         } else if (strcmp(argument, "-file") == 0) {
             isLookingForFile = true;
+        } else if (strcmp(argument, "-tokens") == 0) {
+            arguments->flags | ShouldPrintTokens;
         }
     }
 
