@@ -59,7 +59,7 @@ void value_append_string(char* string) {
 }
 
 bool is_in_range(char value, char min, char max) {
-    return value > min && value < max;
+    return value >= min && value <= max;
 }
 
 char last_char_of(char *string) {
@@ -319,14 +319,14 @@ Output* lexer_analyze(char* string) {
                 bool is_matching = is_in_range(c, TOKENRANGE_LOWERCASE_MIN, TOKENRANGE_LOWERCASE_MAX)
                     || is_in_range(c, TOKENRANGE_UPPERCASE_MIN, TOKENRANGE_UPPERCASE_MAX)
                     || is_in_range(c, TOKENRANGE_NUMBER_MIN, TOKENRANGE_NUMBER_MAX)
-                    || strcmp(&c, &CHAR_UNDERSCORE)
-                    || strcmp(&c, &CHAR_ASTERISK)
-                    || strcmp(&c, &CHAR_ACCENT);
+                    || c == CHAR_UNDERSCORE
+                    || c == CHAR_ASTERISK
+                    || c == CHAR_ACCENT;
                 bool is_legal = last_char_of(value) != CHAR_ASTERISK 
-                    || last_char_of(value) == CHAR_ASTERISK && strcmp(&c, &CHAR_ASTERISK);
+                    || last_char_of(value) == CHAR_ASTERISK && c == CHAR_ASTERISK;
                 return is_matching && is_legal;
             };
-                
+            
             while (true) {
                 char* next = consume_next(comparator);
                 if (next == NULL) {
@@ -350,17 +350,17 @@ Output* lexer_analyze(char* string) {
                 fail_with_error("unexpectedCharacter", start, start, __LINE__);
             }
 
-            if (strcmp(value, "void")) {
+            if (string_compare(value, "void")) {
                 Token *token = make_token(VOIDLITERAL);
                 token_append(token, start, cursor); // @Todo: looks wrong
-            } else if (strcmp(value, "null")) {
+            } else if (string_compare(value, "null\0")) {
                 Token *token = make_token(NULLLITERAL);
                 token_append(token, start, cursor);
-            } else if (strcmp(value, "true")) {
+            } else if (string_compare(value, "true\0")) {
                 Token *token = make_token(BOOLLITERAL);
                 token->boolValue = true;
                 token_append(token, start, cursor);
-            } else if (strcmp(value, "false")) {
+            } else if (string_compare(value, "false\0")) {
                 Token *token = make_token(BOOLLITERAL);
                 token->boolValue = false;
                 token_append(token, start, cursor);
@@ -371,21 +371,20 @@ Output* lexer_analyze(char* string) {
                 Token *token = make_token(DIRECTIVE);
                 token->stringValue = get_value();
                 token_append(token, start, cursor);
-            } else if (strcmp(value, &CHAR_UNDERSCORE)) {
+            } else if (*value == CHAR_UNDERSCORE) {
                 fail_with_error("invalidIdentifierUnderscore", start, cursor, __LINE__);
             } else {
                 Token *token = make_token(IDENTIFIER);
                 token->stringValue = get_value();
                 token_append(token, start, cursor);
             }
-
         }
         else {
             cout << "main switch defaulted at:" << string[i] << " " << (int)string[i] << endl;
         }
 
         if (character == 0 || !next_char()) {
-            // token_append_eof
+            token_append(make_token(ENDOFFILE), cursor, cursor);
             break;
         }
     }

@@ -69,6 +69,17 @@ struct Lexer {
 };
 typedef struct Lexer Lexer;
 
+bool string_compare(char* first, char* second) {
+    int i = 0;
+    while(first[i] == second[i]) {
+        if (first[i] == 0 && second[i] == 0) {
+            return true;
+        }
+        i += 1;
+    }
+    return false;
+}
+
 Cursor* copy_cursor(Cursor cursor) {
     Cursor *copy = new Cursor();
     copy->line_number = cursor.line_number;
@@ -98,23 +109,36 @@ char* cursor_string(Cursor cursor) {
 void print_token(Token token) {
     switch (token.type) {
         case STRINGLITERAL: {
-            cout << "Token String Literal: \"" << token.stringValue;
+            cout << "[String Literal \"" << token.stringValue << "\"";
             break;
         }
         case SEPARATOR: {
-            cout << "Token Separator: " << token.stringValue;
+            cout << "[Separator " << token.stringValue;
             break;
         }
         case IDENTIFIER: {
-            cout << "Token Identifier: " << token.stringValue;
+            cout << "[Identifier " << token.stringValue;
             break;
         } 
         case DIRECTIVE: {
-            cout << "Token Directive: #" << token.stringValue;
+            cout << "[Directive " << token.stringValue;
             break;
         }
         case VOIDLITERAL: {
-            cout << "Token Void Literal";
+            cout << "[Void";
+            break;
+        }
+        case BOOLLITERAL: {
+            cout << "[Bool Literal ";
+            if (token.boolValue) {
+                cout << "true";
+            } else {
+                cout << "false";
+            }
+            break;
+        }
+        case ENDOFFILE: {
+            cout << "[Token EOF";
             break;
         }
 
@@ -124,10 +148,10 @@ void print_token(Token token) {
 
         // IDENTIFIER, PUNCTUATOR, DIRECTIVE, OPERATOR, COMMENT, SEPARATOR, NULLLITERAL, VOIDLITERAL, INTLITERAL, FLOATLITERAL, , KEYWORD, ENDOFFILE
         default:
-            cout << "Token print not implemented: Type: " << token.type;
+            cout << "[Not implemented: Type: " << token.type;
         break;
     }
-    cout << "\" (" << cursor_string(token.start) << " - " << cursor_string(token.end) << ")" << endl;
+    cout << " " << cursor_string(token.start) << " - " << cursor_string(token.end) << "]" << endl;
 }
 
 Output* lexer_analyze(char* string);
