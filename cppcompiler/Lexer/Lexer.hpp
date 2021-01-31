@@ -114,11 +114,15 @@ bool string_compare(char* first, char* second) {
     return false;
 }
 
-Cursor* copy_cursor(Cursor cursor) {
+Cursor* copy_cursor(Cursor *cursor) {
     Cursor *copy = new Cursor();
-    copy->line_number = cursor.line_number;
-    copy->character = cursor.character;
+    copy->line_number = cursor->line_number;
+    copy->character = cursor->character;
     return copy;
+}
+
+void withdraw_character(Cursor *cursor) {
+    cursor->character -= 1;  // @Todo: what if it's 0?
 }
 
 void advance_cursor_line(Cursor *cursor) {
@@ -143,7 +147,7 @@ char* cursor_string(Cursor cursor) {
 void print_token(Token token) {
 
     // @Todo: check runtime arguments
-    return;
+    // return;
 
     switch (token.type) {
         case STRINGLITERAL: {
@@ -184,6 +188,14 @@ void print_token(Token token) {
             typedef std::numeric_limits< double > dbl;
             cout.precision(dbl::max_digits10);
             cout << "[Literal " << token.doubleValue;
+            break;
+        }
+        case OPERATOR: {
+            cout << "[Operator " << token.stringValue;
+            break;
+        }
+        case PUNCTUATOR: {
+            cout << "[Punctuator " << token.stringValue;
             break;
         }
 

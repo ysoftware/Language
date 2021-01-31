@@ -55,7 +55,7 @@ struct Cursor: Equatable, CustomDebugStringConvertible {
     }
     
     mutating func withdrawCharacter(by count: Int = 1) {
-        character -= count
+        character -= count // @Todo: what if it's 0?
     }
     
     mutating func advanceCharacter(by count: Int = 1) {

@@ -11,7 +11,7 @@
         "program": "${workspaceFolder}/compiler.app",
         "args": [
           "-file",
-          "../../programs/lexertest.yw"
+          "../../programs/test.yw"
         ],
         "stopAtEntry": false,
         "MIMode": "lldb",

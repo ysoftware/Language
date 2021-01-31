@@ -145,14 +145,43 @@ bool consume_string(char *string) { // @Todo: test
     return true;
 }
 
-char* consume_one_of(char **array) { // @Todo: test
+// goes through an array with strings of 3 characters
+char* consume_one_of(char *array) {
+    // @Todo: check for eof
+    
     int index = 0;
-    while (array[index] != 0 && stringCount > i + index) {
-        auto s = array[index];
-        if (consume_string(s)) {
-            return s;
+    while (array[index] != 0 && stringCount > i) { // if reached the end (array[i][0] == 0)
+        bool is_matching = true;
+        int length = 0;
+        for (int w = 0; w < 3; w++) {
+            char array_value = array[index + w];
+            char code_value = code[i + w];
+
+            if (array_value != 0 && array_value != code_value) {
+                is_matching = false;
+                break;
+            }
+            if (array_value != 0 && array_value == code_value) {
+                length += 1;
+            }
         }
-        index += 1;
+
+        if (is_matching) {
+            auto result = new char[length];
+            result[0] = code[i + 0];
+            if (length > 1) {
+                result[1] = code[i + 1];
+            }
+            if (length > 2) {
+                result[2] = code[i + 2];
+            }
+
+            // 1 symbol is consumed at the end of the loop
+            next_char_count(length - 1);
+            return result;
+        }
+
+        index += 3;
     }
     return NULL;
 }
@@ -211,10 +240,11 @@ Output* lexer_analyze(char* string) {
     character = string[0];
 
     while (stringCount > i) {
+        bool should_fallthrough = false;
 
         if (character == CHAR_QUOTE) {
             // STRING LITERAL
-            Cursor *start = copy_cursor(*cursor);
+            Cursor *start = copy_cursor(cursor);
 
             auto is_multiline = is_next_three_quotes_after(0);
             if (is_multiline) {
@@ -288,15 +318,15 @@ Output* lexer_analyze(char* string) {
                     fail_with_error("unexpectedEndOfFile", cursor, cursor, __LINE__);
                 }
             }
-        }  else if (character == CHAR_SEMICOLON || character == CHAR_COMMA) {
+        } else if (character == CHAR_SEMICOLON || character == CHAR_COMMA) {
             // SEPARATORS
             value_reset();
             value_append(character);
             auto separator_token = make_token_separator();
             token_append(separator_token, cursor, cursor);
-        }  else if (character == CHAR_NEWLINE || character == CHAR_SPACE) {
+        } else if (character == CHAR_NEWLINE || character == CHAR_SPACE) {
             // skip
-        }  else if (
+        } else if (
                is_in_range(character, TOKENRANGE_LOWERCASE_MIN, TOKENRANGE_LOWERCASE_MAX)
             || is_in_range(character, TOKENRANGE_UPPERCASE_MIN, TOKENRANGE_UPPERCASE_MAX)
             || character == CHAR_UNDERSCORE
@@ -304,7 +334,7 @@ Output* lexer_analyze(char* string) {
             || character == CHAR_ACCENT
         ) {
             // KEYWORDS / IDENTIFIERS / DIRECTIVES / BOOL LITERALS
-            Cursor *start = copy_cursor(*cursor);
+            Cursor *start = copy_cursor(cursor);
 
             bool is_directive = consume(CHAR_POUND);
             if (is_directive) {
@@ -380,9 +410,8 @@ Output* lexer_analyze(char* string) {
             || character == CHAR_DASH
         ) {
             // NUMBER LITERALS
-            Cursor *start = copy_cursor(*cursor);
+            Cursor *start = copy_cursor(cursor);
 
-            bool should_fallthrough = false;
             if (!is_in_range(character, TOKENRANGE_NUMBER_MIN, TOKENRANGE_NUMBER_MAX)) {
                 char* next = peek_next();
                 if (next == NULL || !is_in_range(*next, TOKENRANGE_NUMBER_MIN, TOKENRANGE_NUMBER_MAX)) {
@@ -439,10 +468,34 @@ Output* lexer_analyze(char* string) {
                     token->intValue = atoi(value);
                     token_append(token, start, cursor);
                 }
+            }   
+        }
+
+        if (should_fallthrough) {
+            // PUNCTUATORS, OPERATORS
+            Cursor *start = copy_cursor(cursor);
+
+            auto punctuator_value = consume_one_of((char*) punctuators[0]);
+            if (punctuator_value != NULL) {
+                Token *token = make_token(PUNCTUATOR);
+                token->stringValue = punctuator_value;
+                token_append(token, start, cursor);
+            } else {
+                auto operator_value = consume_one_of((char*) operators[0]);
+                if (operator_value != NULL) {
+                    Token *token = make_token(OPERATOR);
+                    token->stringValue = operator_value;
+                    token_append(token, start, cursor);
+                } else {
+                    if (character == CHAR_SPACE || CHAR_NEWLINE) {
+                        // no-op
+                    } else if (character != 0) {
+                        auto previous = copy_cursor(start);
+                        withdraw_character(previous);
+                        fail_with_error("unexpectedCharacter", previous, cursor, __LINE__);
+                    }
+                }
             }
-            
-        } else {
-            cout << "main switch defaulted at:" << string[i] << " " << (int)string[i] << endl;
         }
 
         if (character == 0 || !next_char()) {

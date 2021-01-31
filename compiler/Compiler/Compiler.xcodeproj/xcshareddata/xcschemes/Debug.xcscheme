@@ -68,7 +68,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-file /Users/yerokhin/Documents/GitHub/Language/programs/lexertest.yw"
+            argument = "-file /Users/yerokhin/Documents/GitHub/Language/programs/test.yw"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -77,7 +77,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-tokens -c"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
