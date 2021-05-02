@@ -205,9 +205,9 @@ internal extension IR {
                 let instruction: String
                 switch (op.argument.exprType, op.exprType) {
                 case (let l as IntType, let r as IntType):
-                    instruction = l.size > r.size ? "zext" : "trunc" // extend/truncate
+                    instruction = l.size < r.size ? "zext" : "trunc" // extend/truncate
                 case (let l as FloatType, let r as FloatType):
-                    instruction = l.size > r.size ? "fpext" : "fptrunc" // extend/truncate
+                    instruction = l.size < r.size ? "fpext" : "fptrunc" // extend/truncate
                 case (is FloatType, let r as IntType):
                     instruction = r.isSigned ? "fptosi" : "fptoui"
                 case (let l as IntType, is FloatType):
